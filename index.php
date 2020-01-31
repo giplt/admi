@@ -53,15 +53,15 @@
 			"expenses" => "expenses.php",
 			"revenues" => "revenues.php"
 		);
-		
+
 		// Build menu
 		foreach($views as $key => $php) $menu.= '<div class="menuItem'.($page==$key?' selected':'').'" onclick="location.href=\''.$url.$lang.'/'.$key.'\';">'.__($key).'</div>';
-		
+
 		// Load page
 		if (file_exists('views/'.$views[$page])) include_once('views/'.$views[$page]);
 		else $content = 'TODO';
 	}
-	
+
 	// Output HTML
 ?>
 <!DOCTYPE html>
@@ -69,7 +69,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>Administratie Coöp Plan B</title>
-		<link rel="stylesheet" type="text/css" href="style/admi.css"/>
+		<link rel="stylesheet" type="text/css" href="/style/admi.css"/>
 	</head>
 	<body>
 		<h1>Administratie Coöp Plan B</h1>
