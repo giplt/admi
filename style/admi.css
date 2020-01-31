@@ -1,0 +1,60 @@
+html, body {
+	height:100%;
+}
+body {
+	font-family:sans;
+}
+h1 {
+	margin: 5px;
+}
+table {
+/*
+	background-color:#bbb;
+*/
+	border-spacing:1px;
+}
+tr {
+	background-color:#fff;
+}
+.data:hover {
+	background-color:#ffff8f;
+	cursor:pointer;
+}
+td {
+	vertical-align: top;
+}
+th {
+	text-align:left;
+	vertical-align: top;
+}
+#menu {
+	float:left;
+	width:210px;
+	overflow:hidden;
+}
+#content {
+	float:left;
+	width:75%;
+	height:90%;
+	border:solid 1px #000;
+	overflow:auto;
+}
+#error {
+	color:red;
+}
+#login {
+	width:300px;
+	text-align:right;
+}
+.menuItem {
+	cursor:pointer;
+	width:100%;
+	padding:2px;
+	color:#000;
+	background-color:#fff;
+}
+.menuItem.selected {
+	width:100%;
+	color:#fff;
+	background-color:#000;
+}
