@@ -29,7 +29,8 @@ CREATE TABLE `Transactions` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `URL` varchar(63) NOT NULL DEFAULT ''
 , `Type` integer NOT NULL DEFAULT '0'
-, `Date` date NOT NULL DEFAULT '0000-00-00'
+, `TransactionDate` date NOT NULL DEFAULT '0000-00-00'
+, `AccountingDate` date NOT NULL DEFAULT '0000-00-00'
 , `ContactID` integer NOT NULL DEFAULT '0'
 , `ProjectID` integer NOT NULL DEFAULT '0'
 , `Reference` varchar(63) NOT NULL DEFAULT ''

@@ -4,16 +4,16 @@
 	$menu = '';
 	$error = '';
 	$content = '';
-
+	
 	// Extract interface language, page and view from url
 	$path = substr($_SERVER["PHP_SELF"], 0, strpos($_SERVER["PHP_SELF"], 'index.php'));
 	$url = 'http://'.$_SERVER["SERVER_NAME"].$path;
 	
 	if (strpos($_SERVER["HTTP_HOST"],$_SERVER["SERVER_PORT"])){
-		$url_port=substr($url,0,strlen($url)-1);
-		$url=$url_port.":".$_SERVER["SERVER_PORT"]."/";
+		$url_port = substr($url,0,strlen($url)-1);
+		$url = $url_port.":".$_SERVER["SERVER_PORT"]."/";
 	}
-
+	
 	$query = explode('/', substr($_SERVER["REQUEST_URI"], strlen($path)));
 	$lang = isset($query[0]) ? $query[0] : 'nl';
 	$page = isset($query[1]) ? $query[1] : 'projects';
@@ -61,7 +61,7 @@
 		if (file_exists('views/'.$views[$page])) include_once('views/'.$views[$page]);
 		else $content = 'TODO';
 	}
-
+	
 	// Output HTML
 ?>
 <!DOCTYPE html>
@@ -69,7 +69,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>Administratie Coöp Plan B</title>
-		<link rel="stylesheet" type="text/css" href="/style/admi.css"/>
+		<link rel="stylesheet" type="text/css" href="style/admi.css"/>
 	</head>
 	<body>
 		<h1>Administratie Coöp Plan B</h1>
