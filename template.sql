@@ -29,7 +29,8 @@ CREATE TABLE `Transactions` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `URL` varchar(63) NOT NULL DEFAULT ''
 , `Type` integer NOT NULL DEFAULT '0'
-, `Date` date NOT NULL DEFAULT '0000-00-00'
+, `TransactionDate` date NOT NULL DEFAULT '0000-00-00'
+, `AccountingDate` date NOT NULL DEFAULT '0000-00-00'
 , `ContactID` integer NOT NULL DEFAULT '0'
 , `ProjectID` integer NOT NULL DEFAULT '0'
 , `Reference` varchar(63) NOT NULL DEFAULT ''
@@ -39,6 +40,12 @@ CREATE TABLE `Mutations` (
 , `TransactionID` integer NOT NULL DEFAULT '0'
 , `AccountID` integer NOT NULL DEFAULT '0'
 , `Amount` decimal(10,2) NOT NULL DEFAULT '0.00'
+);
+CREATE TABLE `Log` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `Timestamp` datetime NOT NULL DEFAULT '0'
+, `UserID` integer NOT NULL DEFAULT '0'
+, `Message` text NOT NULL DEFAULT ''
 );
 /*
 CREATE TABLE `ObligationTypes` (
