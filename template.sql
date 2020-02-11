@@ -8,6 +8,12 @@ CREATE TABLE `Users` (
 CREATE TABLE `Contacts` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `Name` varchar(64) NOT NULL DEFAULT ''
+, `Address` varchar(64) NOT NULL DEFAULT ''
+, `Zipcode` varchar(64) NOT NULL DEFAULT ''
+, `City` varchar(64) NOT NULL DEFAULT ''
+, `Country` varchar(64) NOT NULL DEFAULT ''
+, `Phone` varchar(64) NOT NULL DEFAULT ''
+, `Email` varchar(64) NOT NULL DEFAULT ''
 );
 CREATE TABLE `Projects` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
@@ -20,26 +26,55 @@ CREATE TABLE `Accounts` (
 , `PID` integer NOT NULL DEFAULT '0'
 , `Name` varchar(64) NOT NULL DEFAULT ''
 );
-CREATE TABLE `TransactionTypes` (
+
+-- purchase, sale, bank mutation
+CREATE TABLE `EntryTypes` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `Name` varchar(64) NOT NULL DEFAULT ''
-, `Mutations` text
+, `MutationsFormula` text -- 
 );
-CREATE TABLE `Transactions` (
+CREATE TABLE `Entries` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
-, `URL` varchar(63) NOT NULL DEFAULT ''
-, `Type` integer NOT NULL DEFAULT '0'
+, `EntryTypeID` integer NOT NULL DEFAULT '0'
+, `Status` integer NOT NULL DEFAULT '0'
 , `TransactionDate` date NOT NULL DEFAULT '0000-00-00'
 , `AccountingDate` date NOT NULL DEFAULT '0000-00-00'
 , `ContactID` integer NOT NULL DEFAULT '0'
 , `ProjectID` integer NOT NULL DEFAULT '0'
+, `URL` varchar(63) NOT NULL DEFAULT ''
 , `Reference` varchar(63) NOT NULL DEFAULT ''
+, `Log` text NOT NULL DEFAULT ''
+, `Mutations` text
+);
+CREATE TABLE `Transactions` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `EntryID` integer NOT NULL DEFAULT '0'
 );
 CREATE TABLE `Mutations` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `TransactionID` integer NOT NULL DEFAULT '0'
 , `AccountID` integer NOT NULL DEFAULT '0'
 , `Amount` decimal(10,2) NOT NULL DEFAULT '0.00'
+);
+CREATE TABLE `PaymentProviders` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `ProviderName` varchar(63) NOT NULL DEFAULT ''
+, `Account` varchar(63) NOT NULL DEFAULT ''
+, `API` varchar(63) NOT NULL DEFAULT ''
+);
+CREATE TABLE `PaymentEndpoint` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `AccountID` integer NOT NULL DEFAULT '0'
+, `PaymentProviderID` integer NOT NULL DEFAULT '0'
+, `Account` varchar(63) NOT NULL DEFAULT ''
+, `API` varchar(63) NOT NULL DEFAULT ''
+);
+CREATE TABLE `Payments` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `Timestamp` datetime NOT NULL DEFAULT '0'
+, `FromPaymentEndpointID` integer NOT NULL DEFAULT '0'
+, `ToPaymentEndpointID` integer NOT NULL DEFAULT '0'
+, `Status` integer NOT NULL DEFAULT '0'
 );
 CREATE TABLE `Log` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
@@ -58,7 +93,7 @@ CREATE TABLE `Obligations` (
 	Type           TEXT    NOT NULL  //    type=in/verkoop, lening, investering, projectverplichting (de typen verplichting hebben een niveau, bon-bank is niveau 0, projectverplichting hoogste niveau)
 );
 */
-INSERT INTO `Accounts` (ID,PID,Name) VALUES
+INSERT INTO `Accounts` (ID, PID, Name) VALUES
 (1,0,'balansrekeningen'),
 (2,0,'resultaatrekeningen'),
 (3,1,'bank & kas'),
@@ -93,7 +128,7 @@ INSERT INTO `Accounts` (ID,PID,Name) VALUES
 (32,13,'sejours'),
 (33,13,'publiciteit');
 
-INSERT INTO `TransactionTypes` (ID,Name,Mutations) VALUES
+INSERT INTO `TransactionTypes` (ID, Name, MutationFormula) VALUES
 (1,'transfer', '3=1'),
 (2,'purchase', '5=12+6'),
 (3,'sale', '4=13+6');
