@@ -41,6 +41,12 @@ CREATE TABLE `Mutations` (
 , `AccountID` integer NOT NULL DEFAULT '0'
 , `Amount` decimal(10,2) NOT NULL DEFAULT '0.00'
 );
+CREATE TABLE `Log` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `Timestamp` datetime NOT NULL DEFAULT '0'
+, `UserID` integer NOT NULL DEFAULT '0'
+, `Message` text NOT NULL DEFAULT ''
+);
 /*
 CREATE TABLE `ObligationTypes` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
