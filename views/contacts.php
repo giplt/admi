@@ -19,15 +19,30 @@
 	
 	function viewContact($id) {
 		global $db, $content, $url, $lang;
-		if ($id=='new') $contact = array("ID"=>"", "Name"=>"New contact name");
+		if ($id=='new') $contact = array("ID"=>"", "Name"=>"", "Address"=>"", "Zipcode"=>"", "City"=>"","Country"=>"","Phone"=>"","Email"=>"","Member"=>"no");
 		else $contact = $db->query("SELECT * FROM Contacts WHERE ID='{$id}'")->fetchArray();
 		$protected = false;
 		$content.= '<form method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
+		
+		// kan dit nog handiger met een, voor elke key in array maak hetzelfde?
 		$content.= '<table>';
 		$content.= '<tr><th>ID</th><td>'.$contact['ID'].'</td>';
-		$content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" value="'.$contact['Name'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" placeholder="Voor en Achternaam" value="'.$contact['Name'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('address').'</th><td><input type="text" name="Address" value="'.$contact['Address'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('zipcode').'</th><td><input type="text" name="Zipcode" value="'.$contact['Zipcode'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('city').'</th><td><input type="text" name="City" value="'.$contact['City'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('country').'</th><td><input type="text" name="Country" value="'.$contact['Country'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('phone').'</th><td><input type="text" name="Phone" value="'.$contact['Phone'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('email').'</th><td><input type="text" name="Email" value="'.$contact['Email'].'"/></td></tr>';
+
+		//default werkt nog niet:  werkt nog niet //<?php if($contact['Member']=="no") echo 'checked="checked"'		
+		$content.= '<tr><th>'.__('membership').'</th><td>';
+		$content.= '<input type="radio" name="Member" value="no" /> '.__('no').' ';
+		$content.= '<input type="radio" name="Member" value="yes"/> '.__('yes').' </td></tr>';
+		$content.= '<tr><th>'.$contact['Lid'].'</th></tr>';
 		$content.= '</table>';
+
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/contacts\';"/>';
@@ -39,7 +54,7 @@
 		switch ($_POST['cmd']) {
 			case 'update':
 				if ($_POST['ID']=='new') {
-					$db->query("INSERT INTO Contacts (Name) VALUES ('".$_POST['Name']."')");
+					$db->query("INSERT INTO Contacts (Name,Address,Zipcode,City,Country,Phone,Email,Member) VALUES ('".$_POST['Name']."','".$_POST['Address']."','".$_POST['Zipcode']."','".$_POST['City']."','".$_POST['Country']."','".$_POST['Phone']."','".$_POST['Email']."','".$_POST['Member']."')");					
 					$id = $db->lastInsertRowID();
 				}
 				else {

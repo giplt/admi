@@ -48,8 +48,8 @@
 		"en": "Loans"
 	},
 	"users": {
-		"nl": "Leden",
-		"en": "Members"
+		"nl": "Gebruikers",
+		"en": "Users"
 	},
 	"account": {
 		"nl": "Rekening",
@@ -106,5 +106,41 @@
 	"welcome-login": {
 		"nl": "Log in met email en wachtwoord of registreer als nieuwe gebruiker. Wachtwoord kwijt? Vul je email-adres in en klik op hernieuw.",
 		"en": "Please log in using email and password of register as a new user. Lost your password? Fill out your email adress and click renew."
+	},
+	"address": {
+		"nl": "Adres",
+		"en": "Address"
+	},
+	"zipcode": {
+		"nl": "Postcode",
+		"en": "Zipcode"
+	},
+	"city": {
+		"nl": "Stad",
+		"en": "City"
+	},
+	"country": {
+		"nl": "Land",
+		"en": "Country"
+	},
+	"phone": {
+		"nl": "Telefoon",
+		"en": "Phone"
+	},
+	"email": {
+		"nl": "Email",
+		"en": "Email"
+	},
+	"membership": {
+		"nl": "Plan B lid",
+		"en": "Plan B member"
+	},
+	"yes": {
+		"nl": "Ja",
+		"en": "Yes"
+	},
+	"no": {
+		"nl": "Nee",
+		"en": "No"
 	}
 }
