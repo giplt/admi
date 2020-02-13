@@ -5,7 +5,7 @@
 	
 	function viewPurchaseList() {
 		global $db, $content, $url, $lang;
-		$query = "SELECT * FROM Transactions WHERE Type = 2 ORDER BY Date";
+		$query = "SELECT * FROM Purchases ORDER BY ID";
 		$list = $db->query($query);
 		$content.= '<table>';
 		$content.= '<tr>';
@@ -18,15 +18,19 @@
 		$content.= '<td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/purchases/new\';"/></td>';
 		$content.= '</tr>';
 		while($item = $list->fetchArray()) {
+
+			//collect info
+			$entry=$db->query("SELECT * FROM Entries WHERE ID='".$item['EntrytID']."'")->fetchArray();
+			$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$item['ID']."' AND Accounts.PID='12'")->fetchArray();
+			$project = $db->query("SELECT * FROM Projects WHERE ID='".$item['ProjectID']."'")->fetchArray();
+			$contact = $db->query("SELECT * FROM Projects WHERE ID='".$item['ContactID']."'")->fetchArray();
+			
+			//put in the table			
 			$content.= '<tr class="data">';
 			$content.= '<td>'.$item['ID'].'</td>';
-			$content.= '<td>'.$item['Date'].'</td>';
-			$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$item['ID']."' AND Accounts.PID='12'")->fetchArray();
+			$content.= '<td>'.$entry['TransactionDate'].'</td>';
 			$content.= '<td>'.$mutation['Amount'].'</td>';
-			$project = $db->query("SELECT * FROM Projects WHERE ID='".$item['ProjectID']."'")->fetchArray();
 			$content.= '<td>'.$project['Name'].'</td>';
-			$content.= '<td>'.$mutation['Name'].'</td>';
-			$contact = $db->query("SELECT * FROM Projects WHERE ID='".$item['ContactID']."'")->fetchArray();
 			$content.= '<td>'.$contact['Name'].'</td>';
 			$content.= '<td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/purchases/'.$item['ID'].'\';"/></td>';
 			$content.= '</tr>';
@@ -40,15 +44,24 @@
 		//2 = validatie, btw optelling klopt niet
 
 		global $db, $content, $url, $lang;
-		if ($id=='new') $purchase = array("ID"=>"NEW", "Type"=>"2", "Date" => "", "Location" => "", "Reference" => "", "ContactID" => "", "ProjectID" => "", "Nett" => "", "VAT" => "", "Gross" => "", "VAT_Type" => "");
-		else $purchase = $db->query("SELECT * FROM Transactions WHERE ID='{$id}'")->fetchArray();
+		//get content
+		if ($id=='new'){
+			$purchase = array("ID"=>"", "EntryID" => "", "Status" => "", "Reference" => "", "ContactID" => "", "ProjectID" => "", "Nett" => "", "VAT" => "", "Gross" => "", "VAT_Type" => "");
+			$entry = array("ID"=>"", "TransactionDate" => "", "AccountingDate" => "", "URL" => "", "Log" => "");
+		}		
+		else {
+			$purchase = $db->query("SELECT * FROM Purchases WHERE ID='".$id."'")->fetchArray();
+			$entry = $db->query("SELECT * FROM Entries WHERE ID=''".$purchase['EntryID']."'")->fetchArray();
+			$transactions = $db->query("SELECT * FROM Transactions WHERE EntryID=''".$entry['ID']."'")->fetchArray();
+		}			
+
 		$protected = false;
 		$content.= '<form method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
 		$content.= '<fieldset><legend>Declaratie door = contact</legend><table>';		
 		$content.= '<tr><th>ID</th><td>'.$purchase['ID'].'</td>';
 
-                // Contactinformatie - nog meer info nodig?
+                // Contactinformatie - nog meer info nodig? Ja bankrekening
 		$options = '<option value="" disabled="disabled"'.($purchase['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $options.= '<option value="'.$contact['ID'].'"'.($purchase['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
@@ -57,10 +70,10 @@
 
 		//Datum en locatie van het boekstuk
 		$content.='<fieldset><legend>Bonnetje = boekstuk</legend><table>';
-		$content.= '<tr><th>'.__('date').'</th><td><input type="date" name="factuurdatum" value="'.$purchase['Date'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('date').'</th><td><input type="date" name="factuurdatum" value="'.$entry['TransactionDate'].'"/></td></tr>';
 		
 		// TODO: upload bonnetje naar een specifieke plek op de server
-		$content.= '<tr><th>'.__('location').'</th><td><input type="text" name="Location" value="'.$purchase['URL'].'"/> <input type="file" value="'.__('upload').'" name=myFile accept="image/*,.pdf"></td></tr>';
+		$content.= '<tr><th>'.__('location').'</th><td><input type="text" name="Location" value="'.$entry['URL'].'"/> <input type="file" value="'.__('upload').'" name=myFile accept="image/*,.pdf"></td></tr>';
 
 		//ProjectID
 		$options = '<option value="" disabled="disabled"'.($purchase['ProjectID']?'':' selected').'>'.__('pick-project').'</option>';
@@ -74,32 +87,32 @@
 		
 		// TODO: voeg afdracht toe bij kostensoort uren
 		$content.='<fieldset><legend>Item op bonnetje = transactie</legend><table>';
-		$options = '<option value="" disabled="disabled"'.($purchase['ExpenseID']?'':' selected').'>'.__('pick-expense').'</option>';
+		$options = '<option value="" disabled="disabled"'.($purchase['ID']?'':' selected').'>'.__('pick-expense').'</option>';
 		$expenses = $db->query("SELECT * FROM Accounts WHERE PID='12' ORDER BY Name");
 		while($expense = $expenses->fetchArray()) $options.= '<option value="'.$expense['ID'].'"'.($purchase['ExpenseID']==$expense['ID']?' selected':'').'>'.$expense['Name'].'</option>';
 		$content.= '<tr><th>'.__('expense').'</th><td><select name="ExpenseID">'.$options.'</select></td></tr>';
 		
-		// TODO: gebruik btw percentages in calculator
-		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$purchase['ID']."' AND Accounts.PID='12'")->fetchArray();
-		$content.= '<tr><th>'.__('amount').'</th><td><input type="text" name="gross" placeholder="'.__('gross').'" value="'.$mutation['Amount'].'"/>';
-		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$purchase['ID']."' AND Accounts.PID='6'")->fetchArray();
-		$content.= '<input type="text" name="nett" placeholder="'.__('nett').'" value="'.$mutation['Amount'].'"/>';
-		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$purchase['ID']."' AND Accounts.PID='3'")->fetchArray();
-		$content.= '<input type="text" name="vat" placeholder="'.__('vat').'" value="'.$mutation['Amount'].'"/></tr>';
+		// TODO: omgaan met array van transacties
+		// $mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='12'")->fetchArray();
+		// $content.= '<tr><th>'.__('amount').'</th><td><input type="text" name="gross" placeholder="'.__('gross').'" value="'.$mutation['Amount'].'"/>';
+		// $mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='6'")->fetchArray();
+		// $content.= '<input type="text" name="nett" placeholder="'.__('nett').'" value="'.$mutation['Amount'].'"/>';
+		// $mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='3'")->fetchArray();
+		// $content.= '<input type="text" name="vat" placeholder="'.__('vat').'" value="'.$mutation['Amount'].'"/></tr>';
 		
 		// BTW type TODO: BTW type inladen? (of niet nodig?) BTW type in het talen-bestand zetten, VAT_Type als database_item
-		$content.= '<tr><th>BTW-type</th>';
-		$options = '<option value="" disabled="disabled"'.($purchase['VAT_Type']?'':' selected').'>Choose VAT type</option>';
-		$options.= '<option value="0">0% (vrijgesteld)</option>';
-		$options.= '<option value="9">9%</option>';
-		$options.= '<option value="9VNL">9% verlegd NL</option>';
-		$options.= '<option value="9VEU">9% verlegd EU</option>';
-		$options.= '<option value="21">21%</option>';
-		$options.= '<option value="21VNL">21% verlegd NL</option>';
-		$options.= '<option value="21VEU">21% verlegd EU</option>';
-		$options.= '<option value="21">21%</option>';
-		$options.= '<option value="21% verlegd">21% velegd EU</option>';
-		$content.= '<td><select name="VAT_Type">'.$options.'</select></td></tr>';
+		// $content.= '<tr><th>BTW-type</th>';
+		// $options = '<option value="" disabled="disabled"'.($purchase['VAT_Type']?'':' selected').'>Choose VAT type</option>';
+		// $options.= '<option value="0">0% (vrijgesteld)</option>';
+		// $options.= '<option value="9">9%</option>';
+		// $options.= '<option value="9VNL">9% verlegd NL</option>';
+		// $options.= '<option value="9VEU">9% verlegd EU</option>';
+		// $options.= '<option value="21">21%</option>';
+		// $options.= '<option value="21VNL">21% verlegd NL</option>';
+		// $options.= '<option value="21VEU">21% verlegd EU</option>';
+		// $options.= '<option value="21">21%</option>';
+		// $options.= '<option value="21% verlegd">21% velegd EU</option>';
+		// $content.= '<td><select name="VAT_Type">'.$options.'</select></td></tr>';
 		
 		//Submit buttons
 		$content.= '</table></fieldset>';

@@ -28,61 +28,94 @@ CREATE TABLE `Accounts` (
 , `Name` varchar(64) NOT NULL DEFAULT ''
 );
 
--- purchase, sale, bank mutation
-CREATE TABLE `EntryTypes` (
-  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
-, `Name` varchar(64) NOT NULL DEFAULT ''
-, `MutationsFormula` text -- 
-);
+--Generic values for all entries
 CREATE TABLE `Entries` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
-, `EntryTypeID` integer NOT NULL DEFAULT '0' 		-- purchase, bank, sales
 , `TransactionDate` date NOT NULL DEFAULT '0000-00-00' 	-- date of invoice, bank transfer etc
 , `AccountingDate` date NOT NULL DEFAULT '0000-00-00' 	-- date of uploading into accounting
-, `Reference` varchar(63) NOT NULL DEFAULT ''		-- reference number or description
-, `Status` integer NOT NULL DEFAULT '0'			-- status in review process
-, `ContactID` integer NOT NULL DEFAULT '0'		-- ID of contact that submits the reciept, recieves the invoice, or to/from bank transfer
-, `ProjectID` integer NOT NULL DEFAULT '0'
-, `URL` varchar(63) NOT NULL DEFAULT ''
+, `URL` varchar(63) NOT NULL DEFAULT ''			-- URL or location of the entry , transaction list line x, invoice 201, purchases folder 1
 , `Log` text NOT NULL DEFAULT ''
-, `Mutations` text
 );
-CREATE TABLE `Transactions` (
-  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
-, `EntryID` integer NOT NULL DEFAULT '0'
+
+--BOOKS: purchases, sales, bank, memorial
+
+--properties of purchases
+CREATE TABLE 'Purchases' (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
+, `EntryID` integer NOT NULL DEFAULT ''
+, `Status` integer NOT NULL DEFAULT '0'			-- status in review process
+, `Reference` varchar(63) NOT NULL DEFAULT ''		-- reference number or description
+, `ContactID` integer NOT NULL DEFAULT '0'		-- ID of contact that submits the reciept, recieves the invoice, or to/from bank transfer
+, `ProjectID` integer NOT NULL DEFAULT '0'		-- ID of project
 );
-CREATE TABLE `Mutations` (
-  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
-, `TransactionID` integer NOT NULL DEFAULT '0'
-, `AccountID` integer NOT NULL DEFAULT '0'
-, `Amount` decimal(10,2) NOT NULL DEFAULT '0.00'
+
+--properties of sales
+CREATE TABLE 'Sales' (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
+, `EntryID` integer NOT NULL DEFAULT ''
+, `Status` integer NOT NULL DEFAULT '0'			-- status in review process
+, `Reference` varchar(63) NOT NULL DEFAULT ''		-- reference number or description
+, `ContactID` integer NOT NULL DEFAULT '0'		-- ID of contact that submits the reciept, recieves the invoice, or to/from bank transfer
+, `ProjectID` integer NOT NULL DEFAULT '0'		-- ID of project
 );
-CREATE TABLE `PaymentProviders` (
-  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
-, `ProviderName` varchar(63) NOT NULL DEFAULT ''
-, `Account` varchar(63) NOT NULL DEFAULT ''
-, `API` varchar(63) NOT NULL DEFAULT ''
-);
-CREATE TABLE `PaymentEndpoint` (
-  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
-, `AccountID` integer NOT NULL DEFAULT '0'
-, `PaymentProviderID` integer NOT NULL DEFAULT '0'
-, `Account` varchar(63) NOT NULL DEFAULT ''
-, `API` varchar(63) NOT NULL DEFAULT ''
-);
-CREATE TABLE `Payments` (
-  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
-, `Timestamp` datetime NOT NULL DEFAULT '0'
+
+--properties of a bank transaction
+CREATE TABLE 'Bank' (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 	
+, `EntryID` integer NOT NULL DEFAULT ''
+, `Description` varchar(63) NOT NULL DEFAULT ''
 , `FromPaymentEndpointID` integer NOT NULL DEFAULT '0'
 , `ToPaymentEndpointID` integer NOT NULL DEFAULT '0'
-, `Status` integer NOT NULL DEFAULT '0'
 );
+
+--properties of an memorial
+CREATE TABLE 'Memorial' (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
+, `EntryID` integer NOT NULL DEFAULT ''
+, `Description` varchar(63) NOT NULL DEFAULT ''
+);
+
+
+CREATE TABLE `Transactions` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `EntryID` integer NOT NULL DEFAULT '0'		--refers to the entry to which the transaction belongs
+, `MergeID`integer DEFAULT NULL				--merging on the level of transactions? 		
+);
+
+CREATE TABLE `Mutations` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `TransactionID` integer NOT NULL DEFAULT '0'		--refers to the transaction to which the mutation belongs
+, `AccountID` integer NOT NULL DEFAULT '0'		--the account to which the mutation should be booked
+, `Amount` decimal(10,2) NOT NULL DEFAULT '0.00'	--the amount
+);
+
+CREATE TABLE `PaymentProviders` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT	
+, `ProviderName` varchar(63) NOT NULL DEFAULT ''	--bank or paypal, mollie
+, `Account` varchar(63) NOT NULL DEFAULT ''		--account number
+, `API` varchar(63) NOT NULL DEFAULT ''			
+);
+
+CREATE TABLE `PaymentEndpoint` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `ContactID` integer NOT NULL DEFAULT '0'		--account 
+, `PaymentProviderID` integer NOT NULL DEFAULT '0'	
+, `Account` varchar(63) NOT NULL DEFAULT ''		--account number
+, `API` varchar(63) NOT NULL DEFAULT ''
+);
+
 CREATE TABLE `Log` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `Timestamp` datetime NOT NULL DEFAULT '0'
 , `UserID` integer NOT NULL DEFAULT '0'
 , `Message` text NOT NULL DEFAULT ''
 );
+
+CREATE TABLE `Merge` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `MergeDate` date NOT NULL DEFAULT '0'
+); 
+
 /*
 CREATE TABLE `ObligationTypes` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
