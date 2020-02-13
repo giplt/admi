@@ -35,15 +35,15 @@ CREATE TABLE `EntryTypes` (
 , `MutationsFormula` text -- 
 );
 CREATE TABLE `Entries` (
-  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
-, `EntryTypeID` integer NOT NULL DEFAULT '0'
-, `Status` integer NOT NULL DEFAULT '0'
-, `TransactionDate` date NOT NULL DEFAULT '0000-00-00'
-, `AccountingDate` date NOT NULL DEFAULT '0000-00-00'
-, `ContactID` integer NOT NULL DEFAULT '0'
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
+, `EntryTypeID` integer NOT NULL DEFAULT '0' 		-- purchase, bank, sales
+, `TransactionDate` date NOT NULL DEFAULT '0000-00-00' 	-- date of invoice, bank transfer etc
+, `AccountingDate` date NOT NULL DEFAULT '0000-00-00' 	-- date of uploading into accounting
+, `Reference` varchar(63) NOT NULL DEFAULT ''		-- reference number or description
+, `Status` integer NOT NULL DEFAULT '0'			-- status in review process
+, `ContactID` integer NOT NULL DEFAULT '0'		-- ID of contact that submits the reciept, recieves the invoice, or to/from bank transfer
 , `ProjectID` integer NOT NULL DEFAULT '0'
 , `URL` varchar(63) NOT NULL DEFAULT ''
-, `Reference` varchar(63) NOT NULL DEFAULT ''
 , `Log` text NOT NULL DEFAULT ''
 , `Mutations` text
 );
