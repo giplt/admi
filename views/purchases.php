@@ -56,6 +56,10 @@
 		}			
 
 		$protected = false;
+		
+		//TODO: base html nog maken
+		$content.= '<script type="text/javascript" src="../../js/purchases.js"></script>'; 
+		$content.= '</script>';
 		$content.= '<form method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
 		$content.= '<fieldset><legend>Declaratie door = contact</legend><table>';		
@@ -83,23 +87,26 @@
 		
 		//Reference
 		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" name="Reference" value="'.$purchase['Reference'].'"/></td></tr>';
-		$content.='</table></fieldset>';		
+		$content.= '</table></fieldset>';		
 		
 		// TODO: voeg afdracht toe bij kostensoort uren
-		$content.='<fieldset><legend>Item op bonnetje = transactie</legend><table>';
+		$content.= '<fieldset><legend>Item op bonnetje = transactie</legend><table id="expenseTable">';
+
 		$options = '<option value="" disabled="disabled"'.($purchase['ID']?'':' selected').'>'.__('pick-expense').'</option>';
 		$expenses = $db->query("SELECT * FROM Accounts WHERE PID='12' ORDER BY Name");
 		while($expense = $expenses->fetchArray()) $options.= '<option value="'.$expense['ID'].'"'.($purchase['ExpenseID']==$expense['ID']?' selected':'').'>'.$expense['Name'].'</option>';
-		$content.= '<tr><th>'.__('expense').'</th><td><select name="ExpenseID">'.$options.'</select></td></tr>';
+		
+		$content.= '<tr><th>'.__('expense').'</th><th>'.__('gross').'</th><th>'.__('nett').'</th><th>'.__('vat').'</th><td><input type="button" onclick="addExpenseRow(\''.htmlentities($options).'\');" value="+" /></td></tr>';
+		
 		
 		// TODO: omgaan met array van transacties
-		// $mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='12'")->fetchArray();
-		// $content.= '<tr><th>'.__('amount').'</th><td><input type="text" name="gross" placeholder="'.__('gross').'" value="'.$mutation['Amount'].'"/>';
-		// $mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='6'")->fetchArray();
-		// $content.= '<input type="text" name="nett" placeholder="'.__('nett').'" value="'.$mutation['Amount'].'"/>';
-		// $mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='3'")->fetchArray();
-		// $content.= '<input type="text" name="vat" placeholder="'.__('vat').'" value="'.$mutation['Amount'].'"/></tr>';
-		
+/*		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='12'")->fetchArray();
+		$content.= '<tr><th>'.__('amount').'</th><td><input type="text" name="gross" placeholder="'.__('gross').'" value="'.$mutation['Amount'].'"/>';
+		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='6'")->fetchArray();
+		$content.= '<input type="text" name="nett" placeholder="'.__('nett').'" value="'.$mutation['Amount'].'"/>';
+		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='3'")->fetchArray();
+		$content.= '<input type="text" name="vat" placeholder="'.__('vat').'" value="'.$mutation['Amount'].'"/></tr>';
+*/		
 		// BTW type TODO: BTW type inladen? (of niet nodig?) BTW type in het talen-bestand zetten, VAT_Type als database_item
 		// $content.= '<tr><th>BTW-type</th>';
 		// $options = '<option value="" disabled="disabled"'.($purchase['VAT_Type']?'':' selected').'>Choose VAT type</option>';

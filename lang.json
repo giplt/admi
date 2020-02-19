@@ -142,5 +142,22 @@
 	"no": {
 		"nl": "Nee",
 		"en": "No"
+	},
+	"gross": {
+		"nl": "Bruto",
+		"en": "Gross"
+	},
+	"nett": {
+		"nl": "Netto",
+		"en": "Nett"
+	},
+	"vat": {
+		"nl": "BTW",
+		"en": "VAT"
+	},
+	"reference": {
+		"nl": "Referentie",
+		"en": "Reference"
 	}
+
 }
