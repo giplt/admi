@@ -58,3 +58,50 @@ th {
 	color:#fff;
 	background-color:#000;
 }
+
+/*-------------styles for purchases input sheet-------------- */
+
+.expenseInputTable {
+	width:100%;
+}
+
+.expenseInputRow {
+	width:100%;
+}
+
+/* not yet working */
+.expenseInputTotTable {
+	width:100%;
+	border-top: 1px solid black;
+        margin-top: 1%;
+}
+
+.expenseInputCol {
+	width:15%;
+}
+
+.expenseInputColLast {
+	width:8%;
+}
+
+.expenseInputFrame{
+	width:100%;
+}
+
+.expenseInputForm{
+	width:60%;
+	float: left;
+}
+
+.expenseInputVis{
+	width:39%;
+	float: left;
+	border: 1px solid black;
+}
+
+.expenseInputField{
+	width:8ch;
+}
+
+
+

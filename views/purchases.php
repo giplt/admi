@@ -2,7 +2,7 @@
 	if ($cmd) updatePurchase();
 	elseif ($view) viewPurchase($view);
 	else viewPurchaseList();
-	
+
 	function viewPurchaseList() {
 		global $db, $content, $url, $lang;
 		$query = "SELECT * FROM Purchases ORDER BY ID";
@@ -20,10 +20,11 @@
 		while($item = $list->fetchArray()) {
 
 			//collect info
-			$entry=$db->query("SELECT * FROM Entries WHERE ID='".$item['EntrytID']."'")->fetchArray();
-			$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$item['ID']."' AND Accounts.PID='12'")->fetchArray();
+			$entry=$db->query("SELECT * FROM Entries WHERE ID='".$item['EntryID']."'")->fetchArray();
+			$transactions=$db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'")->fetchArray();
+			$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='12'")->fetchArray();
 			$project = $db->query("SELECT * FROM Projects WHERE ID='".$item['ProjectID']."'")->fetchArray();
-			$contact = $db->query("SELECT * FROM Projects WHERE ID='".$item['ContactID']."'")->fetchArray();
+			$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$item['ContactID']."'")->fetchArray();
 			
 			//put in the table			
 			$content.= '<tr class="data">';
@@ -37,6 +38,7 @@
 		}
 		$content.= '</table>';
 	}
+
 	
 	function viewPurchase($id) {
 		//checks voor verplichte velden
@@ -58,9 +60,7 @@
 		$protected = false;
 		
 		//TODO: base html nog maken
-		$content.= '<script type="text/javascript" src="../../js/purchases.js"></script>'; 
-		$content.= '</script>';
-		$content.= '<form method="post">';
+		$content.= '<div class="expenseInputFrame"><div class="expenseInputForm"><form method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
 		$content.= '<fieldset><legend>Declaratie door = contact</legend><table>';		
 		$content.= '<tr><th>ID</th><td>'.$purchase['ID'].'</td>';
@@ -73,11 +73,14 @@
 		$content.='</table></fieldset>';
 
 		//Datum en locatie van het boekstuk
+		$today=date('Y-m-d');
 		$content.='<fieldset><legend>Bonnetje = boekstuk</legend><table>';
-		$content.= '<tr><th>'.__('date').'</th><td><input type="date" name="factuurdatum" value="'.$entry['TransactionDate'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('date').'</th><td><input type="date" name="TransactionDate" value="'.$entry['TransactionDate'].'"/></td></tr>';
+		$content.= '<input type="hidden" name="AccountingDate" value='.$today.'>';
 		
 		// TODO: upload bonnetje naar een specifieke plek op de server
-		$content.= '<tr><th>'.__('location').'</th><td><input type="text" name="Location" value="'.$entry['URL'].'"/> <input type="file" value="'.__('upload').'" name=myFile accept="image/*,.pdf"></td></tr>';
+		$content.= '<tr><th>'.__('location').'</th><td><input type="text" name="Location" value="'.$entry['URL'].'"/>' ;
+		//$content.= '<input type="file" value="'.__('upload').'" name=myFile accept="image/*,.pdf"></td></tr>';
 
 		//ProjectID
 		$options = '<option value="" disabled="disabled"'.($purchase['ProjectID']?'':' selected').'>'.__('pick-project').'</option>';
@@ -90,15 +93,43 @@
 		$content.= '</table></fieldset>';		
 		
 		// TODO: voeg afdracht toe bij kostensoort uren
-		$content.= '<fieldset><legend>Item op bonnetje = transactie</legend><table id="expenseTable">';
+		$content.= '<fieldset><legend>Item op bonnetje = transactie</legend><table id="expenseTable" class="expenseInputTable">';
 
-		$options = '<option value="" disabled="disabled"'.($purchase['ID']?'':' selected').'>'.__('pick-expense').'</option>';
+		//Haal alle opties voor kostensoort uit de database
+		$exp_options = array(array("placeholder","pick-expense"));
 		$expenses = $db->query("SELECT * FROM Accounts WHERE PID='12' ORDER BY Name");
-		while($expense = $expenses->fetchArray()) $options.= '<option value="'.$expense['ID'].'"'.($purchase['ExpenseID']==$expense['ID']?' selected':'').'>'.$expense['Name'].'</option>';
-		
-		$content.= '<tr><th>'.__('expense').'</th><th>'.__('gross').'</th><th>'.__('nett').'</th><th>'.__('vat').'</th><td><input type="button" onclick="addExpenseRow(\''.htmlentities($options).'\');" value="+" /></td></tr>';
-		
-		
+		while($expense = $expenses->fetchArray()) array_push($exp_options,array($expense['ID'],$expense['Name']));
+		$exp_options_safe=json_encode($exp_options);
+
+		//Geef alle opties voor btw-type
+		$vat_options=array(array("0","btw-vrij"),array("9","9%"),array("21","21%"));
+		$vat_options_safe=json_encode($vat_options);
+
+		//Geef alle opties voor btw verlegging TODO: nog koppelen aan rekeningen
+		$shift_options=array(array("nee","nee"),array("NL","NL"),array("EU","EU"),array("Ex","Ex"));
+		$shift_options_safe=json_encode($shift_options);
+
+		//Laad alle transacties uit de database
+
+		// Rijen met transacties
+		// TODO: inladen van data uit database
+		// TODO: selected meegeven aan options
+		$content.= '<tr class="expenseInputRow"><th class="expenseInputCol">'.__('expense').'</th>'; 
+		$content.='<th class="expenseInputCol">'.__('gross').'</th>';
+		$content.='<th class="expenseInputCol">'.__('nett').'</th>';
+		$content.='<th class="expenseInputCol">'.__('vat').'</th>';
+		$content.='<th class="expenseInputCol">vat_type</th>';
+		$content.='<th class="expenseInputCol">verlegd</th>';
+		$content.='<td class="expenseInputColLast"><input type="button" id="addRowButton" value="+"/></td></tr>';
+		$content.= '<table class="expenseInputTotTable"><tr class="expenseInputRow"><th class="expenseInputCol">'.__('total').'</th>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="grossTot"></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="nettTot"></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="vatTot"></td>';
+		$content.= '<td class="expenseInputCol"><select id="vatTypeTot"></td>';
+		$content.= '<td class="expenseInputCol"><select id="vatShift"></td>';
+		$content.= '<td class="expenseInputColLast"></td>';
+
+		 
 		// TODO: omgaan met array van transacties
 /*		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='12'")->fetchArray();
 		$content.= '<tr><th>'.__('amount').'</th><td><input type="text" name="gross" placeholder="'.__('gross').'" value="'.$mutation['Amount'].'"/>';
@@ -107,26 +138,21 @@
 		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='3'")->fetchArray();
 		$content.= '<input type="text" name="vat" placeholder="'.__('vat').'" value="'.$mutation['Amount'].'"/></tr>';
 */		
-		// BTW type TODO: BTW type inladen? (of niet nodig?) BTW type in het talen-bestand zetten, VAT_Type als database_item
-		// $content.= '<tr><th>BTW-type</th>';
-		// $options = '<option value="" disabled="disabled"'.($purchase['VAT_Type']?'':' selected').'>Choose VAT type</option>';
-		// $options.= '<option value="0">0% (vrijgesteld)</option>';
-		// $options.= '<option value="9">9%</option>';
-		// $options.= '<option value="9VNL">9% verlegd NL</option>';
-		// $options.= '<option value="9VEU">9% verlegd EU</option>';
-		// $options.= '<option value="21">21%</option>';
-		// $options.= '<option value="21VNL">21% verlegd NL</option>';
-		// $options.= '<option value="21VEU">21% verlegd EU</option>';
-		// $options.= '<option value="21">21%</option>';
-		// $options.= '<option value="21% verlegd">21% velegd EU</option>';
-		// $content.= '<td><select name="VAT_Type">'.$options.'</select></td></tr>';
 		
 		//Submit buttons
 		$content.= '</table></fieldset>';
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/purchases\';"/>';
-		$content.= '</form>';
+		$content.= '</form></div>';
+		$content.= '<div class="expenseInputVis">Bonnetje</div></div>';
+		
+		//javascript in one place
+		$content.= '<script type="text/javascript" src="../../js/purchases.js"></script>';
+		$content.= '<script>addExpenseRow('.$exp_options_safe.','.$vat_options_safe.')</script>';
+		$content.= '<script>addOnClick('.$exp_options_safe.','.$vat_options_safe.')</script>';
+		$content.= '<script>addOptionsPHP("vatTypeTot",'.$vat_options_safe.')</script>';
+		$content.= '<script>addOptionsPHP("vatShift",'.$shift_options_safe.')</script>';
 	}
 	
 	function updatePurchase() {
@@ -139,14 +165,31 @@
 					// if file uploaded
 					// - save in data
 					// - get URL
-					$db->query("INSERT INTO Transactions (URL, Type, Date, ContactID, ProjectID, Reference) VALUES ('".$_POST['URL']."', '2', '".$_POST['Date']."', '".$_POST['ContactID']."', '".$_POST['ProjectID']."', '".$_POST['Reference']."')");
-					$id = $db->lastInsertRowID();
-					
-					$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$id."', '".$_POST['ExpenseID']."', '".$_POST['Nett']."')");
-					$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$id."', '19', '".$_POST['VAT']."')");
-					
-					// check if creditor (PID=5) exists for contactID, create if absent
-					$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$id."', '".$_POST['AccountID']."', '".$_POST['Gross']."')");
+
+					$db->query("INSERT INTO Entries (TransactionDate, AccountingDate, URL) VALUES ('".$_POST['TransactionDate']."', '".$_POST['AccountingDate']."', '".$_POST['Location']."')");
+					// get the entryID from the database $id = $db->lastInsertRowID();
+					$last_entry=$db->querySingle("SELECT MAX(ID) FROM Entries LIMIT 1");
+					$entryID=intval($last_entry);
+
+					$db->query("INSERT INTO Purchases (EntryID, Status, Reference, ContactID, ProjectID) VALUES ('".$entryID."','review','".$_POST['Reference']."', '".$_POST['ContactID']."', '".$_POST['ProjectID']."')");
+
+					foreach ($_POST as $key => $value){
+						$checkstr="ExpenseType";
+						if (strpos($key,$checkstr)!==False){
+							$db->query("INSERT INTO Transactions (EntryID) VALUES ('".$entryID."')");
+							// get the entryID from the database
+							$last_trans=$db->querySingle("SELECT MAX(ID) FROM Transactions LIMIT 1");
+							$transID=intval($last_trans);
+							$trans_num=substr($key, strlen($checkstr),strlen($key));
+							$gross_key="gross".$trans_num;
+							$nett_key="nett".$trans_num;
+							$vat_key="vat".$trans_num;
+							$vat_type_key="vatType".$trans_num;
+							makeMutations($db,$transID,$value,$_POST[$gross_key],$_POST[$nett_key],$_POST[$vat_key],$_POST[$vat_type_key]);					
+		
+						}
+					}
+
 				}
 				else {
 					$db->query("UPDATE Accounts SET URL='".$_POST['URL']."', Date='".$_POST['Date']."', ContactID='".$_POST['ContactID']."', ProjectID='".$_POST['ProjectID']."', Reference='".$_POST['Reference']."' WHERE ID='".$_POST['ID']."'");
@@ -165,3 +208,14 @@
 		}
 		viewPurchaseList();
 	}
+
+	function makeMutations($db,$transID,$expenseType,$gross,$nett,$vat,$vat_type) {
+
+		//hier de regels voor het inboeken van inkoop transacties, nu nog even simpel
+		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '".$expenseType."', '".$nett."')");
+		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '5', '".$nett."')");	
+		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '19', '".$vat."')");
+	}
+
+	
+
