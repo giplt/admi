@@ -16,83 +16,50 @@ function addOnClick(exp_options,vat_options){
 	});
 }
 
-function addOptions(select_obj,options){
+function addOptions(select_obj,options,sel_opt){
         for (i=0;i<options.length;i++){
                 newOption = document.createElement("option");
                 newOption.setAttribute("value",options[i][0]);
                 newOption.innerHTML=options[i][1];
-                if (options[i][0]=="placeholder"){
+                if (options[i][0]=="def"){
                         newOption.setAttribute("disabled","disabled")
                 };
+		if (options[i][0]==sel_opt){
+			newOption.setAttribute("selected","");
+		};
                 select_obj.appendChild(newOption);
         };
 }
 
 
-function addExpenseRow(exp_options,vat_options) {
+function addExpenseRow(exp_options,vat_options, sel_options="") {
+
 	var expenseTable = document.getElementById("expenseTable");
 	var newExpenseRow = document.createElement("tr");
 	newExpenseRow.setAttribute("id", "expenseRow"+rowCount.toString());
 	newExpenseRow.setAttribute("class", "expenseInputRow");
 	expenseTable.appendChild(newExpenseRow);
 
+	//Create the rows
 	var newExpenseColA = document.createElement("td");
 	newExpenseColA.setAttribute("class", "expenseInputCol");
 	newExpenseRow.appendChild(newExpenseColA);
-
-	var newExpenseType = document.createElement("select");
-	newExpenseType.setAttribute("id", "ExpenseType"+rowCount.toString());
-	newExpenseType.setAttribute("name", "ExpenseType"+rowCount.toString());
-        addOptions(newExpenseType,exp_options);
-	newExpenseColA.appendChild(newExpenseType);
 
 	var newExpenseColB = document.createElement("td");
 	newExpenseColB.setAttribute("class", "expenseInputCol");
 	newExpenseRow.appendChild(newExpenseColB);
 
-	var newExpenseGross = document.createElement("input");
-	newExpenseGross.setAttribute("id", "gross"+rowCount.toString());
-	newExpenseGross.setAttribute("name", "gross"+rowCount.toString());
-	newExpenseGross.setAttribute("type", "number");
-	newExpenseGross.setAttribute("step", "0.01");
-	newExpenseGross.setAttribute("class", "expenseInputField");
-	newExpenseGross.setAttribute("onchange","adjustTot('gross',rowCount)");
-	newExpenseColB.appendChild(newExpenseGross);
-
 	var newExpenseColC = document.createElement("td");
 	newExpenseColC.setAttribute("class", "expenseInputCol");
 	newExpenseRow.appendChild(newExpenseColC);
-
-	var newExpenseNett = document.createElement("input");
-	newExpenseNett.setAttribute("id", "nett"+rowCount.toString());
-        newExpenseNett.setAttribute("name", "nett"+rowCount.toString());
-	newExpenseNett.setAttribute("class", "expenseInputField");
-	newExpenseNett.setAttribute("type", "number");
-	newExpenseNett.setAttribute("step", "0.01");
-        newExpenseNett.setAttribute("onchange","adjustTot('nett',rowCount)");
-	newExpenseColC.appendChild(newExpenseNett);
 
 	var newExpenseColD = document.createElement("td");
 	newExpenseColD.setAttribute("class", "expenseInputCol");
 	newExpenseRow.appendChild(newExpenseColD);
 
-	var newExpenseVat = document.createElement("input");
-	newExpenseVat.setAttribute("id", "vat"+rowCount.toString());
-	newExpenseVat.setAttribute("name", "vat"+rowCount.toString());
-	newExpenseVat.setAttribute("type", "number");
-	newExpenseVat.setAttribute("step", "0.01");
-	newExpenseVat.setAttribute("class", "expenseInputField");
-        newExpenseVat.setAttribute("onchange","adjustTot('vat',rowCount)");
-	newExpenseColD.appendChild(newExpenseVat);
-
 	var newExpenseColE = document.createElement("td");
 	newExpenseColE.setAttribute("class", "expenseInputCol");
 	newExpenseRow.appendChild(newExpenseColE);
-
-        var newVatType = document.createElement("select");
-        newVatType.setAttribute("name", "vatType"+rowCount.toString());
-        addOptions(newVatType,vat_options);
-        newExpenseColE.appendChild(newVatType);
 
         var newExpenseColF = document.createElement("td");
         newExpenseColE.setAttribute("class", "expenseInputCol");
@@ -101,6 +68,70 @@ function addExpenseRow(exp_options,vat_options) {
         var newExpenseColG = document.createElement("td");
         newExpenseColE.setAttribute("class", "expenseInputColLast");
         newExpenseRow.appendChild(newExpenseColG);
+
+	// Extract selected options
+	if (sel_options.length>0){
+		sel_expense=sel_options[0];
+		sel_gross=sel_options[1];
+		sel_nett=sel_options[2];
+		sel_vat=sel_options[3];
+		sel_vat_type=sel_options[4];
+
+		console.log("Expense:", sel_expense);
+		console.log("Gross:", sel_gross);
+		console.log("Nett:", sel_nett);
+		console.log("Vat:", sel_vat);
+		console.log("Vat type:", sel_vat_type);
+	}
+	else{
+		sel_expense="def";
+		sel_gross=0;
+		sel_nett=0;
+		sel_vat=0;
+		sel_vat_type="def";
+	}
+
+	//input fields
+	var newExpenseType = document.createElement("select");
+	newExpenseType.setAttribute("id", "ExpenseType"+rowCount.toString());
+	newExpenseType.setAttribute("name", "ExpenseType"+rowCount.toString());
+        addOptions(newExpenseType,exp_options,sel_expense);
+	newExpenseColA.appendChild(newExpenseType);
+
+	var newExpenseGross = document.createElement("input");
+	newExpenseGross.setAttribute("id", "gross"+rowCount.toString());
+	newExpenseGross.setAttribute("name", "gross"+rowCount.toString());
+	newExpenseGross.setAttribute("type", "number");
+	newExpenseGross.setAttribute("step", "0.01");
+	newExpenseGross.setAttribute("value", sel_gross);
+	newExpenseGross.setAttribute("class", "expenseInputField");
+	newExpenseGross.setAttribute("onchange","adjustTot('gross',rowCount)");
+	newExpenseColB.appendChild(newExpenseGross);
+
+	var newExpenseNett = document.createElement("input");
+	newExpenseNett.setAttribute("id", "nett"+rowCount.toString());
+        newExpenseNett.setAttribute("name", "nett"+rowCount.toString());
+	newExpenseNett.setAttribute("class", "expenseInputField");
+	newExpenseNett.setAttribute("type", "number");
+	newExpenseNett.setAttribute("step", "0.01");
+	newExpenseNett.setAttribute("value", sel_nett);
+        newExpenseNett.setAttribute("onchange","adjustTot('nett',rowCount)");
+	newExpenseColC.appendChild(newExpenseNett);
+
+	var newExpenseVat = document.createElement("input");
+	newExpenseVat.setAttribute("id", "vat"+rowCount.toString());
+	newExpenseVat.setAttribute("name", "vat"+rowCount.toString());
+	newExpenseVat.setAttribute("type", "number");
+	newExpenseVat.setAttribute("step", "0.01");
+	newExpenseVat.setAttribute("value", sel_vat);
+	newExpenseVat.setAttribute("class", "expenseInputField");
+        newExpenseVat.setAttribute("onchange","adjustTot('vat',rowCount)");
+	newExpenseColD.appendChild(newExpenseVat);
+
+        var newVatType = document.createElement("select");
+        newVatType.setAttribute("name", "vatType"+rowCount.toString());
+        addOptions(newVatType,vat_options,sel_vat_type);
+        newExpenseColE.appendChild(newVatType);
 
 	var newExpenseRem = document.createElement("input");
         newExpenseRem.setAttribute("id", "expenseBut"+rowCount.toString());
@@ -112,6 +143,11 @@ function addExpenseRow(exp_options,vat_options) {
 
 	//increment rowCount
 	rowCount+=1;
+
+	//adjust total values
+        adjustTot("gross", rowCount);
+	adjustTot("nett", rowCount);
+	adjustTot("vat", rowCount);
 }
 
 function removeExpenseRow(butval){
@@ -135,6 +171,7 @@ function adjustTot(type,rowCount){
 	}
         inputTot.value=sum;
 }
+
 
 //misschien de totalen een input veld maken, waar de inhoud van veranderd
 // zo kan er ook een mogelijkheid zijn om btw maar 1x in te vullen, bij factuur met materialen+uren

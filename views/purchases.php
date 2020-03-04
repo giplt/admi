@@ -21,8 +21,24 @@
 
 			//collect info
 			$entry=$db->query("SELECT * FROM Entries WHERE ID='".$item['EntryID']."'")->fetchArray();
-			$transactions=$db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'")->fetchArray();
-			$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='12'")->fetchArray();
+
+			//get the info for multiple transactions with multiple mutations
+			$show_PID=12;
+			$transactions=array();
+			$mutations=array();
+			$amount_sum=0;
+			$transaction_results=$db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'");
+	
+			while ($transaction=$transaction_results->fetchArray()){
+				array_push($transactions,$transaction);
+				$mutation_results=$db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transaction['ID']."' AND Accounts.PID='".$show_PID."'");
+
+				while ($mutation=$mutation_results->fetchArray()){
+					array_push($mutations,$mutation['Amount']);
+				}
+			}
+			$amount_sum=array_sum($mutations);
+
 			$project = $db->query("SELECT * FROM Projects WHERE ID='".$item['ProjectID']."'")->fetchArray();
 			$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$item['ContactID']."'")->fetchArray();
 			
@@ -30,7 +46,8 @@
 			$content.= '<tr class="data">';
 			$content.= '<td>'.$item['ID'].'</td>';
 			$content.= '<td>'.$entry['TransactionDate'].'</td>';
-			$content.= '<td>'.$mutation['Amount'].'</td>';
+			$content.= '<td>'.$item['Reference'].'</td>';
+			$content.= '<td>'.$amount_sum.'</td>';
 			$content.= '<td>'.$project['Name'].'</td>';
 			$content.= '<td>'.$contact['Name'].'</td>';
 			$content.= '<td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/purchases/'.$item['ID'].'\';"/></td>';
@@ -48,13 +65,29 @@
 		global $db, $content, $url, $lang;
 		//get content
 		if ($id=='new'){
+			//create empty arrays
 			$purchase = array("ID"=>"", "EntryID" => "", "Status" => "", "Reference" => "", "ContactID" => "", "ProjectID" => "", "Nett" => "", "VAT" => "", "Gross" => "", "VAT_Type" => "");
 			$entry = array("ID"=>"", "TransactionDate" => "", "AccountingDate" => "", "URL" => "", "Log" => "");
+			$transactions=array(array("ID"=>"","entryID"=>"","MergeID"=>""));
+			$mutations=array(array("ID"=>"","TransactionID"=>"","AccountID"=>"","Amount"=>""));
 		}		
 		else {
+			//load arrays from the database
 			$purchase = $db->query("SELECT * FROM Purchases WHERE ID='".$id."'")->fetchArray();
-			$entry = $db->query("SELECT * FROM Entries WHERE ID=''".$purchase['EntryID']."'")->fetchArray();
-			$transactions = $db->query("SELECT * FROM Transactions WHERE EntryID=''".$entry['ID']."'")->fetchArray();
+			$entry = $db->query("SELECT * FROM Entries WHERE ID='".$purchase['EntryID']."'")->fetchArray();
+
+			$transactions=array();
+			$mutations=array();
+			$transaction_results = $db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'");
+
+			while ($transaction=$transaction_results->fetchArray()){
+				array_push($transactions,$transaction);
+				$mutation_results=$db->query("SELECT * FROM Mutations WHERE Mutations.TransactionID='".$transaction['ID']."'");
+
+				while ($mutation=$mutation_results->fetchArray()){
+					array_push($mutations,$mutation);
+				}
+			}
 		}			
 
 		$protected = false;
@@ -96,24 +129,20 @@
 		$content.= '<fieldset><legend>Item op bonnetje = transactie</legend><table id="expenseTable" class="expenseInputTable">';
 
 		//Haal alle opties voor kostensoort uit de database
-		$exp_options = array(array("placeholder","pick-expense"));
+		$exp_options = array(array("def","pick-expense"));
 		$expenses = $db->query("SELECT * FROM Accounts WHERE PID='12' ORDER BY Name");
 		while($expense = $expenses->fetchArray()) array_push($exp_options,array($expense['ID'],$expense['Name']));
 		$exp_options_safe=json_encode($exp_options);
 
 		//Geef alle opties voor btw-type
-		$vat_options=array(array("0","btw-vrij"),array("9","9%"),array("21","21%"));
+		$vat_options=array(array("def","kies type"),array("0","btw-vrij"),array("9","9%"),array("21","21%"));
 		$vat_options_safe=json_encode($vat_options);
 
 		//Geef alle opties voor btw verlegging TODO: nog koppelen aan rekeningen
 		$shift_options=array(array("nee","nee"),array("NL","NL"),array("EU","EU"),array("Ex","Ex"));
 		$shift_options_safe=json_encode($shift_options);
 
-		//Laad alle transacties uit de database
-
 		// Rijen met transacties
-		// TODO: inladen van data uit database
-		// TODO: selected meegeven aan options
 		$content.= '<tr class="expenseInputRow"><th class="expenseInputCol">'.__('expense').'</th>'; 
 		$content.='<th class="expenseInputCol">'.__('gross').'</th>';
 		$content.='<th class="expenseInputCol">'.__('nett').'</th>';
@@ -121,6 +150,8 @@
 		$content.='<th class="expenseInputCol">vat_type</th>';
 		$content.='<th class="expenseInputCol">verlegd</th>';
 		$content.='<td class="expenseInputColLast"><input type="button" id="addRowButton" value="+"/></td></tr>';
+		
+		//Laatste rij met het totaal
 		$content.= '<table class="expenseInputTotTable"><tr class="expenseInputRow"><th class="expenseInputCol">'.__('total').'</th>';
 		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="grossTot"></td>';
 		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="nettTot"></td>';
@@ -128,16 +159,6 @@
 		$content.= '<td class="expenseInputCol"><select id="vatTypeTot"></td>';
 		$content.= '<td class="expenseInputCol"><select id="vatShift"></td>';
 		$content.= '<td class="expenseInputColLast"></td>';
-
-		 
-		// TODO: omgaan met array van transacties
-/*		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='12'")->fetchArray();
-		$content.= '<tr><th>'.__('amount').'</th><td><input type="text" name="gross" placeholder="'.__('gross').'" value="'.$mutation['Amount'].'"/>';
-		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='6'")->fetchArray();
-		$content.= '<input type="text" name="nett" placeholder="'.__('nett').'" value="'.$mutation['Amount'].'"/>';
-		$mutation = $db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transactions['ID']."' AND Accounts.PID='3'")->fetchArray();
-		$content.= '<input type="text" name="vat" placeholder="'.__('vat').'" value="'.$mutation['Amount'].'"/></tr>';
-*/		
 		
 		//Submit buttons
 		$content.= '</table></fieldset>';
@@ -147,10 +168,19 @@
 		$content.= '</form></div>';
 		$content.= '<div class="expenseInputVis">Bonnetje</div></div>';
 		
-		//javascript in one place
+		//laad javascript
 		$content.= '<script type="text/javascript" src="../../js/purchases.js"></script>';
-		$content.= '<script>addExpenseRow('.$exp_options_safe.','.$vat_options_safe.')</script>';
+
+		//Laad alle transacties uit de database en maak een nieuwe rij aan per transactie en reconstrueer de inhoud
+		foreach ($transactions as $trans){
+			$sel_options=revMutations($db,$trans,$mutations);	
+			$sel_options_safe=json_encode($sel_options);		
+			$content.= '<script>addExpenseRow('.$exp_options_safe.','.$vat_options_safe.','.$sel_options_safe.')</script>';
+		}
+		// on click laad een nieuwe regel
 		$content.= '<script>addOnClick('.$exp_options_safe.','.$vat_options_safe.')</script>';
+		
+		//laad de opties voor het totaal
 		$content.= '<script>addOptionsPHP("vatTypeTot",'.$vat_options_safe.')</script>';
 		$content.= '<script>addOptionsPHP("vatShift",'.$shift_options_safe.')</script>';
 	}
@@ -215,6 +245,35 @@
 		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '".$expenseType."', '".$nett."')");
 		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '5', '".$nett."')");	
 		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '19', '".$vat."')");
+	}
+	
+	//boekhoudregels voor purchase in reverse, voelt onhandig, misschien gewoon $gross, $vat, $nett, $vat_type etc opslaan in de transaction?
+
+	function revMutations($db, $trans,$mutations){
+
+		$res_list=$db->query("SELECT * FROM Accounts WHERE PID='12'");
+		foreach($mutations as $mut){
+			if ($mut['TransactionID']==$trans['ID']){
+				//result acounts		
+			
+				while($res=$res_list->fetchArray()){
+					if (in_array($mut['AccountID'],$res)){
+						$expenseType=$mut['AccountID'];
+						$nett=$mut['Amount'];
+					} 
+				}
+
+				//vat accounts
+				if ($mut['AccountID']==19){
+					$vat=$mut['Amount'];
+				}
+
+				$gross=$nett+$vat;
+				$vat_type="";
+			}
+		}
+
+		return array($expenseType,$gross,$nett,$vat,$vat_type);
 	}
 
 	
