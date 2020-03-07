@@ -41,6 +41,7 @@
 		$views = array(
 			"users" => "users.php",
 			"contacts" => "contacts.php",
+			"payment" => "payment.php",
 			"projects" => "projects.php",
 //			"transfers" => "transfers.php",
 			"purchases" => "purchases.php",

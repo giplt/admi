@@ -35,6 +35,14 @@
 		$content.= '<tr><th>'.__('country').'</th><td><input type="text" name="Country" value="'.$contact['Country'].'"/></td></tr>';
 		$content.= '<tr><th>'.__('phone').'</th><td><input type="text" name="Phone" value="'.$contact['Phone'].'"/></td></tr>';
 		$content.= '<tr><th>'.__('email').'</th><td><input type="text" name="Email" value="'.$contact['Email'].'"/></td></tr>';
+		
+		//TODO: lijst met accounts en een + om een nieuwe aan te maken
+		//$content.= '<tr><th>'.__('account').'</th>';
+		
+		//$payment_options=array(array("def","choose account"));
+		//$paymentEndPoints = $db->query("SELECT * FROM PaymentEndpoint ORDER BY Name");
+		//while($paymentEndPoint = $paymentEndPoints->fetchArray()) array_push($payment_options,array($paymentEndPoint['ID'],$paymentEndPoint['Account']));
+		//$payment_options_safe=json_encode($payment_options);
 
 		//default werkt nog niet:  werkt nog niet //<?php if($contact['Member']=="no") echo 'checked="checked"'		
 		$content.= '<tr><th>'.__('membership').'</th><td>';
