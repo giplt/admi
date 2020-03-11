@@ -3,4 +3,5 @@ php_flag display_errors on
 RewriteEngine On
 RewriteRule style/(.*) style/$1 [L]
 RewriteRule js/(.*) js/$1 [L]
+RewriteRule files/(.*) files/$1 [L]
 RewriteRule ^(.*)$ index.php [L]

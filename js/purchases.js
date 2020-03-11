@@ -208,6 +208,22 @@ function adjustTot(type,rowCount){
         inputTot.value=sum;
 }
 
+function upload(name, input) {
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			filename = this.responseText;
+			document.getElementById('url').value = filename;
+			type  = filename.split('.').pop();
+			if (type=='pdf') document.getElementById('invoiceView').innerHTML = '<embed src="files/' + filename + '" width="400px" height="600px" />';
+			if (type=='jpg') document.getElementById('invoiceView').innerHTML = '<img src="files/' + filename + '" width="400px" />';
+		}
+	};
+	var data = new FormData();
+	data.append(name, input.files[0]);
+	xhr.open('POST', '');
+	xhr.send(data);
+}
 
 //misschien de totalen een input veld maken, waar de inhoud van veranderd
 // zo kan er ook een mogelijkheid zijn om btw maar 1x in te vullen, bij factuur met materialen+uren

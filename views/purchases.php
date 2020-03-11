@@ -1,4 +1,53 @@
 <?php
+	if(isset($_FILES["invoice"])) {
+		$error = false;
+		
+		$maxsize = ini_get("upload_max_filesize");
+		$unit = preg_replace('/[^bkmgtpezy]/i', '', $maxsize); // Remove the non-unit characters from the size.
+		$maxsize = preg_replace('/[^0-9\.]/', '', $maxsize); // Remove the non-numeric characters from the size.
+		$maxsize = $unit ? round($maxsize * pow(1024, stripos('bkmgtpezy', $unit[0]))) : round($maxsize);
+		if ($_FILES["invoice"]["size"] > $maxsize) $error.= 'Sorry, your file is too large.<br/>';
+		
+		$filetype = strtolower(pathinfo($_FILES["invoice"]["name"],PATHINFO_EXTENSION));
+		if($filetype!="pdf" && $filetype!="jpg" && $filetype!="png" && $filetype!="jpeg" && $filetype!="gif" ) $error.= 'Wrong file type<br/>';
+		
+		if ($error) {
+			$error.= 'Only PDF, JPG, JPEG, PNG & GIF files are allowed. Maximum size: '.ini_get("upload_max_filesize").'<br/>';
+			echo $error;
+			exit();
+		}
+		
+		switch($filetype) {
+			case "pdf":
+				$filename = uniqid().".pdf";
+				move_uploaded_file($_FILES["invoice"]["tmp_name"], 'files/'.$filename);
+				echo $filename;
+				break;
+			default:
+				$filename = uniqid().".jpg";
+				$max = 1024;
+				$src = imagecreatefromstring(file_get_contents($_FILES["invoice"]['tmp_name']));
+				list($src_w, $src_h, $type, $attr) = getimagesize($_FILES["invoice"]['tmp_name']);
+				if ($src_w>$max || $src_h>$max) {
+					$dst_w = $src_w>$src_h ? $max : $max*$src_w/$src_h;
+					$dst_h = $src_w>$src_h ? $max*$src_h/$src_w : $max;
+				}
+				else {
+					$dst_w = $src_w;
+					$dst_h = $src_h;
+				}
+				$dst = imagecreatetruecolor($dst_w, $dst_h);
+				imagecopyresampled($dst, $src, 0, 0, 0, 0, $dst_w, $dst_h, $src_w, $src_h);
+				imagedestroy($src);
+				imagejpeg($dst, 'files/'.$filename);
+				imagedestroy($dst);
+				echo $filename;
+				break;
+		}
+		
+		exit();
+	}
+	
 	if ($cmd) updatePurchase();
 	elseif ($view) viewPurchase($view);
 	else viewPurchaseList();
@@ -94,12 +143,15 @@
 		$protected = false;
 		
 		//TODO: base html nog maken
-		$content.= '<div class="expenseInputFrame"><div class="expenseInputForm"><form method="post">';
+		$content.= '<div class="expenseInputFrame">';
+		$content.= '<div class="expenseInputForm">';
+		$content.= '<form method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
-		$content.= '<fieldset><legend>Declaratie door = contact</legend><table>';		
+		$content.= '<fieldset><legend>Declaratie door = contact</legend>';
+		$content.= '<table>';
 		$content.= '<tr><th>ID</th><td>'.$purchase['ID'].'</td>';
 
-                // Contactinformatie - nog meer info nodig? Ja bankrekening
+        // Contactinformatie - nog meer info nodig? Ja bankrekening
 		$options = '<option value="" disabled="disabled"'.($purchase['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $options.= '<option value="'.$contact['ID'].'"'.($purchase['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
@@ -123,8 +175,8 @@
 		$content.= '<input type="hidden" name="AccountingDate" value='.$today.'>';
 		
 		// TODO: upload bonnetje naar een specifieke plek op de server
-		$content.= '<tr><th>'.__('location').'</th><td><input type="text" name="Location" value="'.$entry['URL'].'"/>' ;
-		//$content.= '<input type="file" value="'.__('upload').'" name=myFile accept="image/*,.pdf"></td></tr>';
+		$content.= '<tr><th>'.__('location').'</th><td><input type="text" id="url" name="Location" value="'.$entry['URL'].'" disabled="disabled"/>' ;
+		$content.= '<input type="file" value="'.__('upload').'" name=myFile accept="image/*,.pdf" onchange="upload(\'invoice\', this);"></td></tr>';
 
 		//ProjectID
 		$options = '<option value="" disabled="disabled"'.($purchase['ProjectID']?'':' selected').'>'.__('pick-project').'</option>';
@@ -176,8 +228,16 @@
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/purchases\';"/>';
-		$content.= '</form></div>';
-		$content.= '<div class="expenseInputVis">Bonnetje</div></div>';
+		$content.= '</form>';
+		$content.= '</div>';
+		$content.= '<div id="invoiceView" class="expenseInputVis">';
+		switch(pathinfo($entry['URL'], PATHINFO_EXTENSION)) {
+			case 'pdf': $content.= '<embed src="files/'.$entry['URL'].'" width="400px" height="600px" />'; break;
+			case 'jpg': $content.= '<img src="files/'.$entry['URL'].'" width="400px" />'; break;
+			default: $content.= 'Bonnetje'; break;
+		}
+		$content.= '</div>';
+		$content.= '</div>';
 		
 		//Laad javascript
 		$content.= '<script type="text/javascript" src="../../js/purchases.js"></script>';
@@ -288,6 +348,3 @@
 
 		return array($expenseType,$gross,$nett,$vat,$vat_type);
 	}
-
-	
-
