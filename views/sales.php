@@ -148,13 +148,14 @@
 		$content.='<td class="salesInputColLast"><input type="button" id="addRowButton" value="+"/></td></tr>';
 		
 		//Laatste rij met het totaal
-		$content.= '<table class="salesInputTotTable"><tr class="salesInputRow"><th class="salesInputCol">'.__('total').'</th>';
-		$content.= '<td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="grossTot"></td>';
-		$content.= '<td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="nettTot"></td>';
-		$content.= '<td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="vatTot"></td>';
-		$content.= '<td class="salesInputCol"><select id="vatTypeTot"></td>';
-		$content.= '<td class="salesInputCol"><select id="vatShift"></td>';
-		$content.= '<td class="salesInputColLast"></td>';
+		$content.= '<table class="salesInputTotTable" align="right"><tr class="salesInputRow"><tr>____________</tr>';
+		$content.= '<tr><th class="salesInputCol">'.__('nett').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="nettTot"></td></tr>';
+
+		foreach($vat_options as $vat){
+			$content.= '<tr><th class="salesInputCol">'.$vat[1].'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="vatTot"></td></tr>';
+		}
+		$content.= '<tr><th class="salesInputCol">'.__('shift').'</th><td class="salesInputCol"><select id="vatShift"></td></tr>';
+		$content.= '<tr><td class="salesInputColLast"></td></tr>';
 		
 		//Submit buttons
 		$content.= '</table></fieldset>';
