@@ -36,5 +36,11 @@ function enable_select(flds_str, selID, opt){
 			fld.disabled=false;
 		}
 	}
+	else{
+		for (i=0;i<flds.length;i++){
+			var fld=document.getElementById(flds[i]);
+			fld.disabled=true;
+		}
+	}
 }
 

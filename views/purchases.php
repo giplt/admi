@@ -103,12 +103,13 @@
 		$options = '<option value="" disabled="disabled"'.($purchase['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $options.= '<option value="'.$contact['ID'].'"'.($purchase['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
-		$content.= '<tr><th>'.__('contact').'</th><td><select name="ContactID">'.$options.'</select> <input type="button" value="'.__('new').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
+		$content.= '<tr><th>'.__('contact').'</th><td><select id="ContID" name="ContactID">'.$options.'</select> <input type="button" value="'.__('new').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
 		
 		//get payment endpoints from database
+		//TODO: ergens opslaan van de rekeninggegegevens, waar?
 		$payment_options=array(array("def","choose account"));
 		$paymentEndPoints = $db->query("SELECT * FROM PaymentEndpoint");
-		while($paymentEndPoint = $paymentEndPoints->fetchArray()) array_push($payment_options,array($paymentEndPoint['ID'],$paymentEndPoint['Account']));
+		while($paymentEndPoint = $paymentEndPoints->fetchArray()) array_push($payment_options,array($paymentEndPoint['ID'],$paymentEndPoint['Account'],$paymentEndPoint['ContactID']));
 		$payment_options_safe=json_encode($payment_options);
 			
 		//choose account
@@ -193,7 +194,7 @@
 		//laad de opties voor het totaal
 		$content.= '<script>addOptionsPHP("vatTypeTot",'.$vat_options_safe.')</script>';
 		$content.= '<script>addOptionsPHP("vatShift",'.$shift_options_safe.')</script>';
-		$content.= '<script>addOptionsPHP("PaymentID",'.$payment_options_safe.')</script>';
+		$content.= '<script>addOptionsPHP_onclick("PaymentID",'.$payment_options_safe.',"ContID")</script>';
 	}
 	
 	function updatePurchase() {

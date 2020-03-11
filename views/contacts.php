@@ -36,19 +36,20 @@
 		$content.= '<tr><th>'.__('phone').'</th><td><input type="text" name="Phone" value="'.$contact['Phone'].'"/></td></tr>';
 		$content.= '<tr><th>'.__('email').'</th><td><input type="text" name="Email" value="'.$contact['Email'].'"/></td></tr>';
 		
-		//TODO: lijst met accounts en een + om een nieuwe aan te maken
-		//$content.= '<tr><th>'.__('account').'</th>';
-		
-		//$payment_options=array(array("def","choose account"));
-		//$paymentEndPoints = $db->query("SELECT * FROM PaymentEndpoint ORDER BY Name");
-		//while($paymentEndPoint = $paymentEndPoints->fetchArray()) array_push($payment_options,array($paymentEndPoint['ID'],$paymentEndPoint['Account']));
-		//$payment_options_safe=json_encode($payment_options);
-
 		//default werkt nog niet:  werkt nog niet //<?php if($contact['Member']=="no") echo 'checked="checked"'		
 		$content.= '<tr><th>'.__('membership').'</th><td>';
 		$content.= '<input type="radio" name="Member" value="no" /> '.__('no').' ';
 		$content.= '<input type="radio" name="Member" value="yes"/> '.__('yes').' </td></tr>';
-		$content.= '<tr><th>'.$contact['Lid'].'</th></tr>';
+		$content.= '<tr><th>'.$contact['Lid'].'</th></tr></table>';
+
+		//TODO: lijst met accounts en een + om een nieuwe aan te maken, werkt nu via andere view, maar beter aanpassen om gewoon via javascript te werken en in contacts op te slaan
+		
+		//Payment End Points
+		$content.= '<table><tr><tr><th>Rekeningen</th><td><input type="button" value="+" onclick="window.location.href=\''.$url.$lang.'/payment/new\';"/></td></tr></tr>';
+		$payment_accounts=$db->query("SELECT * FROM PaymentEndpoint WHERE ContactID='{$id}'");
+		while($pay = $payment_accounts->fetchArray()){
+			$content.= '<tr><td>'.$pay['Account'].'</td><td><input type="button" value="-" onclick="window.location.href=\''.$url.$lang.'/payment/'.$pay['ID'].'\';"/></td></tr>';
+		}
 		$content.= '</table>';
 
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';

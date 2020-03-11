@@ -34,7 +34,7 @@
 	$init = $db->querySingle("SELECT COUNT(*) as count FROM Users") == 0;
 	$admin_email = $db->querySingle("SELECT Email FROM Users WHERE Status='admin'");
 	
-	// Do login stuff
+	// Do login stuff TODO: differential access for users and not all views in menu
 	include_once('login.php');
 	if (isset($_SESSION['login'])) {
 		// Define available pages

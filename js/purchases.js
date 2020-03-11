@@ -1,5 +1,43 @@
 rowCount=1;
 
+function addOptionsPHP_onclick(selectID,options,reductionID){
+	
+	var select = document.getElementById(selectID);
+	var reduct = document.getElementById(reductionID);
+	console.log("options",options);
+	
+	//Eventlistener
+	reduct.addEventListener("change",function(){
+
+		//delete all options, if any		
+		if (select.options){
+			var len = select.options.length;
+			for (i = len-1; i >= 0; i--) {
+  				select.options[i] = null;
+			}
+		}
+
+		//add options for this contact	
+		var reduct_val = reduct.value;	
+		var red_options=[];
+
+		for (i=0;i<options.length;i++){ 
+			//add the default option
+			if (options[i][0]=="def"){
+				red_options.push(options[i]);
+				console.log("default option");
+			}
+			//add options for contact only
+			if (options[i][2]==reduct_val){
+				red_options.push(options[i]);
+				console.log("contact option");
+			}
+		}
+		addOptions(select,red_options);
+		});
+
+}
+
 function addOptionsPHP(selectID,options){
 	var select = document.getElementById(selectID);
 	addOptions(select,options);
@@ -7,9 +45,7 @@ function addOptionsPHP(selectID,options){
 
 function addOnClick(exp_options,vat_options){
 	var but = document.getElementById("addRowButton");
-	console.log("Button:",but);
-        console.log("expenses:",exp_options);
-        console.log("vat:",vat_options);
+
 	//note eventlistener wants a function, addExpenseRow() actually gives a return value
 	but.addEventListener("click",function(){
 		addExpenseRow(exp_options,vat_options);
