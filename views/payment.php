@@ -14,6 +14,7 @@
 			$contact=$db->query("SELECT * FROM Contacts WHERE ID=".$item['ContactID'])->fetchArray();
 			$provider=$db->query("SELECT * FROM PaymentProviders WHERE ID=".$item['PaymentProviderID'])->fetchArray();
 			$content.= '<tr class="data"><td>'.$item['ID'].'</td><td>'.$contact['Name'].'</td><td>'.$provider['ProviderName'].'</td><td>'.$item['Account'].'</td><td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/payment/'.$item['ID'].'\';"/></td></tr>';
+			
 		}
 		$content.= '</table>';
 	}
@@ -30,8 +31,8 @@
 			$payment = array("ID"=>"", "ContactID"=>$past_contact, "PaymentProviderID"=>"def", "Account"=>"", "API"=>"");
 		}
 		else {
-			$payment = $db->query("SELECT * FROM paymentEndPoint WHERE ID='{$id}'")->fetchArray();
-			$provider = $db->query("SELECT * FROM paymentProviders WHERE ID='".$payment['PaymentProviderID']."'")->fetchArray();
+			$payment = $db->query("SELECT * FROM PaymentEndpoint WHERE ID='{$id}'")->fetchArray();
+			$provider = $db->query("SELECT * FROM PaymentProviders WHERE ID='".$payment['PaymentProviderID']."'")->fetchArray();
 
 		}
 
@@ -110,15 +111,15 @@
 				break;
 		}
 
-		$past_query = explode('/', substr($_POST['redirect'], strlen($url)));
-		echo $past_query[2].'<br>';
-		echo $_POST['redirect'];	
+		$past_query = explode('/', substr($_POST['redirect'], strlen($url)));	
 		if (is_numeric($past_query[2])){
-			echo "Ja";
 			header('Location: '.$_POST['redirect']);
 		}
+		elseif ($past_query[1]== 'contacts' and $past_query[2]=="new"){
+			$cont_id = $db->query("SELECT * FROM Contacts ORDER BY id DESC LIMIT 1")->fetchArray();
+			header('Location: '.$url.$lang.'/contacts/'.$cont_id['ID']);
+		}
 		else{
-			echo "nee";
-			//viewPaymentList();
+			viewPaymentList();
 		}
 	}

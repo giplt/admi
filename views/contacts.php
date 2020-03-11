@@ -36,22 +36,21 @@
 		$content.= '<tr><th>'.__('phone').'</th><td><input type="text" name="Phone" value="'.$contact['Phone'].'"/></td></tr>';
 		$content.= '<tr><th>'.__('email').'</th><td><input type="text" name="Email" value="'.$contact['Email'].'"/></td></tr>';
 		
-		//default werkt nog niet:  werkt nog niet //<?php if($contact['Member']=="no") echo 'checked="checked"'		
+		//lid van Plan B		
 		$content.= '<tr><th>'.__('membership').'</th><td>';
-		$content.= '<input type="radio" name="Member" value="no" /> '.__('no').' ';
-		$content.= '<input type="radio" name="Member" value="yes"/> '.__('yes').' </td></tr>';
-		$content.= '<tr><th>'.$contact['Lid'].'</th></tr></table>';
+		$content.= '<input type="radio" name="Member" value="no"'.(($contact['Member']=="no") ? "checked" : "").'> '.__('no').' ';
+		$content.= '<input type="radio" name="Member" value="yes"'.(($contact['Member']=="yes") ? "checked" : "").'> '.__('yes').' </td></tr>';
 
-		//TODO: lijst met accounts en een + om een nieuwe aan te maken, werkt nu via andere view, maar beter aanpassen om gewoon via javascript te werken en in contacts op te slaan
-		
 		//Payment End Points
-		$content.= '<table><tr><tr><th>Rekeningen</th><td><input type="button" value="+" onclick="window.location.href=\''.$url.$lang.'/payment/new\';"/></td></tr></tr>';
+		$content.= '<table><tr><tr><th>Rekeningen</th><td><button type = "submit" name="cmd" value="add_account">+</td></tr></tr>';
 		$payment_accounts=$db->query("SELECT * FROM PaymentEndpoint WHERE ContactID='{$id}'");
 		while($pay = $payment_accounts->fetchArray()){
-			$content.= '<tr><td>'.$pay['Account'].'</td><td><input type="button" value="-" onclick="window.location.href=\''.$url.$lang.'/payment/'.$pay['ID'].'\';"/></td></tr>';
+			$edit='edit'.$pay['ID'];
+			$content.= '<tr><td>'.$pay['Account'].'</td><td><button type="submit" name="cmd" value="'.$edit.'">edit</td></tr>';
 		}
 		$content.= '</table>';
-
+	
+		//submit buttons
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/contacts\';"/>';
@@ -60,21 +59,53 @@
 	
 	function updateContact() {
 		global $db, $content, $url, $lang;
-		switch ($_POST['cmd']) {
-			case 'update':
-				if ($_POST['ID']=='new') {
-					$db->query("INSERT INTO Contacts (Name,Address,Zipcode,City,Country,Phone,Email,Member) VALUES ('".$_POST['Name']."','".$_POST['Address']."','".$_POST['Zipcode']."','".$_POST['City']."','".$_POST['Country']."','".$_POST['Phone']."','".$_POST['Email']."','".$_POST['Member']."')");					
-					$id = $db->lastInsertRowID();
-				}
-				else {
-					$db->query("UPDATE Contacts SET Name='".$_POST['Name']."' WHERE ID='".$_POST['ID']."'");
-					$id = $_POST['ID'];
-				}
+		switch (true) {
+			case ($_POST['cmd']=='update'):
+				updateContact_fields($_POST);
+				viewContactList();
 				break;
-			case 'remove':
+
+			case ($_POST['cmd']=='remove'):
+				//Delete all paymentendpoints belonging to this contact
+				$payment_accounts=$db->query("SELECT * FROM PaymentEndpoint WHERE ContactID='".$POST['ID']."'");
+				while($acc= $payment_accounts->fetchArray()){
+					$db->query("DELETE FROM PaymentEndpoint WHERE ID='".$acc['ID']."'");
+				}
+				//Delete all (accounts) belonging to the contact
+								
+				//Delete the contact
 				$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$_POST['ID']."'")->fetchArray();
 				$db->query("DELETE FROM Contacts WHERE ID='".$_POST['ID']."'");
+
+				viewContactList();
 				break;
+
+			case  ($_POST['cmd']=='add_account'):
+				updateContact_fields($_POST);
+				$payurl=$url.$lang.'/payment/new';
+				header('Location: '.$payurl);
+				break;
+
+			case (substr($_POST['cmd'],0,4)=='edit'):
+				updateContact_fields($_POST);
+				$payid=substr($_POST['cmd'],4);
+				$payurl=$url.$lang.'/payment/'.$payid;
+				header('Location: '.$payurl);
+				break;
+		}	
+	}
+
+	function updateContact_fields($DAT){
+		global $db, $content, $url, $lang;
+		//insert all fields
+		if ($DAT['ID']=='new') {
+			$db->query("INSERT INTO Contacts (Name,Address,Zipcode,City,Country,Phone,Email,Member) VALUES ('".$DAT['Name']."','".$DAT['Address']."','".$DAT['Zipcode']."','".$DAT['City']."','".$DAT['Country']."','".$DAT['Phone']."','".$DAT['Email']."','".$DAT['Member']."')");					
+			$id = $db->lastInsertRowID();
 		}
-		viewContactList();
+		//else update all fields
+		else {
+			$db->query("UPDATE Contacts SET Name='".$DAT['Name']."',Address='".$DAT['Address']."',Zipcode='".$DAT['Zipcode']."',City='".$DAT['City']."',Country='".$DAT['Country']."',Phone='".$DAT['Phone']."',Email='".$DAT['Email']."',Member='".$DAT['Member']."'  WHERE ID='".$DAT['ID']."'");
+			$id = $_POST['ID'];
+		}
+
 	}

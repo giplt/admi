@@ -45,7 +45,7 @@
 			"projects" => "projects.php",
 //			"transfers" => "transfers.php",
 			"purchases" => "purchases.php",
-//			"sales" => "sales.php",
+			"sales" => "sales.php",
 //			"taxes" => "taxes.php",
 //			"balance" => "balance.php",
 //			"profit" => "profit.php",

@@ -23,6 +23,10 @@
 		"nl": "Verkoop",
 		"en": "Sales"
 	},
+	"payment": {
+		"nl": "Betaling",
+		"en": "Payment"
+	},
 	"expenses": {
 		"nl": "Kostensoorten",
 		"en": "Expenses"
@@ -158,6 +162,39 @@
 	"reference": {
 		"nl": "Referentie",
 		"en": "Reference"
+	},
+	"recipient": {
+		"nl": "Ontvangende partij",
+		"en": "Recipient"
+	},
+	"invoice": {
+		"nl": "Factuur",
+		"en": "Invoice"
+	},
+	"invoice items": {
+		"nl": "Factuurregels",
+		"en": "Items on invoice"
+	},
+	"price": {
+		"nl": "Prijs",
+		"en": "Price"
+	},
+	"vat type": {
+		"nl": "% BTW",
+		"en": "% VAT"
+	},
+	"sales type": {
+		"nl": "Type verkoop",
+		"en": "Sales type"
+	},
+	"number": {
+		"nl": "Aantal",
+		"en": "Number"
+	},
+	"description": {
+		"nl": "Beschrijving",
+		"en": "Description"
 	}
+
 
 }
