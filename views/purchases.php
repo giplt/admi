@@ -1,4 +1,6 @@
 <?php
+	if (!is_dir('files')) mkdir('files');
+	
 	if(isset($_FILES["invoice"])) {
 		$error = false;
 		
@@ -174,8 +176,8 @@
 		$content.= '<tr><th>'.__('date').'</th><td><input type="date" name="TransactionDate" value="'.$entry['TransactionDate'].'"/></td></tr>';
 		$content.= '<input type="hidden" name="AccountingDate" value='.$today.'>';
 		
-		// TODO: upload bonnetje naar een specifieke plek op de server
-		$content.= '<tr><th>'.__('location').'</th><td><input type="text" id="url" name="Location" value="'.$entry['URL'].'" disabled="disabled"/>' ;
+		// upload bonnetje naar een specifieke plek op de server
+		$content.= '<tr><th>'.__('location').'</th><td><input type="text" id="url" name="Location" value="'.$entry['URL'].'"/>' ;
 		$content.= '<input type="file" value="'.__('upload').'" name=myFile accept="image/*,.pdf" onchange="upload(\'invoice\', this);"></td></tr>';
 
 		//ProjectID
