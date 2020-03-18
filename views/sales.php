@@ -94,7 +94,7 @@
 		$protected = false;
 		
 		//TODO: base html nog maken
-		$content.= '<div class="salesInputFrame"><div class="salesInputForm"><form method="post">';
+		$content.= '<div class="salesInputFrame"><div class="salesInputForm"><form id="salesForm" method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
 		$content.= '<fieldset><legend>'.__('recipient').'</legend><table>';		
 		$content.= '<tr><th>ID</th><td>'.$purchase['ID'].'</td>';
@@ -135,7 +135,7 @@
 		$vat_options_safe=json_encode($vat_options);
 
 		//Geef alle opties voor btw verlegging TODO: nog koppelen aan rekeningen
-		$shift_options=array(array("nee","nee"),array("NL","NL"),array("EU","EU"),array("Ex","Ex"));
+		$shift_options=array(array("no",__('no')),array("NL","NL"),array("EU","EU"),array("Ex","Ex"));
 		$shift_options_safe=json_encode($shift_options);
 
 		// Rijen met transacties
@@ -149,12 +149,16 @@
 		
 		//Laatste rij met het totaal
 		$content.= '<table class="salesInputTotTable" align="right"><tr class="salesInputRow"><tr>____________</tr>';
-		$content.= '<tr><th class="salesInputCol">'.__('nett').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="nettTot"></td></tr>';
-
+		$content.= '<tr><th class="salesInputCol">'.__('nett').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="nettTot" disabled></td></tr>';
 		foreach($vat_options as $vat){
-			$content.= '<tr><th class="salesInputCol">'.$vat[1].'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="vatTot"></td></tr>';
+			if ($vat[0]!="def"){
+				$content.= '<tr id="vatTotRow_'.$vat[0].'"><th class="salesInputCol">'.$vat[1].'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="vatTot_'.$vat[0].'" disabled></td></tr>';
+			}
 		}
+		//TODO: add a onclick something to change sum. Also think about an onchange for all inputs in the form
 		$content.= '<tr><th class="salesInputCol">'.__('shift').'</th><td class="salesInputCol"><select id="vatShift"></td></tr>';
+		$content.= '<tr><th></th><td>-------------------</td></tr>';
+		$content.= '<tr><th class="salesInputCol">'.__('gross').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="grossTot" disabled></td></tr>';
 		$content.= '<tr><td class="salesInputColLast"></td></tr>';
 		
 		//Submit buttons
@@ -168,6 +172,14 @@
 		//Laad javascript
 		$content.= '<script type="text/javascript" src="../../js/sales.js"></script>';
 
+		//laad de opties voor shift
+		$content.= '<script>addOptionsPHP("vatShift",'.$shift_options_safe.')</script>';
+
+		// on click laad een nieuwe regel
+		$content.= '<script>addOnClick('.$sales_options_safe.','.$vat_options_safe.')</script>';
+
+		$content.= '<script>onchangeForm("salesForm")</script>';
+
 		//Laad alle transacties uit de database en maak een nieuwe rij aan per transactie en reconstrueer de inhoud
 		foreach ($transactions as $trans){
 			if ($trans['ID']!=""){
@@ -176,12 +188,7 @@
 			}		
 			$content.= '<script>addSalesRow('.$sales_options_safe.','.$vat_options_safe.','.$sel_options_safe.')</script>';
 		}
-		// on click laad een nieuwe regel
-		$content.= '<script>addOnClick('.$sales_options_safe.','.$vat_options_safe.')</script>';
-		
-		//laad de opties voor het totaal
-		$content.= '<script>addOptionsPHP("vatTypeTot",'.$vat_options_safe.')</script>';
-		$content.= '<script>addOptionsPHP("vatShift",'.$shift_options_safe.')</script>';
+
 	}
 	
 	function updateSale() {

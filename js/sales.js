@@ -4,7 +4,6 @@ function addOptionsPHP_onclick(selectID,options,reductionID){
 	
 	var select = document.getElementById(selectID);
 	var reduct = document.getElementById(reductionID);
-	console.log("options",options);
 	
 	//Eventlistener
 	reduct.addEventListener("change",function(){
@@ -25,12 +24,10 @@ function addOptionsPHP_onclick(selectID,options,reductionID){
 			//add the default option
 			if (options[i][0]=="def"){
 				red_options.push(options[i]);
-				console.log("default option");
 			}
 			//add options for contact only
 			if (options[i][2]==reduct_val){
 				red_options.push(options[i]);
-				console.log("contact option");
 			}
 		}
 		addOptions(select,red_options);
@@ -106,7 +103,6 @@ function addSalesRow(sales_options,vat_options, sel_options="") {
         newSalesRow.appendChild(newSalesColG);
 
 	// Extract selected options
-	console.log("Sel options: ",sel_options);
 	if (sel_options.length>0){
 		//from database
 		sel_sales=sel_options[0];
@@ -140,32 +136,34 @@ function addSalesRow(sales_options,vat_options, sel_options="") {
 	newSalesGross.setAttribute("value", sel_desc);
 	newSalesColB.appendChild(newSalesGross);
 
+	var newSalesAmount = document.createElement("input");
+	newSalesAmount.setAttribute("id", "amount"+rowCount.toString());
+        newSalesAmount.setAttribute("name", "amount"+rowCount.toString());
+	newSalesAmount.setAttribute("type", "number");
+	newSalesAmount.setAttribute("step", "0.1");
+        newSalesAmount.setAttribute("onchange","adjustNett("+rowCount+")");
+	newSalesAmount.setAttribute("value", sel_amount);
+	newSalesColC.appendChild(newSalesAmount);
+
+	var newSalesPrice = document.createElement("input");
+	newSalesPrice.setAttribute("id", "price"+rowCount.toString());
+	newSalesPrice.setAttribute("name", "price"+rowCount.toString());
+	newSalesPrice.setAttribute("type", "number");
+	newSalesPrice.setAttribute("step", "0.01");
+        newSalesPrice.setAttribute("onchange","adjustNett("+rowCount+",rowCount)");
+	newSalesPrice.setAttribute("value", sel_price);
+	newSalesColD.appendChild(newSalesPrice);
+
 	var newSalesNett = document.createElement("input");
-	newSalesNett.setAttribute("id", "amount"+rowCount.toString());
-        newSalesNett.setAttribute("name", "amount"+rowCount.toString());
+	newSalesNett.setAttribute("id", "nett"+rowCount.toString());
+	newSalesNett.setAttribute("name", "nett"+rowCount.toString());
 	newSalesNett.setAttribute("type", "number");
-	newSalesNett.setAttribute("step", "0.1");
-	newSalesNett.setAttribute("value", sel_amount);
-	newSalesColC.appendChild(newSalesNett);
-
-	var newSalesVat = document.createElement("input");
-	newSalesVat.setAttribute("id", "price"+rowCount.toString());
-	newSalesVat.setAttribute("name", "price"+rowCount.toString());
-	newSalesVat.setAttribute("type", "number");
-	newSalesVat.setAttribute("step", "0.01");
-	newSalesVat.setAttribute("value", sel_price);
-	newSalesColD.appendChild(newSalesVat);
-
-	var newSalesVat = document.createElement("input");
-	newSalesVat.setAttribute("id", "nett"+rowCount.toString());
-	newSalesVat.setAttribute("name", "nett"+rowCount.toString());
-	newSalesVat.setAttribute("type", "number");
-	newSalesVat.setAttribute("step", "0.01");
-	newSalesVat.setAttribute("value", sel_nett);
-        newSalesVat.setAttribute("onchange","adjustTot('nett',rowCount)");
-	newSalesColE.appendChild(newSalesVat);
+	newSalesNett.setAttribute("step", "0.01");
+	newSalesNett.setAttribute("value", sel_nett);
+	newSalesColE.appendChild(newSalesNett);
 
         var newVatType = document.createElement("select");
+        newVatType.setAttribute("id", "vatType"+rowCount.toString());
         newVatType.setAttribute("name", "vatType"+rowCount.toString());
         addOptions(newVatType,vat_options,sel_vat_type);
         newSalesColF.appendChild(newVatType);
@@ -182,9 +180,7 @@ function addSalesRow(sales_options,vat_options, sel_options="") {
 	rowCount+=1;
 
 	//adjust total values
-        adjustTot("gross", rowCount);
-	adjustTot("nett", rowCount);
-	adjustTot("vat", rowCount);
+	adjustTot(rowCount);
 }
 
 function removeSalesRow(butval){
@@ -193,19 +189,86 @@ function removeSalesRow(butval){
         rmRow.innerHTML="x";
 
 	//adjust values
-        adjustTot("nett", rowCount);
-	adjustTot("vat", rowCount);
+        adjustTot(rowCount);
 }
 
-function adjustTot(type,rowCount){
-	var inputTot=document.getElementById(type+"Tot");
-        var sum=0;
+//------FUNCTIONS for dynamically summing fields
+
+function onchangeForm(id){
+	var form = document.getElementById(id);
+
+	//note eventlistener wants a function, addSalesRow() actually gives a return value
+	form.addEventListener("change",function(){
+		adjustTot(rowCount);
+	});
+}
+
+function adjustNett(row,rowCount){
+	var amount=+document.getElementById('amount'+row.toString()).value;
+	var price=+document.getElementById('price'+row.toString()).value;
+	var nett=document.getElementById('nett'+row.toString());
+
+	nett.setAttribute("value",amount*price);
+
+	adjustTot(rowCount);
+}
+
+function adjustTot(rowCount){
+	//get sum for nett
+	var inputTot=document.getElementById("nettTot");
+        var sumnett=0;
 	for (i=1;i<rowCount;i++){
-		if (document.getElementById(type+i.toString())){
-			sum+=+document.getElementById(type+i.toString()).value;
+		if (document.getElementById('nett'+i.toString())){
+			sumnett+=+document.getElementById('nett'+i.toString()).value;
 		}
 	}
-        inputTot.value=sum;
+
+        inputTot.value=sumnett;
+	
+	//get sum of vat
+	var sumvat=adjustTotVat(rowCount);
+	
+	//get sum for gross
+	var sumgross=sumnett+sumvat;
+	var grossTot=document.getElementById("grossTot");
+	
+	// only if shift=no
+	var shiftTot=document.getElementById("vatShift");
+	if (shiftTot.value=="no"){
+		grossTot.value=sumgross;
+	}
+	else{
+		grossTot.value=sumnett;
+	}
+}
+
+function adjustTotVat(rowCount, vat_options=new Array(0,'9','21')){
+
+	var totVat=0
+	for (i=0;i<vat_options.length;i++){
+		var id="vatTot_"+vat_options[i]
+		var inputTot=document.getElementById(id);
+		var rowTot=document.getElementById("vatTotRow_"+vat_options[i]);
+        	var sum=0;
+
+		for (n=1;n<rowCount;n++){
+
+			// here it is still working
+			vat_query="vatType"+n.toString()
+			var vat=document.getElementById("vatType"+n.toString()).value;
+			var nett=document.getElementById("nett"+n.toString()).value; 
+
+			if (vat){
+				if(vat==vat_options[i]){
+					sum+=+nett*(+vat/100);
+				}
+			}
+		}
+
+		inputTot.value=sum;
+		totVat+=sum;
+	}
+	return totVat;
 }
 
 
