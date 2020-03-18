@@ -40,6 +40,8 @@ function addOptionsPHP(selectID,options){
 	addOptions(select,options);
 }
 
+// --- EVENT listneres
+
 function addOnClick(sales_options,vat_options){
 	var but = document.getElementById("addRowButton");
 
@@ -47,6 +49,75 @@ function addOnClick(sales_options,vat_options){
 	but.addEventListener("click",function(){
 		addSalesRow(sales_options,vat_options);
 	});
+}
+
+function onchangeMake(id,name){
+	var but = document.getElementById(id);	
+	but.addEventListener("click",function(){
+		makeInvoice(name);
+	});
+}
+
+function makeInvoice(name){
+
+	var invoice_dict= {}
+
+	num=0;
+
+	//get info for each row
+	for (n=1;n<rowCount;n++){
+
+		if (document.getElementById('amount'+n.toString())){	
+			amount=+document.getElementById('amount'+n.toString()).value;
+			price=+document.getElementById('price'+n.toString()).value;
+			vat_type=+document.getElementById('vatType'+n.toString()).value;
+			nett=+document.getElementById('nett'+n.toString()).value;
+			gross=+document.getElementById('gross'+n.toString()).value;
+			vat=+document.getElementById('vat'+n.toString()).value;
+			vatShift=+document.getElementById('vatShift').value;
+			
+			line_dict={}
+			line_dict["SalesType"]=amount;
+			line_dict["desc"]=amount;
+			line_dict["amount"]=amount;
+			line_dict["price"]=price;
+			line_dict["vat_type"]=vat_type;
+			line_dict["nett"]=nett;
+			line_dict["gross"]=gross;
+			line_dict["vat"]=vat;
+			line_dict["vatShift"]=vatShift;
+			invoice_dict[("Line_"+n.toString())]=line_dict;
+		}
+
+	}
+	
+	//save a json file with the data
+	invoice_string=JSON.stringify(invoice_dict);
+	blob=new Blob([invoice_string],{ type: "text/plain;charset=utf-8" })
+
+	//send it via an request
+	console.log("SENDING DATA:",name);
+
+	var xhr = new XMLHttpRequest();
+	console.log("XHR CREATED");
+
+	xhr.onreadystatechange = function() {
+		console.log("Function called");
+		if (this.readyState == 4 && this.status == 200) {
+			console.log("XHR request is ready");
+			//filename = this.responseText;
+			//document.getElementById('url').value = filename;
+			//type  = filename.split('.').pop();
+		}
+	};
+	
+	var data = new FormData();
+	console.log("after readystatechange");
+	data.append(name, blob);
+	xhr.open('POST', '');
+	xhr.send(data);
+	
+
 }
 
 function addOptions(select_obj,options,sel_opt){
@@ -111,6 +182,9 @@ function addSalesRow(sales_options,vat_options, sel_options="") {
 		sel_price=sel_options[3];
 		sel_nett=sel_options[4];
 		sel_vat_type=sel_options[5];
+		sel_vat=+sel_vat_type*+sel_nett;
+		sel_gross=sel_nett+sel_vat;
+
 	}
 	else{
 		//defaults
@@ -120,6 +194,8 @@ function addSalesRow(sales_options,vat_options, sel_options="") {
 		sel_price=0;
 		sel_nett=0;
 		sel_vat_type="21";
+		sel_vat=0;
+		sel_gross=0;
 	}
 
 	//input fields
@@ -141,7 +217,7 @@ function addSalesRow(sales_options,vat_options, sel_options="") {
         newSalesAmount.setAttribute("name", "amount"+rowCount.toString());
 	newSalesAmount.setAttribute("type", "number");
 	newSalesAmount.setAttribute("step", "0.1");
-        newSalesAmount.setAttribute("onchange","adjustNett("+rowCount+")");
+        newSalesAmount.setAttribute("onchange","adjustRow("+rowCount+")");
 	newSalesAmount.setAttribute("value", sel_amount);
 	newSalesColC.appendChild(newSalesAmount);
 
@@ -150,7 +226,7 @@ function addSalesRow(sales_options,vat_options, sel_options="") {
 	newSalesPrice.setAttribute("name", "price"+rowCount.toString());
 	newSalesPrice.setAttribute("type", "number");
 	newSalesPrice.setAttribute("step", "0.01");
-        newSalesPrice.setAttribute("onchange","adjustNett("+rowCount+",rowCount)");
+        newSalesPrice.setAttribute("onchange","adjustRow("+rowCount+",rowCount)");
 	newSalesPrice.setAttribute("value", sel_price);
 	newSalesColD.appendChild(newSalesPrice);
 
@@ -165,8 +241,27 @@ function addSalesRow(sales_options,vat_options, sel_options="") {
         var newVatType = document.createElement("select");
         newVatType.setAttribute("id", "vatType"+rowCount.toString());
         newVatType.setAttribute("name", "vatType"+rowCount.toString());
+        newVatType.setAttribute("onchange","adjustRow("+rowCount+")");
         addOptions(newVatType,vat_options,sel_vat_type);
         newSalesColF.appendChild(newVatType);
+
+	var newSalesVat = document.createElement("input");
+	newSalesVat.setAttribute("id", "vat"+rowCount.toString());
+	newSalesVat.setAttribute("name", "vat"+rowCount.toString());
+	newSalesVat.setAttribute("type", "number");
+	newSalesVat.setAttribute("step", "0.01");
+	newSalesVat.setAttribute("hidden", "true");
+	newSalesVat.setAttribute("value", sel_vat);
+	newSalesColF.appendChild(newSalesVat);
+
+	var newSalesGross = document.createElement("input");
+	newSalesGross.setAttribute("id", "gross"+rowCount.toString());
+	newSalesGross.setAttribute("name", "gross"+rowCount.toString());
+	newSalesGross.setAttribute("type", "number");
+	newSalesGross.setAttribute("step", "0.01");
+	newSalesGross.setAttribute("hidden", "true");
+	newSalesGross.setAttribute("value", sel_gross);
+	newSalesColF.appendChild(newSalesGross);
 
 	var newSalesRem = document.createElement("input");
         newSalesRem.setAttribute("id", "salesBut"+rowCount.toString());
@@ -192,7 +287,7 @@ function removeSalesRow(butval){
         adjustTot(rowCount);
 }
 
-//------FUNCTIONS for dynamically summing fields
+//------FUNCTIONS for dynamically summing fields and totals
 
 function onchangeForm(id){
 	var form = document.getElementById(id);
@@ -203,12 +298,17 @@ function onchangeForm(id){
 	});
 }
 
-function adjustNett(row,rowCount){
+function adjustRow(row,rowCount){
 	var amount=+document.getElementById('amount'+row.toString()).value;
 	var price=+document.getElementById('price'+row.toString()).value;
+	var vat_type=+document.getElementById('vatType'+row.toString()).value;
 	var nett=document.getElementById('nett'+row.toString());
+	var gross=document.getElementById('gross'+row.toString());
+	var vat=document.getElementById('vat'+row.toString());
 
 	nett.setAttribute("value",amount*price);
+	vat.setAttribute("value",+nett.value*(vat_type/100));
+	gross.setAttribute("value",+nett.value+(+vat.value));
 
 	adjustTot(rowCount);
 }
@@ -242,38 +342,37 @@ function adjustTot(rowCount){
 	}
 }
 
-function adjustTotVat(rowCount, vat_options=new Array(0,'9','21')){
+function adjustTotVat(rowCount, vat_options=new Array('9','21')){
 
 	var totVat=0
 	for (i=0;i<vat_options.length;i++){
 		var id="vatTot_"+vat_options[i]
 		var inputTot=document.getElementById(id);
 		var rowTot=document.getElementById("vatTotRow_"+vat_options[i]);
-        	var sum=0;
-
+		var sum=0;
+			
+		//for each row
 		for (n=1;n<rowCount;n++){
 
-			// here it is still working
 			vat_query="vatType"+n.toString()
-			var vat=document.getElementById("vatType"+n.toString()).value;
-			var nett=document.getElementById("nett"+n.toString()).value; 
+			if(document.getElementById(vat_query)){
+				var vattype=document.getElementById("vatType"+n.toString()).value;
+				var vat=document.getElementById("vat"+n.toString()).value;
 
-			if (vat){
-				if(vat==vat_options[i]){
-					sum+=+nett*(+vat/100);
+				if (vattype){
+					if(vattype==vat_options[i]){
+						sum+=+vat;
+					}
 				}
 			}
-		}
 
 		inputTot.value=sum;
 		totVat+=sum;
+		}
 	}
 	return totVat;
 }
 
-
-//misschien de totalen een input veld maken, waar de inhoud van veranderd
-// zo kan er ook een mogelijkheid zijn om btw maar 1x in te vullen, bij factuur met materialen+uren
 // de rij blijft bestaan maar heeft geen zichtbare inhoud meer,
 // misschien aanpassen dat ook echt alle children worden verwijderd
 // nu volstaat selecteren op .innerHTML='x'

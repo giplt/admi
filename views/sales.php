@@ -1,4 +1,57 @@
 <?php
+
+	if (!is_dir('files/sales')) mkdir('files/sales');
+	
+	if(isset($_FILES["invoice"])) {
+		alert("Invoice created");
+		//$error = false;
+		
+		//$maxsize = ini_get("upload_max_filesize");
+		//$unit = preg_replace('/[^bkmgtpezy]/i', '', $maxsize); // Remove the non-unit characters from the size.
+		//$maxsize = preg_replace('/[^0-9\.]/', '', $maxsize); // Remove the non-numeric characters from the size.
+		//$maxsize = $unit ? round($maxsize * pow(1024, stripos('bkmgtpezy', $unit[0]))) : round($maxsize);
+		//if ($_FILES["invoice"]["size"] > $maxsize) $error.= 'Sorry, your file is too large.<br/>';
+		
+		//$filetype = strtolower(pathinfo($_FILES["invoice"]["name"],PATHINFO_EXTENSION));
+		//if($filetype!="pdf" && $filetype!="jpg" && $filetype!="png" && $filetype!="jpeg" && $filetype!="gif" ) $error.= 'Wrong file type<br/>';
+		
+		//if ($error) {
+			//$error.= 'Only PDF, JPG, JPEG, PNG & GIF files are allowed. Maximum size: '.ini_get("upload_max_filesize").'<br/>';
+			//echo $error;
+			//exit();
+		//}
+		
+		//switch($filetype) {
+			//case "pdf":
+				//$filename = uniqid().".pdf";
+				//move_uploaded_file($_FILES["invoice"]["tmp_name"], 'files/'.$filename);
+				//echo $filename;
+				//break;
+			//default:
+				//$filename = uniqid().".jpg";
+				//$max = 1024;
+				//$src = imagecreatefromstring(file_get_contents($_FILES["invoice"]['tmp_name']));
+				//list($src_w, $src_h, $type, $attr) = getimagesize($_FILES["invoice"]['tmp_name']);
+				//if ($src_w>$max || $src_h>$max) {
+					//$dst_w = $src_w>$src_h ? $max : $max*$src_w/$src_h;
+					//$dst_h = $src_w>$src_h ? $max*$src_h/$src_w : $max;
+				//}
+				//else {
+					//$dst_w = $src_w;
+					//$dst_h = $src_h;
+				//}
+				//$dst = imagecreatetruecolor($dst_w, $dst_h);
+				//imagecopyresampled($dst, $src, 0, 0, 0, 0, $dst_w, $dst_h, $src_w, $src_h);
+				//imagedestroy($src);
+				//imagejpeg($dst, 'files/'.$filename);
+				//imagedestroy($dst);
+				//echo $filename;
+				//break;
+		//}
+		
+		exit();
+	}
+	
 	if ($cmd) updateSale();
 	elseif ($view) viewSale($view);
 	else viewSaleList();
@@ -17,41 +70,43 @@
 		$content.= '<th>'.__('contact').'</th>';
 		$content.= '<td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/sales/new\';"/></td>';
 		$content.= '</tr>';
-		while($sales = $list->fetchArray()) {
+		if($list){
+			while($sales = $list->fetchArray()) {
 
-			//collect info
-			$entry=$db->query("SELECT * FROM Entries WHERE ID='".$sales['EntryID']."'")->fetchArray();
+				//collect info
+				$entry=$db->query("SELECT * FROM Entries WHERE ID='".$sales['EntryID']."'")->fetchArray();
 
-			//get the info for multiple transactions with multiple mutations
-			$show_PID=12;
-			$transactions=array();
-			$mutations=array();
-			$amount_sum=0;
-			$transaction_results=$db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'");
+				//get the info for multiple transactions with multiple mutations
+				$show_PID=12;
+				$transactions=array();
+				$mutations=array();
+				$amount_sum=0;
+				$transaction_results=$db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'");
 	
-			while ($transaction=$transaction_results->fetchArray()){
-				array_push($transactions,$transaction);
-				$mutation_results=$db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transaction['ID']."' AND Accounts.PID='".$show_PID."'");
+				while ($transaction=$transaction_results->fetchArray()){
+					array_push($transactions,$transaction);
+					$mutation_results=$db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transaction['ID']."' AND Accounts.PID='".$show_PID."'");
 
-				while ($mutation=$mutation_results->fetchArray()){
+					while ($mutation=$mutation_results->fetchArray()){
 					array_push($mutations,$mutation['Amount']);
+					}
 				}
-			}
-			$amount_sum=array_sum($mutations);
+				$amount_sum=array_sum($mutations);
 
-			$project = $db->query("SELECT * FROM Projects WHERE ID='".$sales['ProjectID']."'")->fetchArray();
-			$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$sales['ContactID']."'")->fetchArray();
+				$project = $db->query("SELECT * FROM Projects WHERE ID='".$sales['ProjectID']."'")->fetchArray();
+				$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$sales['ContactID']."'")->fetchArray();
 			
-			//put in the table			
-			$content.= '<tr class="data">';
-			$content.= '<td>'.$sales['ID'].'</td>';
-			$content.= '<td>'.$entry['TransactionDate'].'</td>';
-			$content.= '<td>'.$sales['Reference'].'</td>';
-			$content.= '<td>'.$amount_sum.'</td>';
-			$content.= '<td>'.$project['Name'].'</td>';
-			$content.= '<td>'.$contact['Name'].'</td>';
-			$content.= '<td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/sales/'.$sales['ID'].'\';"/></td>';
-			$content.= '</tr>';
+				//put in the table			
+				$content.= '<tr class="data">';
+				$content.= '<td>'.$sales['ID'].'</td>';
+				$content.= '<td>'.$entry['TransactionDate'].'</td>';
+				$content.= '<td>'.$sales['Reference'].'</td>';
+				$content.= '<td>'.$amount_sum.'</td>';
+				$content.= '<td>'.$project['Name'].'</td>';
+				$content.= '<td>'.$contact['Name'].'</td>';
+				$content.= '<td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/sales/'.$sales['ID'].'\';"/></td>';
+				$content.= '</tr>';
+			}
 		}
 		$content.= '</table>';
 	}
@@ -96,6 +151,7 @@
 		//TODO: base html nog maken
 		$content.= '<div class="salesInputFrame"><div class="salesInputForm"><form id="salesForm" method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
+		$content.= '<input type="text" id="url" name="Location">';
 		$content.= '<fieldset><legend>'.__('recipient').'</legend><table>';		
 		$content.= '<tr><th>ID</th><td>'.$purchase['ID'].'</td>';
 
@@ -151,12 +207,12 @@
 		$content.= '<table class="salesInputTotTable" align="right"><tr class="salesInputRow"><tr>____________</tr>';
 		$content.= '<tr><th class="salesInputCol">'.__('nett').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="nettTot" disabled></td></tr>';
 		foreach($vat_options as $vat){
-			if ($vat[0]!="def"){
+			if ($vat[0]!="def" and $vat[0]!=0){
 				$content.= '<tr id="vatTotRow_'.$vat[0].'"><th class="salesInputCol">'.$vat[1].'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="vatTot_'.$vat[0].'" disabled></td></tr>';
 			}
 		}
-		//TODO: add a onclick something to change sum. Also think about an onchange for all inputs in the form
-		$content.= '<tr><th class="salesInputCol">'.__('shift').'</th><td class="salesInputCol"><select id="vatShift"></td></tr>';
+		//TODO: add vat shift functionality
+		$content.= '<tr><th class="salesInputCol">'.__('shift').'</th><td class="salesInputCol"><select name="vatShift" id="vatShift" disabled="true"></td></tr>';
 		$content.= '<tr><th></th><td>-------------------</td></tr>';
 		$content.= '<tr><th class="salesInputCol">'.__('gross').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="grossTot" disabled></td></tr>';
 		$content.= '<tr><td class="salesInputColLast"></td></tr>';
@@ -164,6 +220,7 @@
 		//Submit buttons
 		$content.= '</table></fieldset>';
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
+		$content.= '<input type="button" id="invoiceMake" value="make"></input>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/sales\';"/>';
 		$content.= '</form></div>';
@@ -179,6 +236,7 @@
 		$content.= '<script>addOnClick('.$sales_options_safe.','.$vat_options_safe.')</script>';
 
 		$content.= '<script>onchangeForm("salesForm")</script>';
+		$content.= '<script>onchangeMake("invoiceMake","invoice")</script>';
 
 		//Laad alle transacties uit de database en maak een nieuwe rij aan per transactie en reconstrueer de inhoud
 		foreach ($transactions as $trans){
@@ -213,22 +271,20 @@
 						$checkstr="SalesType";
 						if (strpos($key,$checkstr)!==False){
 							$db->query("INSERT INTO Transactions (EntryID) VALUES ('".$entryID."')");
-							// get the entryID from the database
 							$last_trans=$db->querySingle("SELECT MAX(ID) FROM Transactions LIMIT 1");
 							$transID=intval($last_trans);
 							$trans_num=substr($key, strlen($checkstr),strlen($key));
-							$gross_key="gross".$trans_num;
 							$nett_key="nett".$trans_num;
-							$vat_key="vat".$trans_num;
 							$vat_type_key="vatType".$trans_num;
-							makeMutations($db,$transID,$value,$_POST[$gross_key],$_POST[$nett_key],$_POST[$vat_key],$_POST[$vat_type_key]);					
-		
+							$vat_key="vat".$trans_num;
+							$gross_key="gross".$trans_num;
+							makeMutations($db,$_POST['vatShift'],$transID,$value,$_POST[$nett_key],$_POST[$vat_type_key],$_POST[$vat_key],$_POST[$gross_key]);					
 						}
 					}
 
 				}
 				else {
-					//how to approach this? remove previous mutations or changhe existing ones
+					//how to approach this? remove previous mutations or change existing ones?
 					$db->query("UPDATE Accounts SET URL='".$_POST['URL']."', Date='".$_POST['Date']."', ContactID='".$_POST['ContactID']."', ProjectID='".$_POST['ProjectID']."', Reference='".$_POST['Reference']."' WHERE ID='".$_POST['ID']."'");
 					$id = $_POST['ID'];
 					
@@ -242,41 +298,61 @@
 			case 'remove':
 				$db->query("DELETE FROM Accounts WHERE ID='".$_POST['ID']."'");
 				break;
+
+			case 'make':
+				
 		}
 		viewSaleList();
 	}
 
-	function makeMutations($db,$transID,$salesType,$gross,$nett,$vat,$vat_type) {
+	function makeMutations($db,$shift,$transID,$salesType,$nett,$vat_type,$vat,$gross) {
+		
+		// TODO: verlegde btw toevoegen wanneer dit ook in de rekeningenstructuur zit 
 
-		//hier de regels voor het inboeken van inkoop transacties, nu nog even simpel
-		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '".$salesType."', '".$nett."')");
-		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '5', '".$nett."')");	
-		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '19', '".$vat."')");
+		//result
+		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '8', '".$nett."')");
+
+		//debiteuren
+		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '4', '".$gross."')");	
+
+		//vat
+		switch ($vat_type){
+			case 0:
+				$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '16', '".$vat."')");
+			case 9:
+				$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '17', '".$vat."')");
+			case 21:
+				$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '18', '".$vat."')");
+		}
 	}
 	
 	//boekhoudregels voor purchase in reverse, voelt onhandig, misschien gewoon $gross, $vat, $nett, $vat_type etc opslaan in de transaction?
 
 	function revMutations($db, $trans,$mutations){
 
-		$res_list=$db->query("SELECT * FROM Accounts WHERE PID='12'");
 		foreach($mutations as $mut){
 			if ($mut['TransactionID']==$trans['ID']){
-				//result acounts		
-			
-				while($res=$res_list->fetchArray()){
-					if (in_array($mut['AccountID'],$res)){
-						$salesType=$mut['AccountID'];
-						$nett=$mut['Amount'];
-					} 
-				}
-
+				
+				//result acounts
+				if (in_array($mut['AccountID'],"8")){
+					$salesType=$mut['AccountID'];
+					$nett=$mut['Amount'];
+				} 
+				
 				//vat accounts
-				if ($mut['AccountID']==19){
-					$vat=$mut['Amount'];
+				switch ($mut['AccountID']){
+					case 16:
+						$vat=$mut['Amount'];
+						$vat_type=0;
+					case 17:
+						$vat=$mut['Amount'];
+						$vat_type=9;
+					case 18:
+						$vat=$mut['Amount'];
+						$vat_type=21;
 				}
 
 				$gross=$nett+$vat;
-				$vat_type="";
 			}
 		}
 
