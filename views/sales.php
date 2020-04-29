@@ -14,53 +14,6 @@
 		echo $filename;
 
 		//generate a .pdf from the json file
-
-
-
-		//$error = false;
-		
-		//$maxsize = ini_get("upload_max_filesize");
-		//$unit = preg_replace('/[^bkmgtpezy]/i', '', $maxsize); // Remove the non-unit characters from the size.
-		//$maxsize = preg_replace('/[^0-9\.]/', '', $maxsize); // Remove the non-numeric characters from the size.
-		//$maxsize = $unit ? round($maxsize * pow(1024, stripos('bkmgtpezy', $unit[0]))) : round($maxsize);
-		//if ($_FILES["invoice"]["size"] > $maxsize) $error.= 'Sorry, your file is too large.<br/>';
-		
-		//$filetype = strtolower(pathinfo($_FILES["invoice"]["name"],PATHINFO_EXTENSION));
-		//if($filetype!="pdf" && $filetype!="jpg" && $filetype!="png" && $filetype!="jpeg" && $filetype!="gif" ) $error.= 'Wrong file type<br/>';
-		
-		//if ($error) {
-			//$error.= 'Only PDF, JPG, JPEG, PNG & GIF files are allowed. Maximum size: '.ini_get("upload_max_filesize").'<br/>';
-			//echo $error;
-			//exit();
-		//}
-		
-		//switch($filetype) {
-			//case "pdf":
-				//$filename = uniqid().".pdf";
-				//move_uploaded_file($_FILES["invoice"]["tmp_name"], 'files/'.$filename);
-				//echo $filename;
-				//break;
-			//default:
-				//$filename = uniqid().".jpg";
-				//$max = 1024;
-				//$src = imagecreatefromstring(file_get_contents($_FILES["invoice"]['tmp_name']));
-				//list($src_w, $src_h, $type, $attr) = getimagesize($_FILES["invoice"]['tmp_name']);
-				//if ($src_w>$max || $src_h>$max) {
-					//$dst_w = $src_w>$src_h ? $max : $max*$src_w/$src_h;
-					//$dst_h = $src_w>$src_h ? $max*$src_h/$src_w : $max;
-				//}
-				//else {
-					//$dst_w = $src_w;
-					//$dst_h = $src_h;
-				//}
-				//$dst = imagecreatetruecolor($dst_w, $dst_h);
-				//imagecopyresampled($dst, $src, 0, 0, 0, 0, $dst_w, $dst_h, $src_w, $src_h);
-				//imagedestroy($src);
-				//imagejpeg($dst, 'files/'.$filename);
-				//imagedestroy($dst);
-				//echo $filename;
-				//break;
-		//}
 		
 		exit();
 	}
@@ -141,12 +94,21 @@
 			$entry = array("ID"=>"", "TransactionDate" => "", "AccountingDate" => "", "URL" => "", "Log" => "");
 			$transactions=array(array("ID"=>"","entryID"=>"","MergeID"=>""));
 			$mutations=array(array("ID"=>"","TransactionID"=>"","AccountID"=>"","Amount"=>""));
+			$invoice="";
 		}		
 		else {
 			//load arrays from the database
 			$purchase = $db->query("SELECT * FROM Sales WHERE ID='".$id."'")->fetchArray();
 			$entry = $db->query("SELECT * FROM Entries WHERE ID='".$purchase['EntryID']."'")->fetchArray();
-			$content.=("Entry URL = ".$entry['URL']);
+
+			//get the data from the invoice
+			$invoice_path='/files/sales/'.$entry['URL'];
+			if(file_exists($invoice_path) and explode($invoice_path,".")[1]=="json"){
+				$invoice=file_get_contents($invoice_path);
+			}
+			else{
+				$invoice="";
+			}
 
 			$transactions=array();
 			$mutations=array();
@@ -194,9 +156,9 @@
 		//Reference
 		$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"></td></tr>';
 		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" name="Reference" value="'.$purchase['Reference'].'"/></td></tr>';
+		$form_options='<option value="old">Enter existing invoice</option><option value="new">Create new invoice</option>';
+		$content.= '<tr><th>'.__('input mode').'</th><td><select id="invoiceMode">'.$form_options.'</select></td></tr>';
 		$content.= '</table></fieldset>';		
-		
-		$content.= '<fieldset><legend>'.__('invoice items').'</legend><table id="salesTable" class="salesInputTable">';
 
 		//Geef alle opties voor sales, hier later nog even over nadenken, wil je kosten van de omzet appart hebben (voorraad, kosten derder etc)?
 		$sales_options=array(array("def","kies type"),array("1","Uren"),array("2","Materialen"),array("3","Reiskosten"));
@@ -210,16 +172,30 @@
 		$shift_options=array(array("no",__('no')),array("NL","NL"),array("EU","EU"),array("Ex","Ex"));
 		$shift_options_safe=json_encode($shift_options);
 
-		// Rijen met transacties
+		//Invoice table
+		$content.= '<fieldset id="invoiceFieldSet" hidden="true"><legend>'.__('invoice items').'</legend><table id="invoiceTable" class="salesInputTable">';
 		$content.= '<tr class="salesInputRow"><th class="salesInputCol">'.__('sales type').'</th>';
 		$content.='<th class="salesInputCol">'.__('description').'</th>'; 
 		$content.='<th class="salesInputCol">'.__('number').'</th>';
 		$content.='<th class="salesInputCol">'.__('price').'</th>';
 		$content.='<th class="salesInputCol">'.__('nett').'</th>';
 		$content.='<th class="salesInputCol">'.__('vat type').'</th>';
-		$content.='<td class="salesInputColLast"><input type="button" id="addRowButton" value="+"/></td></tr>';
-		
-		//Laatste rij met het totaal
+		$content.='<td class="salesInputColLast"><input type="button" id="addInvoiceRowButton" value="+"/></td></tr>';
+		$content.= '</table></fieldset>';
+
+		//Totalen van de factuur
+
+
+		// Rijen met transacties
+		$content.= '<fieldset id="salesFieldSet"><legend>Accounting lines</legend><table id="salesTable" class="salesInputTable">';
+		$content.= '<tr class="salesInputRow"><th class="salesInputCol">'.__('sales type').'</th>';
+		$content.='<th class="salesInputCol">'.__('nett').'</th>';
+		$content.='<th class="salesInputCol">'.__('vat type').'</th>';
+		$content.='<th class="salesInputCol">'.__('vat').'</th>';
+		$content.='<th class="salesInputCol">'.__('gross').'</th>';
+		$content.='<td class="salesInputColLast"><input type="button" id="addSalesRowButton" value="+"/></td></tr>';
+
+		//Totalen van de transacties
 		$content.= '<table class="salesInputTotTable" align="right"><tr class="salesInputRow"><tr>____________</tr>';
 		$content.= '<tr><th class="salesInputCol">'.__('nett').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="nettTot" disabled></td></tr>';
 		foreach($vat_options as $vat){
@@ -245,13 +221,16 @@
 		//Laad javascript
 		$content.= '<script type="text/javascript" src="../../js/sales.js"></script>';
 
-		//laad de opties voor shift
+		//laad de opties voor shift en vat
 		$content.= '<script>addOptionsPHP("vatShift",'.$shift_options_safe.')</script>';
+		$content.= '<script>setGlobalOptions('.$sales_options_safe.','.$vat_options_safe.')</script>';
 
 		// on click laad een nieuwe regel
-		$content.= '<script>addOnClick('.$sales_options_safe.','.$vat_options_safe.')</script>';
+		$content.= '<script>addOnClick()</script>';
 
-		$content.= '<script>onchangeForm("salesForm")</script>';
+		$content.= '<script>onChangeFieldSet("salesFieldSet")</script>';
+		$content.= '<script>onChangeFieldSet("invoiceFieldSet")</script>';
+		$content.= '<script>onchangeInput("invoiceMode")</script>';
 		$content.= '<script>onchangeMake("invoiceMake","invoice")</script>';
 
 		//Laad alle transacties uit de database en maak een nieuwe rij aan per transactie en reconstrueer de inhoud
@@ -260,7 +239,7 @@
 				$sel_options=revMutations($db,$entry, $trans,$mutations);	
 				$sel_options_safe=json_encode($sel_options);
 			}		
-			$content.= '<script>addSalesRow('.$sales_options_safe.','.$vat_options_safe.','.$sel_options_safe.')</script>';
+			$content.= '<script>addSalesRow('.$sel_options_safe.')</script>';
 		}
 
 	}

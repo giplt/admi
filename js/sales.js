@@ -1,55 +1,507 @@
-rowCount=1;
+var rowCount=1;
+var inRowCount=1;
 
-function addOptionsPHP_onclick(selectID,options,reductionID){
-	
-	var select = document.getElementById(selectID);
-	var reduct = document.getElementById(reductionID);
-	
-	//Eventlistener
-	reduct.addEventListener("change",function(){
+var sales_options=[];
+var vat_options=[];
 
-		//delete all options, if any		
-		if (select.options){
-			var len = select.options.length;
-			for (i = len-1; i >= 0; i--) {
-  				select.options[i] = null;
-			}
-		}
-
-		//add options for this contact	
-		var reduct_val = reduct.value;	
-		var red_options=[];
-
-		for (i=0;i<options.length;i++){ 
-			//add the default option
-			if (options[i][0]=="def"){
-				red_options.push(options[i]);
-			}
-			//add options for contact only
-			if (options[i][2]==reduct_val){
-				red_options.push(options[i]);
-			}
-		}
-		addOptions(select,red_options);
-		});
-
-}
+//-------------------------------------------------------------------
+//these functions allow adding options to select elements dynamically
+//-------------------------------------------------------------------
 
 function addOptionsPHP(selectID,options){
 	var select = document.getElementById(selectID);
 	addOptions(select,options);
 }
 
-// --- EVENT listneres
+function addOptions(select_obj,options,sel_opt){
+        for (i=0;i<options.length;i++){
+                newOption = document.createElement("option");
+                newOption.setAttribute("value",options[i][0]);
+                newOption.innerHTML=options[i][1];
+                if (options[i][0]=="def"){
+                        newOption.setAttribute("disabled","disabled")
+                };
+		if (options[i][0]==sel_opt){
+			newOption.setAttribute("selected","");
+		};
+                select_obj.appendChild(newOption);
+        };
+}
 
-function addOnClick(sales_options,vat_options){
-	var but = document.getElementById("addRowButton");
+function setGlobalOptions(sales,vat){
+	sales_options=sales;
+	vat_options=vat;
+}
+
+//-----------------------------------------------------
+//these functions create new input rows and remove them
+//-----------------------------------------------------
+
+function addOnClick(){
+	
+	//invoice 
+	var but = document.getElementById("addInvoiceRowButton");
 
 	//note eventlistener wants a function, addSalesRow() actually gives a return value
 	but.addEventListener("click",function(){
-		addSalesRow(sales_options,vat_options);
+		addInvoiceRow();
+	});
+
+	//Sales
+	var but = document.getElementById("addSalesRowButton");
+
+	//note eventlistener wants a function, addSalesRow() actually gives a return value
+	but.addEventListener("click",function(){
+		addSalesRow();
+	});
+
+}
+
+function addInvoiceRow(sel_options=""){
+
+	var invoiceTable = document.getElementById("invoiceTable");
+	var newInvoiceRow = document.createElement("tr");
+	newInvoiceRow.setAttribute("id", "invoiceRow"+inRowCount.toString());
+	newInvoiceRow.setAttribute("class", "invoiceInputRow");
+	invoiceTable.appendChild(newInvoiceRow);
+
+	//Create the rows
+	var newInvoiceColA = document.createElement("td");
+	newInvoiceColA.setAttribute("class", "invoiceInputCol");
+	newInvoiceRow.appendChild(newInvoiceColA);
+
+	var newInvoiceColB = document.createElement("td");
+	newInvoiceColB.setAttribute("class", "invoiceInputCol");
+	newInvoiceRow.appendChild(newInvoiceColB);
+
+	var newInvoiceColC = document.createElement("td");
+	newInvoiceColC.setAttribute("class", "invoiceInputCol");
+	newInvoiceRow.appendChild(newInvoiceColC);
+
+	var newInvoiceColD = document.createElement("td");
+	newInvoiceColD.setAttribute("class", "invoiceInputCol");
+	newInvoiceRow.appendChild(newInvoiceColD);
+
+	var newInvoiceColE = document.createElement("td");
+	newInvoiceColE.setAttribute("class", "invoiceInputCol");
+	newInvoiceRow.appendChild(newInvoiceColE);
+
+        var newInvoiceColF = document.createElement("td");
+        newInvoiceColE.setAttribute("class", "invoiceInputCol");
+        newInvoiceRow.appendChild(newInvoiceColF);
+
+        var newInvoiceColG = document.createElement("td");
+        newInvoiceColE.setAttribute("class", "invoiceInputColLast");
+        newInvoiceRow.appendChild(newInvoiceColG);
+
+	// Extract selected options
+	if (sel_options.length>0){
+		//from database
+		sel_invoice=sel_options[0];
+		sel_desc=sel_options[1];
+		sel_amount=sel_options[2];
+		sel_price=sel_options[3];
+		sel_nett=sel_options[4];
+		sel_vat_type=sel_options[5];
+	}
+	else{
+		//defaults
+		sel_invoice="def";
+		sel_desc="";
+		sel_amount=0;
+		sel_price=0;
+		sel_nett=0;
+		sel_vat_type="21";
+	}
+
+	//input fields
+	var newInvoiceType = document.createElement("select");
+	newInvoiceType.setAttribute("id", "invoiceType"+inRowCount.toString());
+	newInvoiceType.setAttribute("name", "InvoiceType"+inRowCount.toString());
+        addOptions(newInvoiceType,sales_options,sel_invoice);
+	newInvoiceColA.appendChild(newInvoiceType);
+
+	var newInvoiceGross = document.createElement("input");
+	newInvoiceGross.setAttribute("id", "invoiceDesc"+inRowCount.toString());
+	newInvoiceGross.setAttribute("name", "invoiceDescription"+inRowCount.toString());
+	newInvoiceGross.setAttribute("type", "text");
+	newInvoiceGross.setAttribute("value", sel_desc);
+	newInvoiceColB.appendChild(newInvoiceGross);
+
+	var newInvoiceAmount = document.createElement("input");
+	newInvoiceAmount.setAttribute("id", "invoiceAmount"+inRowCount.toString());
+        newInvoiceAmount.setAttribute("name", "invoiceAmount"+inRowCount.toString());
+	newInvoiceAmount.setAttribute("type", "number");
+	newInvoiceAmount.setAttribute("step", "0.1");
+	newInvoiceAmount.setAttribute("value", sel_amount);
+	newInvoiceColC.appendChild(newInvoiceAmount);
+
+	var newInvoicePrice = document.createElement("input");
+	newInvoicePrice.setAttribute("id", "invoicePrice"+inRowCount.toString());
+	newInvoicePrice.setAttribute("name", "invoicePrice"+inRowCount.toString());
+	newInvoicePrice.setAttribute("type", "number");
+	newInvoicePrice.setAttribute("step", "0.01");
+	newInvoicePrice.setAttribute("value", sel_price);
+	newInvoiceColD.appendChild(newInvoicePrice);
+
+	var newInvoiceNett = document.createElement("input");
+	newInvoiceNett.setAttribute("id", "invoiceNett"+inRowCount.toString());
+	newInvoiceNett.setAttribute("name", "invoiceNett"+inRowCount.toString());
+	newInvoiceNett.setAttribute("type", "number");
+	newInvoiceNett.setAttribute("step", "0.01");
+	newInvoiceNett.setAttribute("value", sel_nett);
+	newInvoiceColE.appendChild(newInvoiceNett);
+
+        var newVatType = document.createElement("select");
+        newVatType.setAttribute("id", "invoiceVatType"+inRowCount.toString());
+        newVatType.setAttribute("name", "invoiceVatType"+inRowCount.toString());
+        addOptions(newVatType,vat_options,sel_vat_type);
+        newInvoiceColF.appendChild(newVatType);
+
+	var newInvoiceRem = document.createElement("input");
+        newInvoiceRem.setAttribute("id", "invoiceBut"+inRowCount.toString());
+	newInvoiceRem.setAttribute("name", "invoiceBut"+inRowCount.toString());
+	newInvoiceRem.setAttribute("type", "button");
+	newInvoiceRem.setAttribute("value", "-");
+	newInvoiceRem.setAttribute("onclick", "removeInvoiceRow(this.id)");
+	newInvoiceColG.appendChild(newInvoiceRem);
+
+	//increment inRowCount
+	inRowCount+=1;
+
+	//adjust total values
+	invoiceToSales();
+}
+
+function removeInvoiceRow(butval){
+        var rowID = "invoiceRow"+butval.replace("invoiceBut","");
+	var rmRow = document.getElementById(rowID);
+        rmRow.innerHTML="x";
+
+	//adjust total values --> needed when entering data from database
+	invoiceToSales();
+}
+
+function addSalesRow(sel_options="") {
+
+	var salesTable = document.getElementById("salesTable");
+	var newSalesRow = document.createElement("tr");
+	newSalesRow.setAttribute("id", "salesRow"+rowCount.toString());
+	newSalesRow.setAttribute("class", "salesInputRow");
+	salesTable.appendChild(newSalesRow);
+
+	//Create the rows
+	var newSalesColA = document.createElement("td");
+	newSalesColA.setAttribute("class", "salesInputCol");
+	newSalesRow.appendChild(newSalesColA);
+
+	var newSalesColB = document.createElement("td");
+	newSalesColB.setAttribute("class", "salesInputCol");
+	newSalesRow.appendChild(newSalesColB);
+
+	var newSalesColC = document.createElement("td");
+	newSalesColC.setAttribute("class", "salesInputCol");
+	newSalesRow.appendChild(newSalesColC);
+
+	var newSalesColD = document.createElement("td");
+	newSalesColD.setAttribute("class", "salesInputCol");
+	newSalesRow.appendChild(newSalesColD);
+
+	var newSalesColE = document.createElement("td");
+	newSalesColE.setAttribute("class", "salesInputCol");
+	newSalesRow.appendChild(newSalesColE);
+
+        var newSalesColF = document.createElement("td");
+        newSalesColE.setAttribute("class", "salesInputColLast");
+        newSalesRow.appendChild(newSalesColF);
+
+	// Extract selected options
+	if (sel_options.length>0){
+		//from database
+		sel_sales=sel_options[0];
+		sel_nett=sel_options[1];
+		sel_vat_type=sel_options[2];
+		sel_vat=sel_options[3];
+		sel_gross=sel_options[4];
+	}
+	else{
+		//defaults
+		sel_sales="def";
+		sel_nett=0;
+		sel_vat_type="21";
+		sel_vat=0;
+		sel_gross=0;
+	}
+
+	//input fields
+	var newSalesType = document.createElement("select");
+	newSalesType.setAttribute("id", "salesType"+rowCount.toString());
+	newSalesType.setAttribute("name", "salesType"+rowCount.toString());
+        addOptions(newSalesType,sales_options,sel_sales);
+	newSalesColA.appendChild(newSalesType);
+
+	var newSalesNett = document.createElement("input");
+	newSalesNett.setAttribute("id", "salesNett"+rowCount.toString());
+	newSalesNett.setAttribute("name", "salesNett"+rowCount.toString());
+	newSalesNett.setAttribute("type", "number");
+	newSalesNett.setAttribute("step", "0.01");
+	newSalesNett.setAttribute("value", sel_nett);
+	newSalesColB.appendChild(newSalesNett);
+
+        var newVatType = document.createElement("select");
+        newVatType.setAttribute("id", "salesVatType"+rowCount.toString());
+        newVatType.setAttribute("name", "salesVatType"+rowCount.toString());
+        addOptions(newVatType,vat_options,sel_vat_type);
+        newSalesColC.appendChild(newVatType);
+
+	var newSalesVat = document.createElement("input");
+	newSalesVat.setAttribute("id", "salesVat"+rowCount.toString());
+	newSalesVat.setAttribute("name", "salesVat"+rowCount.toString());
+	newSalesVat.setAttribute("type", "number");
+	newSalesVat.setAttribute("step", "0.01");
+	newSalesVat.setAttribute("readonly", "readonly");
+	newSalesVat.setAttribute("value", sel_vat);
+	newSalesColD.appendChild(newSalesVat);
+
+	var newSalesGross = document.createElement("input");
+	newSalesGross.setAttribute("id", "salesGross"+rowCount.toString());
+	newSalesGross.setAttribute("name", "salesGross"+rowCount.toString());
+	newSalesGross.setAttribute("type", "number");
+	newSalesGross.setAttribute("step", "0.01");
+	newSalesGross.setAttribute("readonly", "readonly");
+	newSalesGross.setAttribute("value", sel_gross);
+	newSalesColE.appendChild(newSalesGross);
+
+	var newSalesRem = document.createElement("input");
+        newSalesRem.setAttribute("id", "salesBut"+rowCount.toString());
+	newSalesRem.setAttribute("name", "salesBut"+rowCount.toString());
+	newSalesRem.setAttribute("type", "button");
+	newSalesRem.setAttribute("value", "-");
+	newSalesRem.setAttribute("onclick", "removeSalesRow(this.id)");
+	newSalesColF.appendChild(newSalesRem);
+
+	//increment rowCount
+	rowCount+=1;
+
+	//adjust total values --> needed when entering data from database
+	adjustSalesTot();
+}
+
+
+function removeSalesRow(butval){
+        var rowID = "salesRow"+butval.replace("salesBut","");
+	var rmRow = document.getElementById(rowID);
+        rmRow.innerHTML="x";
+
+	//adjust values
+        adjustSalesTot();
+}
+
+//-----------------------------------------------------------------------------------------------------
+//function that allows to switch between adding data for an existing invoice and creating a new invoice
+//-----------------------------------------------------------------------------------------------------
+//TODO: something going wrong. The value of the select item cannot be changed back
+
+function onchangeInput(id){
+	var select = document.getElementById(id);	
+	select.addEventListener("change",function(){
+		var invoiceField=document.getElementById("invoiceFieldSet");
+		var salesField=document.getElementById("salesFieldSet");
+		var salesFieldChildren=salesField.children;
+		if(select.value="new"){
+			invoiceField.removeAttribute("hidden");
+			addSalesRowButton.setAttribute("disabled","disabled");
+
+			//set relevant inputs to readonly
+			for(i=1;i<rowCount;i++){
+				var sales_type=document.getElementById("salesType"+i.toString());
+				var nett=document.getElementById("salesNett"+i.toString());
+				var vat_type=document.getElementById("salesVatType"+i.toString());
+				var sales_but=document.getElementById("salesBut"+i.toString());
+
+				nett.setAttribute("readonly","readonly");
+				vat_type.setAttribute("disabled","disabled");
+				sales_type.setAttribute("disabled","disabled");
+				sales_but.setAttribute("disabled","disabled");
+			}
+		}
+		else{
+			invoiceField.setAttribute("hidden","true");
+			addSalesRowButton.removeAttribute("disabled");
+			//set relevant inputs to write
+			for(i=1;i<rowCount;i++){
+				var sales_type=document.getElementById("salesType"+i.toString());
+				var nett=document.getElementById("salesNett"+i.toString());
+				var vat_type=document.getElementById("salesVatType"+i.toString());
+				var sales_but=document.getElementById("salesBut"+i.toString());
+
+				nett.removeAttribute("readonly");
+				sales_type.removeAttribute("disabled");
+				vat_type.removeAttribute("disabled");
+				sales_but.removeAttribute("disabled");
+			}
+
+		}
 	});
 }
+
+
+//----------------------------------------------------------------------------------------
+//functions that fill read-only field inputs when a change to the form fieldset is applied
+//----------------------------------------------------------------------------------------
+
+function onChangeFieldSet(id){
+	var form = document.getElementById(id);
+	
+	if(id=="salesFieldSet"){
+		//note eventlistener wants a function, addSalesRow() actually gives a return value
+		form.addEventListener("change",function(){
+			for (i=1;i<rowCount;i++){
+				adjustSalesRow(i); 
+			}
+			adjustSalesTot();
+		});
+	}
+	else if(id=="invoiceFieldSet"){
+		form.addEventListener("change",function(){
+			for (i=1;i<inRowCount;i++){
+				adjustInvoiceRow(i); 
+			}
+			invoiceToSales();
+		});
+	}
+
+}
+
+
+function invoiceToSales(){
+	
+	//create an array and loop through all the invoice lines
+	var sales_lines=[];
+	var found;
+
+	console.log("Invoice to sales running");
+	for(i=1;i<inRowCount;i++){
+		found=false;
+		var invoiceType=document.getElementById("invoiceNett"+i.toString()).value;
+		var invoiceNett=document.getElementById("invoiceNett"+i.toString()).value;
+		var invoiceVatType=document.getElementById("invoiceVatType"+i.toString()).value;
+		
+		for(l=0;l<sales_lines.length;l++){
+		
+			if(sales_lines[l][0]==invoiceType && sales_lines[l][2]==invoiceVatType){
+				sales_lines[l][1]+=invoiceNett;
+				found=true;
+			}
+		}
+		
+		if(!found){
+			sales_lines.push([invoiceType,invoiceNett,invoiceVatType]);
+		} 
+	}
+	
+	for(s=1;s<sales_lines.length;s++){ 	
+		if (document.getElementById("invoiceType"+s.toString())){ 
+			var salesType=document.getElementById("salesType"+s.toString()).value=sales_lines[s][0];
+			var salesNett=document.getElementById("salesNett"+s.toString()).value=sales_lines[s][1];
+			var salesVat=document.getElementById("salesVat"+s.toString()).value=1;
+			var salesVatType=document.getElementById("salesVatType"+s.toString()).value=sales_lines[s][3];
+			var salesGross=document.getElementById("salesGross"+s.toString()).value=1;
+		}
+		else{
+			sel_options=[salesType,salesNett,salesVat,salesVatType,salesGross];
+			addSalesRow(sel_options="");
+		}
+	}		
+	adjustSalesTot();
+		
+}
+
+function adjustInvoiceRow(row){
+	var amount=+document.getElementById('invoiceAmount'+row.toString()).value;
+	var price=+document.getElementById('invoicePrice'+row.toString()).value;
+	var vat_type=+document.getElementById('invoiceVatType'+row.toString()).value;
+
+	var nett=document.getElementById('invoiceNett'+row.toString());
+	nett.setAttribute("value",amount*price);
+}
+
+function adjustSalesRow(row){
+	var nett=document.getElementById('salesNett'+row.toString()).value;
+	var vat_type=+document.getElementById('salesVatType'+row.toString()).value;
+
+	var vat=document.getElementById('salesVat'+row.toString());
+	vat.setAttribute("value",+nett*(vat_type/100));
+
+	var gross=document.getElementById('salesGross'+row.toString());
+	gross.setAttribute("value",+nett+(+vat.value));
+}
+
+function adjustSalesTot(){
+	//get sum for nett
+	var inputTot=document.getElementById("nettTot");
+        var sumnett=0;
+	for (i=1;i<rowCount;i++){
+		if (document.getElementById('salesNett'+i.toString())){
+			sumnett+=+document.getElementById('salesNett'+i.toString()).value;
+		}
+	}
+
+        inputTot.value=sumnett;
+	
+	//get sum of vat
+	var sumvat=adjustTotVat();
+	
+	//get sum for gross
+	var sumgross=sumnett+sumvat;	
+	var grossTot=document.getElementById("grossTot");
+	
+	// only if shift=no
+	var shiftTot=document.getElementById("vatShift");
+	if (shiftTot.value=="no"){
+		grossTot.value=sumgross;
+	}
+	else{
+		grossTot.value=sumnett;
+	}
+}
+
+function adjustTotVat(options=new Array('9','21')){
+	var totVat=0;
+
+	for (i=0;i<options.length;i++){
+		var id="vatTot_"+options[i];
+		var inputTot=document.getElementById(id);
+		var rowTot=document.getElementById("vatTotRow_"+options[i]);
+		var sum=0;
+
+		//for each row
+		for (n=1;n<rowCount;n++){
+			vat_query="salesVatType"+n.toString()
+			if(document.getElementById(vat_query)){
+				var vattype=document.getElementById(vat_query).value;
+				var vat=document.getElementById("salesVat"+n.toString()).value;
+
+				if (vattype){
+					if(vattype==options[i]){
+						sum+=+vat;
+					}
+				}
+			}
+		}
+
+		inputTot.value=sum;
+		totVat+=sum;
+
+	}
+
+	return totVat;
+}
+
+
+//--------------------------------------------------------------------------
+//Functions that create an invoice from data entered in the invoice fieldset 
+//--------------------------------------------------------------------------
 
 function onchangeMake(id,name){
 	var but = document.getElementById(id);	
@@ -114,259 +566,6 @@ function makeInvoice(name){
 	xhr.send(data);
 	
 
-}
-
-function addOptions(select_obj,options,sel_opt){
-        for (i=0;i<options.length;i++){
-                newOption = document.createElement("option");
-                newOption.setAttribute("value",options[i][0]);
-                newOption.innerHTML=options[i][1];
-                if (options[i][0]=="def"){
-                        newOption.setAttribute("disabled","disabled")
-                };
-		if (options[i][0]==sel_opt){
-			newOption.setAttribute("selected","");
-		};
-                select_obj.appendChild(newOption);
-        };
-}
-
-
-function addSalesRow(sales_options,vat_options, sel_options="") {
-
-	var salesTable = document.getElementById("salesTable");
-	var newSalesRow = document.createElement("tr");
-	newSalesRow.setAttribute("id", "salesRow"+rowCount.toString());
-	newSalesRow.setAttribute("class", "salesInputRow");
-	salesTable.appendChild(newSalesRow);
-
-	//Create the rows
-	var newSalesColA = document.createElement("td");
-	newSalesColA.setAttribute("class", "salesInputCol");
-	newSalesRow.appendChild(newSalesColA);
-
-	var newSalesColB = document.createElement("td");
-	newSalesColB.setAttribute("class", "salesInputCol");
-	newSalesRow.appendChild(newSalesColB);
-
-	var newSalesColC = document.createElement("td");
-	newSalesColC.setAttribute("class", "salesInputCol");
-	newSalesRow.appendChild(newSalesColC);
-
-	var newSalesColD = document.createElement("td");
-	newSalesColD.setAttribute("class", "salesInputCol");
-	newSalesRow.appendChild(newSalesColD);
-
-	var newSalesColE = document.createElement("td");
-	newSalesColE.setAttribute("class", "salesInputCol");
-	newSalesRow.appendChild(newSalesColE);
-
-        var newSalesColF = document.createElement("td");
-        newSalesColE.setAttribute("class", "salesInputCol");
-        newSalesRow.appendChild(newSalesColF);
-
-        var newSalesColG = document.createElement("td");
-        newSalesColE.setAttribute("class", "salesInputColLast");
-        newSalesRow.appendChild(newSalesColG);
-
-	// Extract selected options
-	if (sel_options.length>0){
-		//from database
-		sel_sales=sel_options[0];
-		sel_gross=sel_options[1];
-		sel_nett=sel_options[2];
-		sel_vat=sel_options[4];
-		sel_vat_type=sel_options[5];
-
-		sel_price=sel_options[6];
-		sel_desc=sel_options[7];
-		sel_amount=sel_options[8];
-	}
-	else{
-		//defaults
-		sel_sales="def";
-		sel_desc="";
-		sel_amount=0;
-		sel_price=0;
-		sel_nett=0;
-		sel_vat_type="21";
-		sel_vat=0;
-		sel_gross=0;
-	}
-
-	//input fields
-	var newSalesType = document.createElement("select");
-	newSalesType.setAttribute("id", "SalesType"+rowCount.toString());
-	newSalesType.setAttribute("name", "SalesType"+rowCount.toString());
-        addOptions(newSalesType,sales_options,sel_sales);
-	newSalesColA.appendChild(newSalesType);
-
-	var newSalesGross = document.createElement("input");
-	newSalesGross.setAttribute("id", "desc"+rowCount.toString());
-	newSalesGross.setAttribute("name", "description"+rowCount.toString());
-	newSalesGross.setAttribute("type", "text");
-	newSalesGross.setAttribute("value", sel_desc);
-	newSalesColB.appendChild(newSalesGross);
-
-	var newSalesAmount = document.createElement("input");
-	newSalesAmount.setAttribute("id", "amount"+rowCount.toString());
-        newSalesAmount.setAttribute("name", "amount"+rowCount.toString());
-	newSalesAmount.setAttribute("type", "number");
-	newSalesAmount.setAttribute("step", "0.1");
-        newSalesAmount.setAttribute("onchange","adjustRow("+rowCount+")");
-	newSalesAmount.setAttribute("value", sel_amount);
-	newSalesColC.appendChild(newSalesAmount);
-
-	var newSalesPrice = document.createElement("input");
-	newSalesPrice.setAttribute("id", "price"+rowCount.toString());
-	newSalesPrice.setAttribute("name", "price"+rowCount.toString());
-	newSalesPrice.setAttribute("type", "number");
-	newSalesPrice.setAttribute("step", "0.01");
-        newSalesPrice.setAttribute("onchange","adjustRow("+rowCount+",rowCount)");
-	newSalesPrice.setAttribute("value", sel_price);
-	newSalesColD.appendChild(newSalesPrice);
-
-	var newSalesNett = document.createElement("input");
-	newSalesNett.setAttribute("id", "nett"+rowCount.toString());
-	newSalesNett.setAttribute("name", "nett"+rowCount.toString());
-	newSalesNett.setAttribute("type", "number");
-	newSalesNett.setAttribute("step", "0.01");
-	newSalesNett.setAttribute("value", sel_nett);
-	newSalesColE.appendChild(newSalesNett);
-
-        var newVatType = document.createElement("select");
-        newVatType.setAttribute("id", "vatType"+rowCount.toString());
-        newVatType.setAttribute("name", "vatType"+rowCount.toString());
-        newVatType.setAttribute("onchange","adjustRow("+rowCount+")");
-        addOptions(newVatType,vat_options,sel_vat_type);
-        newSalesColF.appendChild(newVatType);
-
-	var newSalesVat = document.createElement("input");
-	newSalesVat.setAttribute("id", "vat"+rowCount.toString());
-	newSalesVat.setAttribute("name", "vat"+rowCount.toString());
-	newSalesVat.setAttribute("type", "number");
-	newSalesVat.setAttribute("step", "0.01");
-	newSalesVat.setAttribute("hidden", "true");
-	newSalesVat.setAttribute("value", sel_vat);
-	newSalesColF.appendChild(newSalesVat);
-
-	var newSalesGross = document.createElement("input");
-	newSalesGross.setAttribute("id", "gross"+rowCount.toString());
-	newSalesGross.setAttribute("name", "gross"+rowCount.toString());
-	newSalesGross.setAttribute("type", "number");
-	newSalesGross.setAttribute("step", "0.01");
-	newSalesGross.setAttribute("hidden", "true");
-	newSalesGross.setAttribute("value", sel_gross);
-	newSalesColF.appendChild(newSalesGross);
-
-	var newSalesRem = document.createElement("input");
-        newSalesRem.setAttribute("id", "salesBut"+rowCount.toString());
-	newSalesRem.setAttribute("name", "salesBut"+rowCount.toString());
-	newSalesRem.setAttribute("type", "button");
-	newSalesRem.setAttribute("value", "-");
-	newSalesRem.setAttribute("onclick", "removeSalesRow(this.id)");
-	newSalesColG.appendChild(newSalesRem);
-
-	//increment rowCount
-	rowCount+=1;
-
-	//adjust total values
-	adjustTot(rowCount);
-}
-
-function removeSalesRow(butval){
-        var rowID = "salesRow"+butval.replace("salesBut","");
-	var rmRow = document.getElementById(rowID);
-        rmRow.innerHTML="x";
-
-	//adjust values
-        adjustTot(rowCount);
-}
-
-//------FUNCTIONS for dynamically summing fields and totals
-
-function onchangeForm(id){
-	var form = document.getElementById(id);
-
-	//note eventlistener wants a function, addSalesRow() actually gives a return value
-	form.addEventListener("change",function(){
-		adjustTot(rowCount);
-	});
-}
-
-function adjustRow(row,rowCount){
-	var amount=+document.getElementById('amount'+row.toString()).value;
-	var price=+document.getElementById('price'+row.toString()).value;
-	var vat_type=+document.getElementById('vatType'+row.toString()).value;
-	var nett=document.getElementById('nett'+row.toString());
-	var gross=document.getElementById('gross'+row.toString());
-	var vat=document.getElementById('vat'+row.toString());
-
-	nett.setAttribute("value",amount*price);
-	vat.setAttribute("value",+nett.value*(vat_type/100));
-	gross.setAttribute("value",+nett.value+(+vat.value));
-
-	adjustTot(rowCount);
-}
-
-function adjustTot(rowCount){
-	//get sum for nett
-	var inputTot=document.getElementById("nettTot");
-        var sumnett=0;
-	for (i=1;i<rowCount;i++){
-		if (document.getElementById('nett'+i.toString())){
-			sumnett+=+document.getElementById('nett'+i.toString()).value;
-		}
-	}
-
-        inputTot.value=sumnett;
-	
-	//get sum of vat
-	var sumvat=adjustTotVat(rowCount);
-	
-	//get sum for gross
-	var sumgross=sumnett+sumvat;
-	var grossTot=document.getElementById("grossTot");
-	
-	// only if shift=no
-	var shiftTot=document.getElementById("vatShift");
-	if (shiftTot.value=="no"){
-		grossTot.value=sumgross;
-	}
-	else{
-		grossTot.value=sumnett;
-	}
-}
-
-function adjustTotVat(rowCount, vat_options=new Array('9','21')){
-
-	var totVat=0
-	for (i=0;i<vat_options.length;i++){
-		var id="vatTot_"+vat_options[i]
-		var inputTot=document.getElementById(id);
-		var rowTot=document.getElementById("vatTotRow_"+vat_options[i]);
-		var sum=0;
-			
-		//for each row
-		for (n=1;n<rowCount;n++){
-
-			vat_query="vatType"+n.toString()
-			if(document.getElementById(vat_query)){
-				var vattype=document.getElementById("vatType"+n.toString()).value;
-				var vat=document.getElementById("vat"+n.toString()).value;
-
-				if (vattype){
-					if(vattype==vat_options[i]){
-						sum+=+vat;
-					}
-				}
-			}
-
-		inputTot.value=sum;
-		totVat+=sum;
-		}
-	}
-	return totVat;
 }
 
 // de rij blijft bestaan maar heeft geen zichtbare inhoud meer,
