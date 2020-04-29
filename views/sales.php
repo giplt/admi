@@ -2,8 +2,21 @@
 
 	if (!is_dir('files/sales')) mkdir('files/sales');
 	
-	if(isset($_FILES["invoice"])) {
-		alert("Invoice created");
+	if(isset($_POST["invoice"])) {
+		$filename = uniqid().".json";
+		$filepath='files/sales/'.$filename;
+
+		//save the json file in files/sales
+		$infile=fopen($filepath, 'w');
+		fwrite($infile, $_POST["invoice"]);
+		fclose($infile);
+
+		echo $filename;
+
+		//generate a .pdf from the json file
+
+
+
 		//$error = false;
 		
 		//$maxsize = ini_get("upload_max_filesize");
@@ -65,6 +78,7 @@
 		$content.= '<th>ID</th>';
 		$content.= '<th>'.__('date').'</th>';
 		$content.= '<th>'.__('reference').'</th>';
+		$content.= '<th>'.__('location').'</th>';
 		$content.= '<th>'.__('amount').'</th>';
 		$content.= '<th>'.__('project').'</th>';
 		$content.= '<th>'.__('contact').'</th>';
@@ -101,6 +115,7 @@
 				$content.= '<td>'.$sales['ID'].'</td>';
 				$content.= '<td>'.$entry['TransactionDate'].'</td>';
 				$content.= '<td>'.$sales['Reference'].'</td>';
+				$content.= '<td>'.$entry['URL'].'</td>';
 				$content.= '<td>'.$amount_sum.'</td>';
 				$content.= '<td>'.$project['Name'].'</td>';
 				$content.= '<td>'.$contact['Name'].'</td>';
@@ -131,6 +146,7 @@
 			//load arrays from the database
 			$purchase = $db->query("SELECT * FROM Sales WHERE ID='".$id."'")->fetchArray();
 			$entry = $db->query("SELECT * FROM Entries WHERE ID='".$purchase['EntryID']."'")->fetchArray();
+			$content.=("Entry URL = ".$entry['URL']);
 
 			$transactions=array();
 			$mutations=array();
@@ -151,7 +167,6 @@
 		//TODO: base html nog maken
 		$content.= '<div class="salesInputFrame"><div class="salesInputForm"><form id="salesForm" method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
-		$content.= '<input type="text" id="url" name="Location">';
 		$content.= '<fieldset><legend>'.__('recipient').'</legend><table>';		
 		$content.= '<tr><th>ID</th><td>'.$purchase['ID'].'</td>';
 
@@ -177,6 +192,7 @@
 		$content.= '<tr><th>'.__('project').'</th><td><select name="ProjectID">'.$options.'</select></td></tr>';
 		
 		//Reference
+		$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"></td></tr>';
 		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" name="Reference" value="'.$purchase['Reference'].'"/></td></tr>';
 		$content.= '</table></fieldset>';		
 		
@@ -220,7 +236,7 @@
 		//Submit buttons
 		$content.= '</table></fieldset>';
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
-		$content.= '<input type="button" id="invoiceMake" value="make"></input>';
+		$content.= '<input type="button" id="invoiceMake" value="'.('make invoice').'"></input>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/sales\';"/>';
 		$content.= '</form></div>';
@@ -241,7 +257,7 @@
 		//Laad alle transacties uit de database en maak een nieuwe rij aan per transactie en reconstrueer de inhoud
 		foreach ($transactions as $trans){
 			if ($trans['ID']!=""){
-				$sel_options=revMutations($db,$trans,$mutations);	
+				$sel_options=revMutations($db,$entry, $trans,$mutations);	
 				$sel_options_safe=json_encode($sel_options);
 			}		
 			$content.= '<script>addSalesRow('.$sales_options_safe.','.$vat_options_safe.','.$sel_options_safe.')</script>';
@@ -260,7 +276,8 @@
 					// - save in data
 					// - get URL
 
-					$db->query("INSERT INTO Entries (TransactionDate, AccountingDate, URL) VALUES ('".$_POST['TransactionDate']."', '".$_POST['AccountingDate']."', '".$_POST['Location']."')");
+					$db->query("INSERT INTO Entries (TransactionDate, AccountingDate, URL) VALUES ('".$_POST['TransactionDate']."', '".$_POST['AccountingDate']."', '".$_POST['Location']."')");	
+
 					// get the entryID from the database $id = $db->lastInsertRowID();
 					$last_entry=$db->querySingle("SELECT MAX(ID) FROM Entries LIMIT 1");
 					$entryID=intval($last_entry);
@@ -274,11 +291,12 @@
 							$last_trans=$db->querySingle("SELECT MAX(ID) FROM Transactions LIMIT 1");
 							$transID=intval($last_trans);
 							$trans_num=substr($key, strlen($checkstr),strlen($key));
+							$sales_type_key="SalesType".$trans_num;
 							$nett_key="nett".$trans_num;
 							$vat_type_key="vatType".$trans_num;
 							$vat_key="vat".$trans_num;
 							$gross_key="gross".$trans_num;
-							makeMutations($db,$_POST['vatShift'],$transID,$value,$_POST[$nett_key],$_POST[$vat_type_key],$_POST[$vat_key],$_POST[$gross_key]);					
+							makeMutations($db,$_POST['vatShift'],$transID,$value,$_POST[$sales_type_key], $_POST[$nett_key],$_POST[$vat_type_key],$_POST[$vat_key],$_POST[$gross_key]);					
 						}
 					}
 
@@ -328,14 +346,16 @@
 	
 	//boekhoudregels voor purchase in reverse, voelt onhandig, misschien gewoon $gross, $vat, $nett, $vat_type etc opslaan in de transaction?
 
-	function revMutations($db, $trans,$mutations){
+	function revMutations($db, $entry, $trans,$mutations){
 
 		foreach($mutations as $mut){
+			
 			if ($mut['TransactionID']==$trans['ID']){
-				
 				//result acounts
-				if (in_array($mut['AccountID'],"8")){
+
+				if (strpos($mut['AccountID'],"8") !==false){
 					$salesType=$mut['AccountID'];
+					templog("Account id =".$mut['AccountID']."\n");
 					$nett=$mut['Amount'];
 				} 
 				
@@ -352,12 +372,32 @@
 						$vat_type=21;
 				}
 
-				$gross=$nett+$vat;
+				if(isset($nett) and isset($vat)){
+					$gross=$nett+$vat;
+				}
 			}
+
+			$invoice_data=revJson($entry['URL']);
+
+			
 		}
 
-		return array($salesType,$gross,$nett,$vat,$vat_type);
+		templog("Nett = ".$nett."\n");
+		templog("Vat = ".$vat."\n");
+		templog("Vat_type = ".$vat_type."\n");
+		templog("Gross = ".$gross."\n");
+
+		return array($salesType,$gross,$nett,$vat,$vat_type,$invoice_data);
 	}
 
-	
+	function revJson(){
+		return array("Beschrijving",2,3);
+	}
+
+	function templog($log_str){
+		$logfile=fopen('log.txt','a');
+		fwrite($logfile,$log_str);
+		fclose($logfile);
+
+	}
 

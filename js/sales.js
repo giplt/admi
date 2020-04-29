@@ -93,28 +93,24 @@ function makeInvoice(name){
 	
 	//save a json file with the data
 	invoice_string=JSON.stringify(invoice_dict);
-	blob=new Blob([invoice_string],{ type: "text/plain;charset=utf-8" })
 
-	//send it via an request
-	console.log("SENDING DATA:",name);
-
+	// send the invoice to php
 	var xhr = new XMLHttpRequest();
-	console.log("XHR CREATED");
 
 	xhr.onreadystatechange = function() {
 		console.log("Function called");
 		if (this.readyState == 4 && this.status == 200) {
-			console.log("XHR request is ready");
-			//filename = this.responseText;
-			//document.getElementById('url').value = filename;
-			//type  = filename.split('.').pop();
+			console.log("Response text: ", this.responseText);
+			filename = this.responseText;
+			document.getElementById('location').setAttribute("value",filename);
+			document.getElementById('location').setAttribute("readonly","readonly");
+			//TODO: PDF laten zien als dat klaar is
 		}
 	};
 	
 	var data = new FormData();
-	console.log("after readystatechange");
-	data.append(name, blob);
-	xhr.open('POST', '');
+	data.append(name, invoice_string);
+	xhr.open('POST', '');  //´ '=zichzelf
 	xhr.send(data);
 	
 
@@ -177,14 +173,14 @@ function addSalesRow(sales_options,vat_options, sel_options="") {
 	if (sel_options.length>0){
 		//from database
 		sel_sales=sel_options[0];
-		sel_desc=sel_options[1];
-		sel_amount=sel_options[2];
-		sel_price=sel_options[3];
-		sel_nett=sel_options[4];
+		sel_gross=sel_options[1];
+		sel_nett=sel_options[2];
+		sel_vat=sel_options[4];
 		sel_vat_type=sel_options[5];
-		sel_vat=+sel_vat_type*+sel_nett;
-		sel_gross=sel_nett+sel_vat;
 
+		sel_price=sel_options[6];
+		sel_desc=sel_options[7];
+		sel_amount=sel_options[8];
 	}
 	else{
 		//defaults
