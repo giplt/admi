@@ -1,24 +1,16 @@
-/**
- * Creates an info popup.
- *
- * @param clickEvent Element, click event, used to determine position of popup
- * @param key string, the key for with to get the info
- * @param language string
- * @param infoButton Element, the info button for which to make an info popup
- */
 function toggleInfoPopup(clickEvent, key, language, infoButton) {
 	// If it has a clicked state, close the popup and remove the state.
-	var $infoButton = $(infoButton);
-	if ($infoButton.hasClass('clicked')) {
-		$infoButton.trigger('closeMe');
+	if (infoButton.hasClass('clicked')) {
+		infoButton.trigger('closeMe');
 		return;
 	}
 
 	// Directly set the clicked class, this also prevents the spamming of the system before the result is returned.
-	$infoButton.addClass('clicked');
+	infoButton.addClass('clicked');
 
 	// Create an empty popup.
-	var $helpPopup = $('<div></div>').appendTo('body');
+	var helpPopup = document.createElement('DIV');
+	document.body.appendChild(helpPopup);
 
 	// Fetch popup content with Ajax and place it in the popup.
 	var url = 'help/' + encodeURIComponent(key) + '/' + encodeURIComponent(language);
@@ -26,30 +18,23 @@ function toggleInfoPopup(clickEvent, key, language, infoButton) {
 		positionTextBox(clickEvent, $helpPopup, response);
 
 		// Create close function.
-		$infoButton.bind('closeMe', function () {
-			$helpPopup.remove();
-			$infoButton.removeClass('clicked');
-			$infoButton.unbind('closeMe');
+		infoButton.bind('closeMe', function () {
+			helpPopup.remove();
+			infoButton.removeClass('clicked');
+			infoButton.unbind('closeMe');
 		});
 
 		// Create close button.
-		var $closeButton = $('<button></button>').appendTo($helpPopup);
-		$closeButton.on('click', function () {
-			$infoButton.trigger('closeMe');
+		var closeButton = $('<button></button>').appendTo($helpPopup);
+		closeButton.on('click', function () {
+			infoButton.trigger('closeMe');
 		});
-		$closeButton.css('left', $helpPopup.css('width'));
-		$closeButton.addClass('closebutton');
-		$closeButton.append(document.createTextNode('X'));
+		closeButton.css('left', $helpPopup.css('width'));
+		closeButton.addClass('closebutton');
+		closeButton.append(document.createTextNode('X'));
 	});
 }
 
-/**
- * Positions the textBox next to where the clickEvent took place.
- *
- * @param clickEvent Element
- * @param $textBox jQuery Element
- * @param text string
- */
 function positionTextBox(clickEvent, $textBox, text) {
 	var x = clickEvent.clientX; // Get the horizontal coordinate
 	var y = clickEvent.clientY; // Get the vertical coordinate
