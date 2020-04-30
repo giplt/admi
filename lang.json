@@ -15,6 +15,10 @@
 		"nl": "Overschrijvingen",
 		"en": "Transfers"
 	},
+	"bank": {
+		"nl": "Bank",
+		"en": "Bank"
+	},
 	"purchases": {
 		"nl": "Inkoop",
 		"en": "Purchases"
