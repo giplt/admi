@@ -1,163 +1,195 @@
 {
-	"contacts": {
-		"nl": "Relaties",
-		"en": "Contacts"
-	},
-	"projects": {
-		"nl": "Projecten",
-		"en": "Projects"
+	"account": {
+		"nl": "Rekening",
+		"en": "Account"
 	},
 	"accounts": {
 		"nl": "Rekeningen",
 		"en": "Accounts"
 	},
-	"transfers": {
-		"nl": "Overschrijvingen",
-		"en": "Transfers"
-	},
-	"purchases": {
-		"nl": "Inkoop",
-		"en": "Purchases"
-	},
-	"sales": {
-		"nl": "Verkoop",
-		"en": "Sales"
-	},
-	"payment": {
-		"nl": "Betaling",
-		"en": "Payment"
-	},
-	"expenses": {
-		"nl": "Kostensoorten",
-		"en": "Expenses"
-	},
-	"revenues": {
-		"nl": "Opbrengstensoorten",
-		"en": "Revenues"
-	},
-	"taxes": {
-		"nl": "Belastingen",
-		"en": "Taxes"
-	},
-	"balance": {
-		"nl": "Balans",
-		"en": "Balance sheet"
-	},
-	"profit": {
-		"nl": "Winst- en verliesrekening",
-		"en": "Profit and loss statement"
-	},
-	"loans": {
-		"nl": "Leningen",
-		"en": "Loans"
-	},
-	"users": {
-		"nl": "Gebruikers",
-		"en": "Users"
-	},
-	"account": {
-		"nl": "Rekening",
-		"en": "Account"
-	},
-	"name": {
-		"nl": "Naam",
-		"en": "Name"
-	},
-	"submit": {
-		"nl": "Opslaan",
-		"en": "Submit"
-	},
 	"add": {
-		"nl": "Nieuw",
+		"nl": "Voeg toe",
 		"en": "Add"
-	},
-	"edit": {
-		"nl": "Bewerk",
-		"en": "Edit"
-	},
-	"remove": {
-		"nl": "Verwijder",
-		"en": "Remove"
-	},
-	"back": {
-		"nl": "Terug",
-		"en": "Back"
-	},
-	"register": {
-		"nl": "Registreer",
-		"en": "Register"
-	},
-	"date": {
-		"nl": "Datum",
-		"en": "Date"
-	},
-	"expense": {
-		"nl": "Kostenpost",
-		"en": "Expense"
-	},
-	"amount": {
-		"nl": "Bedrag",
-		"en": "Amount"
-	},
-	"welcome-init": {
-		"nl": "Database is aangemaakt.<br/>Maak een eerste gebruiker aan.",
-		"en": "Database created.<br/>Please create a first user account."
-	},
-	"request-pending": {
-		"nl": "Verzoek is gestuurd naar admin. Wacht een email af met een link om de registratie te voltooien.",
-		"en": "Request is sent to amdin. Please await email with link to finish registration."
-	},
-	"welcome-login": {
-		"nl": "Log in met email en wachtwoord of registreer als nieuwe gebruiker. Wachtwoord kwijt? Vul je email-adres in en klik op hernieuw.",
-		"en": "Please log in using email and password of register as a new user. Lost your password? Fill out your email adress and click renew."
 	},
 	"address": {
 		"nl": "Adres",
 		"en": "Address"
 	},
-	"zipcode": {
-		"nl": "Postcode",
-		"en": "Zipcode"
+	"amount": {
+		"nl": "Bedrag",
+		"en": "Amount"
+	},
+	"back": {
+		"nl": "Terug",
+		"en": "Back"
+	},
+	"balance": {
+		"nl": "Balans",
+		"en": "Balance sheet"
 	},
 	"city": {
 		"nl": "Stad",
 		"en": "City"
 	},
+	"contact": {
+		"nl": "Relatie",
+		"en": "Contact"
+	},
+	"contacts": {
+		"nl": "Relaties",
+		"en": "Contacts"
+	},
 	"country": {
 		"nl": "Land",
 		"en": "Country"
 	},
-	"phone": {
-		"nl": "Telefoon",
-		"en": "Phone"
+	"date": {
+		"nl": "Datum",
+		"en": "Date"
+	},
+	"edit": {
+		"nl": "Bewerk",
+		"en": "Edit"
 	},
 	"email": {
 		"nl": "Email",
 		"en": "Email"
 	},
-	"membership": {
-		"nl": "Plan B lid",
-		"en": "Plan B member"
+	"expense": {
+		"nl": "Kostenpost",
+		"en": "Expense"
 	},
-	"yes": {
-		"nl": "Ja",
-		"en": "Yes"
-	},
-	"no": {
-		"nl": "Nee",
-		"en": "No"
+	"expenses": {
+		"nl": "Kostensoorten",
+		"en": "Expenses"
 	},
 	"gross": {
 		"nl": "Bruto",
 		"en": "Gross"
 	},
+	"grossTot": {
+		"nl": "Bruto totaal",
+		"en": "Gross total"
+	},
+	"loans": {
+		"nl": "Leningen",
+		"en": "Loans"
+	},
+	"location": {
+		"nl": "Lokatie",
+		"en": "Location"
+	},
+	"make invoice": {
+		"nl": "Maak factuur aan",
+		"en": "Make invoice"
+	},
+	"membership": {
+		"nl": "Plan B lid",
+		"en": "Plan B member"
+	},
+	"name": {
+		"nl": "Naam",
+		"en": "Name"
+	},
 	"nett": {
 		"nl": "Netto",
 		"en": "Nett"
 	},
+	"nettTot": {
+		"nl": "Netto totaal",
+		"en": "Nett total"
+	},
+	"no": {
+		"nl": "Nee",
+		"en": "No"
+	},
+	"phone": {
+		"nl": "Telefoon",
+		"en": "Phone"
+	},
+	"payment": {
+		"nl": "Betaling",
+		"en": "Payment"
+	},
+	"profit": {
+		"nl": "Winst- en verliesrekening",
+		"en": "Profit and loss statement"
+	},
+	"project": {
+		"nl": "Project",
+		"en": "Project"
+	},
+	"projects": {
+		"nl": "Projecten",
+		"en": "Projects"
+	},
+	"purchases": {
+		"nl": "Inkoop",
+		"en": "Purchases"
+	},
+	"register": {
+		"nl": "Registreer",
+		"en": "Register"
+	},
+	"remove": {
+		"nl": "Verwijder",
+		"en": "Remove"
+	},
+	"request-pending": {
+		"nl": "Verzoek is gestuurd naar admin. Wacht een email af met een link om de registratie te voltooien.",
+		"en": "Request is sent to amdin. Please await email with link to finish registration."
+	},
+	"revenues": {
+		"nl": "Opbrengstensoorten",
+		"en": "Revenues"
+	},
+	"sales": {
+		"nl": "Verkoop",
+		"en": "Sales"
+	},
+	"submit": {
+		"nl": "Sla op",
+		"en": "Submit"
+	},
+	"taxes": {
+		"nl": "Belastingen",
+		"en": "Taxes"
+	},
+	"transfers": {
+		"nl": "Overschrijvingen",
+		"en": "Transfers"
+	},
+	"users": {
+		"nl": "Gebruikers",
+		"en": "Users"
+	},
 	"vat": {
 		"nl": "BTW",
 		"en": "VAT"
+	},
+	"welcome-init": {
+		"nl": "Database is aangemaakt.<br/>Maak een eerste gebruiker aan.",
+		"en": "Database created.<br/>Please create a first user account."
+	},
+	"welcome-login": {
+		"nl": "Log in met email en wachtwoord of registreer als nieuwe gebruiker. Wachtwoord kwijt? Vul je email-adres in en klik op hernieuw.",
+		"en": "Please log in using email and password of register as a new user. Lost your password? Fill out your email adress and click renew."
+	},
+	"yes": {
+		"nl": "Ja",
+		"en": "Yes"
+	},
+	"zipcode": {
+		"nl": "Postcode",
+		"en": "Zipcode"
+	},
+	"vatTot": {
+		"nl": "BTW totaal",
+		"en": "VAT total"
+	},
+	"total": {
+		"nl": "Totaal",
+		"en": "Total"
 	},
 	"reference": {
 		"nl": "Referentie",
@@ -166,6 +198,14 @@
 	"recipient": {
 		"nl": "Ontvangende partij",
 		"en": "Recipient"
+	},
+	"pick-project": {
+		"nl": "Kies project",
+		"en": "pick project"
+	},
+	"pick-contact": {
+		"nl": "Kies contact",
+		"en": "pick contact"
 	},
 	"invoice": {
 		"nl": "Factuur",
@@ -183,6 +223,14 @@
 		"nl": "% BTW",
 		"en": "% VAT"
 	},
+	"vat shift": {
+		"nl": "Verlegd",
+		"en": "Shifted"
+	},
+	"add row": {
+		"nl": "Voeg regel toe",
+		"en": "Add row"
+	},
 	"sales type": {
 		"nl": "Type verkoop",
 		"en": "Sales type"
@@ -194,7 +242,20 @@
 	"description": {
 		"nl": "Beschrijving",
 		"en": "Description"
+	},
+	"login": {
+		"nl": "Log in",
+		"en": "Log in"
+	},
+	"logout": {
+		"nl": "Log uit",
+		"en": "Log out"
+	},
+	"help-button-test": {
+		"nl": "dit is een testhulpknop",
+		"en": "this is a help button test"
 	}
+		
 
 
 }
