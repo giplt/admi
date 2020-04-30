@@ -198,7 +198,12 @@
 	"description": {
 		"nl": "Beschrijving",
 		"en": "Description"
+	},
+	"make invoice": {
+		"nl": "Maak Factuur",
+		"en": "Make Invoice"
 	}
+
 
 
 }

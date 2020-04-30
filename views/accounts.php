@@ -66,6 +66,7 @@
 	
 		$content.='<table>';
 		echo "Columns = ".($pid_res->numColumns())."<br>";
+		$pid_sum=0;
 
 		//create header
 		if($pid_res->fetchArray()){
@@ -87,12 +88,13 @@
 
 			//create content
 			$content.='<tr><td>'.$pids['ID'].'</td><td>'.$pids['Name'].'</td><td>'.$acc_sum.'</td></tr>';
+			$pid_sum+=$acc_sum;
 		}
 		
 		// sum if there is content
 		if ($pid_res->fetchArray()){
 			$content.='<tr><td></td><td></td><td>--------</td></tr>';
-			$content.='<tr><td></td><td></td><td>'.$acc_sum.'</td></tr>';
+			$content.='<tr><td></td><td></td><td>'.$pid_sum.'</td></tr>';
 		}
 
 		$content.='</table>';
