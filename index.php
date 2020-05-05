@@ -30,8 +30,7 @@
 	
 	// Generate span with an onClick to toggle an info popup with the given message
 	function makeInfoButton($msg) {
-		$onclick = 'toggleInfoPopup(event, '.json_encode($msg).', ' . json_encode($lang) . ', this)';
-		return '<span onclick="' . htmlspecialchars($onclick) . '" class="hyphaInfoButton"></span>';
+		return '<span onclick="toggleInfoPopup(this,\''.$msg.'\')" class="hyphaInfoButton"></span>';
 	}
 	
 	// Load database or create new is absent
