@@ -1,175 +1,91 @@
 {
-	"contacts": {
-		"nl": "Relaties",
-		"en": "Contacts"
-	},
-	"projects": {
-		"nl": "Projecten",
-		"en": "Projects"
+	"account": {
+		"nl": "Rekening",
+		"en": "Account"
 	},
 	"accounts": {
 		"nl": "Rekeningen",
 		"en": "Accounts"
 	},
-	"transfers": {
-		"nl": "Overschrijvingen",
-		"en": "Transfers"
-	},
-	"bank": {
-		"nl": "Bank",
-		"en": "Bank"
-	},
-	"purchases": {
-		"nl": "Inkoop",
-		"en": "Purchases"
-	},
-	"sales": {
-		"nl": "Verkoop",
-		"en": "Sales"
-	},
-	"payment": {
-		"nl": "Betaling",
-		"en": "Payment"
-	},
-	"expenses": {
-		"nl": "Kostensoorten",
-		"en": "Expenses"
-	},
-	"revenues": {
-		"nl": "Opbrengstensoorten",
-		"en": "Revenues"
-	},
-	"taxes": {
-		"nl": "Belastingen",
-		"en": "Taxes"
-	},
-	"balance": {
-		"nl": "Balans",
-		"en": "Balance sheet"
-	},
-	"profit": {
-		"nl": "Winst- en verliesrekening",
-		"en": "Profit and loss statement"
-	},
-	"loans": {
-		"nl": "Leningen",
-		"en": "Loans"
-	},
-	"users": {
-		"nl": "Gebruikers",
-		"en": "Users"
-	},
-	"account": {
-		"nl": "Rekening",
-		"en": "Account"
-	},
-	"name": {
-		"nl": "Naam",
-		"en": "Name"
-	},
-	"submit": {
-		"nl": "Opslaan",
-		"en": "Submit"
-	},
 	"add": {
-		"nl": "Nieuw",
+		"nl": "Voeg toe",
 		"en": "Add"
 	},
-	"edit": {
-		"nl": "Bewerk",
-		"en": "Edit"
-	},
-	"remove": {
-		"nl": "Verwijder",
-		"en": "Remove"
-	},
-	"back": {
-		"nl": "Terug",
-		"en": "Back"
-	},
-	"register": {
-		"nl": "Registreer",
-		"en": "Register"
-	},
-	"date": {
-		"nl": "Datum",
-		"en": "Date"
-	},
-	"expense": {
-		"nl": "Kostenpost",
-		"en": "Expense"
-	},
-	"amount": {
-		"nl": "Bedrag",
-		"en": "Amount"
-	},
-	"welcome-init": {
-		"nl": "Database is aangemaakt.<br/>Maak een eerste gebruiker aan.",
-		"en": "Database created.<br/>Please create a first user account."
-	},
-	"request-pending": {
-		"nl": "Verzoek is gestuurd naar admin. Wacht een email af met een link om de registratie te voltooien.",
-		"en": "Request is sent to amdin. Please await email with link to finish registration."
-	},
-	"welcome-login": {
-		"nl": "Log in met email en wachtwoord of registreer als nieuwe gebruiker. Wachtwoord kwijt? Vul je email-adres in en klik op hernieuw.",
-		"en": "Please log in using email and password of register as a new user. Lost your password? Fill out your email adress and click renew."
+	"add row": {
+		"nl": "Voeg regel toe",
+		"en": "Add row"
 	},
 	"address": {
 		"nl": "Adres",
 		"en": "Address"
 	},
-	"zipcode": {
-		"nl": "Postcode",
-		"en": "Zipcode"
+	"amount": {
+		"nl": "Bedrag",
+		"en": "Amount"
+	},
+	"back": {
+		"nl": "Terug",
+		"en": "Back"
+	},
+	"balance": {
+		"nl": "Balans",
+		"en": "Balance sheet"
+	},
+	"bank": {
+		"nl": "Bank",
+		"en": "Bank"
 	},
 	"city": {
 		"nl": "Stad",
 		"en": "City"
 	},
+	"contact": {
+		"nl": "Relatie",
+		"en": "Contact"
+	},
+	"contacts": {
+		"nl": "Relaties",
+		"en": "Contacts"
+	},
 	"country": {
 		"nl": "Land",
 		"en": "Country"
 	},
-	"phone": {
-		"nl": "Telefoon",
-		"en": "Phone"
+	"date": {
+		"nl": "Datum",
+		"en": "Date"
+	},
+	"description": {
+		"nl": "Beschrijving",
+		"en": "Description"
+	},
+	"edit": {
+		"nl": "Bewerk",
+		"en": "Edit"
 	},
 	"email": {
 		"nl": "Email",
 		"en": "Email"
 	},
-	"membership": {
-		"nl": "Plan B lid",
-		"en": "Plan B member"
+	"expense": {
+		"nl": "Kostenpost",
+		"en": "Expense"
 	},
-	"yes": {
-		"nl": "Ja",
-		"en": "Yes"
-	},
-	"no": {
-		"nl": "Nee",
-		"en": "No"
+	"expenses": {
+		"nl": "Kostensoorten",
+		"en": "Expenses"
 	},
 	"gross": {
 		"nl": "Bruto",
 		"en": "Gross"
 	},
-	"nett": {
-		"nl": "Netto",
-		"en": "Nett"
+	"grossTot": {
+		"nl": "Bruto totaal",
+		"en": "Gross total"
 	},
-	"vat": {
-		"nl": "BTW",
-		"en": "VAT"
-	},
-	"reference": {
-		"nl": "Referentie",
-		"en": "Reference"
-	},
-	"recipient": {
-		"nl": "Ontvangende partij",
-		"en": "Recipient"
+	"help-button-test": {
+		"nl": "dit is een testhulpknop",
+		"en": "this is a help button test"
 	},
 	"invoice": {
 		"nl": "Factuur",
@@ -179,31 +95,168 @@
 		"nl": "Factuurregels",
 		"en": "Items on invoice"
 	},
-	"price": {
-		"nl": "Prijs",
-		"en": "Price"
+	"loans": {
+		"nl": "Leningen",
+		"en": "Loans"
 	},
-	"vat type": {
-		"nl": "% BTW",
-		"en": "% VAT"
+	"location": {
+		"nl": "Lokatie",
+		"en": "Location"
 	},
-	"sales type": {
-		"nl": "Type verkoop",
-		"en": "Sales type"
+	"login": {
+		"nl": "Log in",
+		"en": "Log in"
+	},
+	"logout": {
+		"nl": "Log uit",
+		"en": "Log out"
+	},
+	"make invoice": {
+		"nl": "Maak factuur aan",
+		"en": "Make invoice"
+	},
+	"membership": {
+		"nl": "Plan B lid",
+		"en": "Plan B member"
+	},
+	"name": {
+		"nl": "Naam",
+		"en": "Name"
+	},
+	"nett": {
+		"nl": "Netto",
+		"en": "Nett"
+	},
+	"nettTot": {
+		"nl": "Netto totaal",
+		"en": "Nett total"
+	},
+	"no": {
+		"nl": "Nee",
+		"en": "No"
 	},
 	"number": {
 		"nl": "Aantal",
 		"en": "Number"
 	},
-	"description": {
-		"nl": "Beschrijving",
-		"en": "Description"
+	"phone": {
+		"nl": "Telefoon",
+		"en": "Phone"
 	},
-	"make invoice": {
-		"nl": "Maak Factuur",
-		"en": "Make Invoice"
+	"payment": {
+		"nl": "Betaling",
+		"en": "Payment"
+	},
+	"pick-project": {
+		"nl": "Kies project",
+		"en": "pick project"
+	},
+	"pick-contact": {
+		"nl": "Kies contact",
+		"en": "pick contact"
+	},
+	"price": {
+		"nl": "Prijs",
+		"en": "Price"
+	},
+	"profit": {
+		"nl": "Winst- en verliesrekening",
+		"en": "Profit and loss statement"
+	},
+	"project": {
+		"nl": "Project",
+		"en": "Project"
+	},
+	"projects": {
+		"nl": "Projecten",
+		"en": "Projects"
+	},
+	"purchases": {
+		"nl": "Inkoop",
+		"en": "Purchases"
+	},
+	"recipient": {
+		"nl": "Ontvangende partij",
+		"en": "Recipient"
+	},
+	"reference": {
+		"nl": "Referentie",
+		"en": "Reference"
+	},
+	"register": {
+		"nl": "Registreer",
+		"en": "Register"
+	},
+	"remove": {
+		"nl": "Verwijder",
+		"en": "Remove"
+	},
+	"request-pending": {
+		"nl": "Verzoek is gestuurd naar admin. Wacht een email af met een link om de registratie te voltooien.",
+		"en": "Request is sent to amdin. Please await email with link to finish registration."
+	},
+	"revenues": {
+		"nl": "Opbrengstensoorten",
+		"en": "Revenues"
+	},
+	"sales": {
+		"nl": "Verkoop",
+		"en": "Sales"
+	},
+	"sales type": {
+		"nl": "Type verkoop",
+		"en": "Sales type"
+	},
+	"submit": {
+		"nl": "Sla op",
+		"en": "Submit"
+	},
+	"taxes": {
+		"nl": "Belastingen",
+		"en": "Taxes"
+	},
+	"transfers": {
+		"nl": "Overschrijvingen",
+		"en": "Transfers"
+	},
+	"users": {
+		"nl": "Gebruikers",
+		"en": "Users"
+	},
+	"vat": {
+		"nl": "BTW",
+		"en": "VAT"
+	},
+	"vatTot": {
+		"nl": "BTW totaal",
+		"en": "VAT total"
+	},
+	"total": {
+		"nl": "Totaal",
+		"en": "Total"
+	},
+	"vat type": {
+		"nl": "% BTW",
+		"en": "% VAT"
+	},
+	"vat shift": {
+		"nl": "Verlegd",
+		"en": "Shifted"
+	},
+	"welcome-init": {
+		"nl": "Database is aangemaakt.<br/>Maak een eerste gebruiker aan.",
+		"en": "Database created.<br/>Please create a first user account."
+	},
+	"welcome-login": {
+		"nl": "Log in met email en wachtwoord of registreer als nieuwe gebruiker. Wachtwoord kwijt? Vul je email-adres in en klik op hernieuw.",
+		"en": "Please log in using email and password of register as a new user. Lost your password? Fill out your email adress and click renew."
+	},
+	"yes": {
+		"nl": "Ja",
+		"en": "Yes"
+	},
+	"zipcode": {
+		"nl": "Postcode",
+		"en": "Zipcode"
 	}
-
-
-
 }
