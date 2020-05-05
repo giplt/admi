@@ -342,6 +342,7 @@
 				if ($mut['AccountID']==19){
 					$vat=$mut['Amount'];
 				}
+				else $vat = 0;
 
 				$gross=$nett+$vat;
 				$vat_type="";
