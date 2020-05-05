@@ -1,4 +1,5 @@
 var rowCount=1;
+var salesReadOnly=false;
 var inRowCount=1;
 
 var sales_options=[];
@@ -237,6 +238,9 @@ function addSalesRow(sel_options="") {
 	var newSalesType = document.createElement("select");
 	newSalesType.setAttribute("id", "salesType"+rowCount.toString());
 	newSalesType.setAttribute("name", "salesType"+rowCount.toString());
+	if(salesReadOnly){
+		newSalesType.setAttribute("disabled","disabled");
+	}
         addOptions(newSalesType,sales_options,sel_sales);
 	newSalesColA.appendChild(newSalesType);
 
@@ -246,12 +250,18 @@ function addSalesRow(sel_options="") {
 	newSalesNett.setAttribute("type", "number");
 	newSalesNett.setAttribute("step", "0.01");
 	newSalesNett.setAttribute("value", sel_nett);
+	if(salesReadOnly){
+		newSalesNett.setAttribute("readonly","readonly");
+	}
 	newSalesColB.appendChild(newSalesNett);
 
         var newVatType = document.createElement("select");
         newVatType.setAttribute("id", "salesVatType"+rowCount.toString());
         newVatType.setAttribute("name", "salesVatType"+rowCount.toString());
         addOptions(newVatType,vat_options,sel_vat_type);
+	if(salesReadOnly){
+		newVatType.setAttribute("disabled","disabled");
+	}
         newSalesColC.appendChild(newVatType);
 
 	var newSalesVat = document.createElement("input");
@@ -285,17 +295,39 @@ function addSalesRow(sel_options="") {
 
 	//adjust total values --> needed when entering data from database
 	adjustSalesTot();
+	console.log("Rowcount = ",rowCount);
 }
 
 
 function removeSalesRow(butval){
-        var rowID = "salesRow"+butval.replace("salesBut","");
+	var row = parseInt(butval.replace("salesBut",""));
+        var rowID = "salesRow"+row.toString();
 	var rmRow = document.getElementById(rowID);
-        rmRow.innerHTML="x";
+	var inputs=["salesType","salesNett","salesVatType","salesVat","salesGross"];
+	console.log("removing row:",row);
+	console.log("----------------");
+	
+	//get all values up to rowcount and move downward
+	for(r=row;r<(rowCount-1);r++){
+		for (i=0;i<inputs.length;i++){
+			old_value=document.getElementById(inputs[i]+(r+1).toString()).value;
+			console.log(inputs[i]," = ", old_value);
+			new_value=document.getElementById(inputs[i]+r.toString()).value=old_value;
+		}
+	}
+
+        //remove the last row and all its children
+        var lastRow = "salesRow"+(rowCount-1).toString();
+	var lastRowEl = document.getElementById(lastRow);
+	
+	lastRowEl.remove();
+	rowCount=rowCount-1;
 
 	//adjust values
         adjustSalesTot();
 }
+
+
 
 //-----------------------------------------------------------------------------------------------------
 //function that allows to switch between adding data for an existing invoice and creating a new invoice
@@ -303,12 +335,16 @@ function removeSalesRow(butval){
 //TODO: something going wrong. The value of the select item cannot be changed back
 
 function onchangeInput(id){
-	var select = document.getElementById(id);	
+	var select = document.getElementById(id);
 	select.addEventListener("change",function(){
 		var invoiceField=document.getElementById("invoiceFieldSet");
 		var salesField=document.getElementById("salesFieldSet");
-		var salesFieldChildren=salesField.children;
-		if(select.value="new"){
+		var selected = document.getElementById(id).value;
+		console.log("Changing value");
+		console.log("select.value = ", select.value);
+
+		if(selected=="new"){
+			console.log("selected creating a new invoice");
 			invoiceField.removeAttribute("hidden");
 			addSalesRowButton.setAttribute("disabled","disabled");
 
@@ -323,9 +359,13 @@ function onchangeInput(id){
 				vat_type.setAttribute("disabled","disabled");
 				sales_type.setAttribute("disabled","disabled");
 				sales_but.setAttribute("disabled","disabled");
+				salesReadOnly=true;
 			}
+
+			invoiceToSales();
 		}
 		else{
+			console.log("selected an existing invoice");
 			invoiceField.setAttribute("hidden","true");
 			addSalesRowButton.removeAttribute("disabled");
 			//set relevant inputs to write
@@ -339,6 +379,7 @@ function onchangeInput(id){
 				sales_type.removeAttribute("disabled");
 				vat_type.removeAttribute("disabled");
 				sales_but.removeAttribute("disabled");
+				salesReadOnly=false;
 			}
 
 		}
@@ -380,61 +421,87 @@ function invoiceToSales(){
 	var sales_lines=[];
 	var found;
 
-	console.log("Invoice to sales running");
 	for(i=1;i<inRowCount;i++){
 		found=false;
-		var invoiceType=document.getElementById("invoiceNett"+i.toString()).value;
-		var invoiceNett=document.getElementById("invoiceNett"+i.toString()).value;
-		var invoiceVatType=document.getElementById("invoiceVatType"+i.toString()).value;
+		var check=document.getElementById("invoiceType"+i.toString())
+		if (typeof(check) !="undefined" && check != null){ 
+			var invoiceType=document.getElementById("invoiceType"+i.toString()).value;
+			var invoiceNett=document.getElementById("invoiceNett"+i.toString()).value;
+			var invoiceVatType=document.getElementById("invoiceVatType"+i.toString()).value;
+			var invoiceVat=+invoiceNett*(+invoiceVatType/100);
+			var invoiceGross=+invoiceNett+(+invoiceVat);
+		}
 		
 		for(l=0;l<sales_lines.length;l++){
-		
 			if(sales_lines[l][0]==invoiceType && sales_lines[l][2]==invoiceVatType){
-				sales_lines[l][1]+=invoiceNett;
+				sales_lines[l][1]=(+sales_lines[l][1])+(+invoiceNett);
+				sales_lines[l][3]=(+sales_lines[l][1])*(+sales_lines[l][2]/100);
+				sales_lines[l][4]=(+sales_lines[l][1])+(+sales_lines[l][3]);
 				found=true;
 			}
 		}
 		
 		if(!found){
-			sales_lines.push([invoiceType,invoiceNett,invoiceVatType]);
+			sales_lines.push([invoiceType,invoiceNett,invoiceVatType,invoiceVat,invoiceGross]);
 		} 
 	}
 	
-	for(s=1;s<sales_lines.length;s++){ 	
-		if (document.getElementById("invoiceType"+s.toString())){ 
-			var salesType=document.getElementById("salesType"+s.toString()).value=sales_lines[s][0];
-			var salesNett=document.getElementById("salesNett"+s.toString()).value=sales_lines[s][1];
-			var salesVat=document.getElementById("salesVat"+s.toString()).value=1;
-			var salesVatType=document.getElementById("salesVatType"+s.toString()).value=sales_lines[s][3];
-			var salesGross=document.getElementById("salesGross"+s.toString()).value=1;
+	//change existing rows and create new rows if needed
+	for(s=0;s<sales_lines.length;s++){ 
+		var salesType=document.getElementById("salesType"+(s+1).toString())
+		if (typeof(salesType) !="undefined" && salesType != null){ 
+			console.log("changing existing row");
+			var salesType=document.getElementById("salesType"+(s+1).toString()).value=sales_lines[s][0];
+			var salesNett=document.getElementById("salesNett"+(s+1).toString()).value=sales_lines[s][1];
+			var salesVatType=document.getElementById("salesVatType"+(s+1).toString()).value=sales_lines[s][2];
+			var salesVat=document.getElementById("salesVat"+(s+1).toString()).value=sales_lines[s][3];
+			var salesGross=document.getElementById("salesGross"+(s+1).toString()).value=sales_lines[s][4];
 		}
 		else{
-			sel_options=[salesType,salesNett,salesVat,salesVatType,salesGross];
-			addSalesRow(sel_options="");
+			//2 cases de rij bestond of er zijn niet meer rijen
+			console.log("adding new row");
+			addSalesRow(sel_options=sales_lines[s]);
 		}
-	}		
+	}
+
+	//remove other rows
+	//TODO: hij verwijderd nu nog niet rijen die onnidig zijn geworden aan het begin van de lijst
+	// Check de if/else statements hierboven om het op te lossen, of verander de gehele aanpak van rijen verwijderen naar een degelijkere aanpak, waarbij de rowcount 
+	// wordt aangepast en alle elementen in die rij verwijderd worden - kan niet omdat de rowcount in de naam zit
+	for(r=s+1;r<rowCount;r++){
+		var salesType=document.getElementById("salesType"+(s+1).toString())
+		if (typeof(salesType) !="undefined" && salesType != null){ 
+			removeSalesRow("salesBut"+r.toString());
+		}
+	}
 	adjustSalesTot();
 		
 }
 
 function adjustInvoiceRow(row){
-	var amount=+document.getElementById('invoiceAmount'+row.toString()).value;
-	var price=+document.getElementById('invoicePrice'+row.toString()).value;
-	var vat_type=+document.getElementById('invoiceVatType'+row.toString()).value;
+	var check=document.getElementById('invoiceType'+row.toString());
+	if (typeof(check) !="undefined" && check != null){ 
+		var amount=+document.getElementById('invoiceAmount'+row.toString()).value;
+		var price=+document.getElementById('invoicePrice'+row.toString()).value;
+		var vat_type=+document.getElementById('invoiceVatType'+row.toString()).value;
 
-	var nett=document.getElementById('invoiceNett'+row.toString());
-	nett.setAttribute("value",amount*price);
+		var nett=document.getElementById('invoiceNett'+row.toString());
+		nett.setAttribute("value",amount*price);
+	}
 }
 
 function adjustSalesRow(row){
-	var nett=document.getElementById('salesNett'+row.toString()).value;
-	var vat_type=+document.getElementById('salesVatType'+row.toString()).value;
+	var check=document.getElementById('salesType'+row.toString());
+	if (typeof(check) !="undefined" && check != null){ 
+		var nett=document.getElementById('salesNett'+row.toString()).value;
+		var vat_type=+document.getElementById('salesVatType'+row.toString()).value;
 
-	var vat=document.getElementById('salesVat'+row.toString());
-	vat.setAttribute("value",+nett*(vat_type/100));
+		var vat=document.getElementById('salesVat'+row.toString());
+		vat.setAttribute("value",+nett*(vat_type/100));
 
-	var gross=document.getElementById('salesGross'+row.toString());
-	gross.setAttribute("value",+nett+(+vat.value));
+		var gross=document.getElementById('salesGross'+row.toString());
+		gross.setAttribute("value",+nett+(+vat.value));
+	}
 }
 
 function adjustSalesTot(){
@@ -518,26 +585,15 @@ function makeInvoice(name){
 
 	//get info for each row
 	for (n=1;n<rowCount;n++){
-
-		if (document.getElementById('amount'+n.toString())){	
-			amount=+document.getElementById('amount'+n.toString()).value;
-			price=+document.getElementById('price'+n.toString()).value;
-			vat_type=+document.getElementById('vatType'+n.toString()).value;
-			nett=+document.getElementById('nett'+n.toString()).value;
-			gross=+document.getElementById('gross'+n.toString()).value;
-			vat=+document.getElementById('vat'+n.toString()).value;
-			vatShift=+document.getElementById('vatShift').value;
-			
+		check=document.getElementById('invoiceType'+n.toString())
+		if (typeof(check) !="undefined" && check != null){ 	
 			line_dict={}
-			line_dict["SalesType"]=amount;
-			line_dict["desc"]=amount;
-			line_dict["amount"]=amount;
-			line_dict["price"]=price;
-			line_dict["vat_type"]=vat_type;
-			line_dict["nett"]=nett;
-			line_dict["gross"]=gross;
-			line_dict["vat"]=vat;
-			line_dict["vatShift"]=vatShift;
+			line_dict['InvoiceType']=document.getElementById('invoiceType'+n.toString()).value;
+			line_dict['desc']=document.getElementById('invoiceDesc'+n.toString()).value;
+			line_dict['amount']=+document.getElementById('invoiceAmount'+n.toString()).value;
+			line_dict['price']=+document.getElementById('invoicePrice'+n.toString()).value;
+			line_dict['nett']=+document.getElementById('invoiceNett'+n.toString()).value;
+			line_dict['vat_type']=+document.getElementById('invoiceVatType'+n.toString()).value;
 			invoice_dict[("Line_"+n.toString())]=line_dict;
 		}
 
@@ -567,6 +623,18 @@ function makeInvoice(name){
 	
 
 }
+
+function readInvoice(json){
+	//TODO: iterating werkt niet
+	console.log("reading json");
+	console.log("length:", json.length);
+	console.log("json: ",);
+	for(l=0;l<json.length;l++){
+		var entry=json[l];
+		console.log("entry = ",entry);
+	}
+}
+
 
 // de rij blijft bestaan maar heeft geen zichtbare inhoud meer,
 // misschien aanpassen dat ook echt alle children worden verwijderd

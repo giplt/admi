@@ -102,12 +102,13 @@
 			$entry = $db->query("SELECT * FROM Entries WHERE ID='".$purchase['EntryID']."'")->fetchArray();
 
 			//get the data from the invoice
-			$invoice_path='/files/sales/'.$entry['URL'];
-			if(file_exists($invoice_path) and explode($invoice_path,".")[1]=="json"){
+			$invoice_path='./files/sales/'.$entry['URL'];
+
+			if(file_exists($invoice_path) ){//and explode(".",$invoice_path)[1]=="json"){
 				$invoice=file_get_contents($invoice_path);
 			}
 			else{
-				$invoice="";
+				$invoice=null;
 			}
 
 			$transactions=array();
@@ -221,25 +222,30 @@
 		//Laad javascript
 		$content.= '<script type="text/javascript" src="../../js/sales.js"></script>';
 
-		//laad de opties voor shift en vat
+		//Calling javasctipt functions
 		$content.= '<script>addOptionsPHP("vatShift",'.$shift_options_safe.')</script>';
 		$content.= '<script>setGlobalOptions('.$sales_options_safe.','.$vat_options_safe.')</script>';
-
-		// on click laad een nieuwe regel
 		$content.= '<script>addOnClick()</script>';
-
 		$content.= '<script>onChangeFieldSet("salesFieldSet")</script>';
 		$content.= '<script>onChangeFieldSet("invoiceFieldSet")</script>';
 		$content.= '<script>onchangeInput("invoiceMode")</script>';
 		$content.= '<script>onchangeMake("invoiceMake","invoice")</script>';
 
-		//Laad alle transacties uit de database en maak een nieuwe rij aan per transactie en reconstrueer de inhoud
+		//Load transactions from the database
 		foreach ($transactions as $trans){
 			if ($trans['ID']!=""){
 				$sel_options=revMutations($db,$entry, $trans,$mutations);	
 				$sel_options_safe=json_encode($sel_options);
 			}		
 			$content.= '<script>addSalesRow('.$sel_options_safe.')</script>';
+		}
+
+		if ($invoice!=null){
+			$content.= '<script>readInvoice('.$invoice.')</script>';
+		}
+		else{
+			//add just one row
+			$content.= '<script>addInvoiceRow('.$sel_in_options_safe.')</script>';
 		}
 
 	}
