@@ -28,6 +28,12 @@
 	}
 	if ($lang != 'en') $lang = 'nl';
 	
+	// Generate span with an onClick to toggle an info popup with the given message
+	function makeInfoButton($msg) {
+		$onclick = 'toggleInfoPopup(event, '.json_encode($msg).', ' . json_encode($lang) . ', this)';
+		return '<span onclick="' . htmlspecialchars($onclick) . '" class="hyphaInfoButton"></span>';
+	}
+	
 	// Load database or create new is absent
 	$db = new SQLite3('accounting.sqlite');
 	if(filesize('accounting.sqlite')==0) $db->exec(file_get_contents('template.sql'));
@@ -73,6 +79,7 @@
 		<meta charset="UTF-8" />
 		<title>Administratie Coöp Plan B</title>
 		<link rel="stylesheet" type="text/css" href="style/admi.css"/>
+		<script type="text/javascript" src="js/help.js"></script>
 	</head>
 	<body>
 		<h1>Administratie Coöp Plan B</h1>

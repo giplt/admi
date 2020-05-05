@@ -103,5 +103,35 @@ th {
 	width:8ch;
 }
 
+/*-------------styles for info button-------------- */
 
+.hyphaInfoButton {
+    background-color: #00f;
+    border: 2px solid #00f;
+    color: #FFF;
+    cursor: pointer;
+    display: inline-block;
+    font-family: arial;
+    font-weight: bold;
+    top: -15px;
+    right: -15px;
+    font-size: 15px;
+    line-height: 15px;
+    width: 15px;
+    height: 15px;
+    margin-left: 3px;
+    margin-right: 3px;
+    border-radius: 50%;
+    text-align: center;
+}
+.hyphaInfoButton:hover {
+    background-color: #fff;
+    color: #00f;
+}
+.hyphaInfoButton.clicked {
+    background-color: yellow;
+}
+.hyphaInfoButton:before {
+    content: 'i';
+}
 
