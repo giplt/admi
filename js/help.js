@@ -1,40 +1,21 @@
-function toggleInfoPopup(clickEvent, key, language, infoButton) {
-	// If it has a clicked state, close the popup and remove the state.
-	if (infoButton.hasClass('clicked')) {
-		infoButton.trigger('closeMe');
-		return;
-	}
-
-	// Directly set the clicked class, this also prevents the spamming of the system before the result is returned.
-	infoButton.addClass('clicked');
-
-	// Create an empty popup.
+function toggleInfoPopup(infoButton, msg) {
 	var helpPopup = document.createElement('DIV');
+	helpPopup.innerText = msg;
+	helpPopup.className = 'helppopup';
+	helpPopup.style.left = infoButton.getBoundingClientRect().left + 'px';
+	helpPopup.style.top = infoButton.getBoundingClientRect().top + 'px';
+	
+	var closeButton = document.createElement('BUTTON');
+	closeButton.innerText = 'X';
+	closeButton.onclick = function() {
+		helpPopup.remove();
+	}
+	closeButton.className = 'closebutton';
+	helpPopup.appendChild(closeButton);
+	
 	document.body.appendChild(helpPopup);
-
-	// Fetch popup content with Ajax and place it in the popup.
-	var url = 'help/' + encodeURIComponent(key) + '/' + encodeURIComponent(language);
-	$.get(url, function (response) {
-		positionTextBox(clickEvent, $helpPopup, response);
-
-		// Create close function.
-		infoButton.bind('closeMe', function () {
-			helpPopup.remove();
-			infoButton.removeClass('clicked');
-			infoButton.unbind('closeMe');
-		});
-
-		// Create close button.
-		var closeButton = $('<button></button>').appendTo($helpPopup);
-		closeButton.on('click', function () {
-			infoButton.trigger('closeMe');
-		});
-		closeButton.css('left', $helpPopup.css('width'));
-		closeButton.addClass('closebutton');
-		closeButton.append(document.createTextNode('X'));
-	});
 }
-
+/*
 function positionTextBox(clickEvent, $textBox, text) {
 	var x = clickEvent.clientX; // Get the horizontal coordinate
 	var y = clickEvent.clientY; // Get the vertical coordinate
@@ -96,3 +77,4 @@ function positionTextBox(clickEvent, $textBox, text) {
 		$textBox.css('top', y - box.height - 15 + 'px');
 	} else alert('Could not determine the area');
 }
+*/
