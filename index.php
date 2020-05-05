@@ -14,7 +14,7 @@
 		$url = $url_port.":".$_SERVER["SERVER_PORT"]."/";
 	}
 	
-	$query = explode('/', substr($_SERVER["REQUEST_URI"], strlen($path)));
+	$query = explode('/', strtok(substr($_SERVER["REQUEST_URI"], strlen($path)), '?'));
 	$lang = isset($query[0]) ? $query[0] : 'nl';
 	$page = isset($query[1]) ? $query[1] : 'projects';
 	$view = isset($query[2]) ? $query[2] : '';
@@ -43,14 +43,16 @@
 			"contacts" => "contacts.php",
 			"payment" => "payment.php",
 			"projects" => "projects.php",
-//			"transfers" => "transfers.php",
+			"bank" => "bank.php",
 			"purchases" => "purchases.php",
 			"sales" => "sales.php",
+//			"memorial" => "memorial.php",
 //			"taxes" => "taxes.php",
 //			"balance" => "balance.php",
 //			"profit" => "profit.php",
 //			"loans" => "loans.php",
 			"accounts" => "accounts.php",
+			"paymentproviders" => "paymentproviders.php",
 			"expenses" => "expenses.php",
 			"revenues" => "revenues.php"
 		);
