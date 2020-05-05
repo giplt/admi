@@ -157,7 +157,7 @@
 		$options = '<option value="" disabled="disabled"'.($purchase['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $options.= '<option value="'.$contact['ID'].'"'.($purchase['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
-		$content.= '<tr><th>'.__('contact').'</th><td><select id="ContID" name="ContactID">'.$options.'</select> <input type="button" value="'.__('new').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
+		$content.= '<tr><th>'.__('contact').'</th><td><select id="ContID" name="ContactID">'.$options.'</select> <input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
 		
 		//get payment endpoints from database
 		//TODO: ergens opslaan van de rekeninggegegevens, waar?
@@ -212,15 +212,15 @@
 		$content.='<th class="expenseInputCol">'.__('gross').'</th>';
 		$content.='<th class="expenseInputCol">'.__('nett').'</th>';
 		$content.='<th class="expenseInputCol">'.__('vat').'</th>';
-		$content.='<th class="expenseInputCol">vat_type</th>';
-		$content.='<th class="expenseInputCol">verlegd</th>';
-		$content.='<td class="expenseInputColLast"><input type="button" id="addRowButton" value="+"/></td></tr>';
+		$content.='<th class="expenseInputCol">'.__('vat type').'</th>';
+		$content.='<th class="expenseInputCol">'.__('vat shift').makeInfoButton(__('help-button-test')).'</th>';
+		$content.='<td class="expenseInputColLast"><input type="button" id=" " value="'.__('add row').'"></tr>';
 		
 		//Laatste rij met het totaal
 		$content.= '<table class="expenseInputTotTable"><tr class="expenseInputRow"><th class="expenseInputCol">'.__('total').'</th>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="grossTot"></td>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="nettTot"></td>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="vatTot"></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="'.__('grossTot').'"></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="'.__('nettTot').'"></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="'.__('vatTot').'"></td>';
 		$content.= '<td class="expenseInputCol"><select id="vatTypeTot"></td>';
 		$content.= '<td class="expenseInputCol"><select id="vatShift"></td>';
 		$content.= '<td class="expenseInputColLast"></td>';
@@ -342,6 +342,7 @@
 				if ($mut['AccountID']==19){
 					$vat=$mut['Amount'];
 				}
+				else $vat = 0;
 
 				$gross=$nett+$vat;
 				$vat_type="";

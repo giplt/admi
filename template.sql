@@ -162,7 +162,7 @@ INSERT INTO `Accounts` (ID, PID, Name) VALUES
 (32,13,'sejours'),
 (33,13,'publiciteit');
 
-INSERT INTO `TransactionTypes` (ID, Name, MutationFormula) VALUES
-(1,'transfer', '3=1'),
-(2,'purchase', '5=12+6'),
-(3,'sale', '4=13+6');
+-- ~ INSERT INTO `TransactionTypes` (ID, Name, MutationFormula) VALUES
+-- ~ (1,'transfer', '3=1'),
+-- ~ (2,'purchase', '5=12+6'),
+-- ~ (3,'sale', '4=13+6');

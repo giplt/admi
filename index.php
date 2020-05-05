@@ -14,7 +14,7 @@
 		$url = $url_port.":".$_SERVER["SERVER_PORT"]."/";
 	}
 	
-	$query = explode('/', substr($_SERVER["REQUEST_URI"], strlen($path)));
+	$query = explode('/', strtok(substr($_SERVER["REQUEST_URI"], strlen($path)), '?'));
 	$lang = isset($query[0]) ? $query[0] : 'nl';
 	$page = isset($query[1]) ? $query[1] : 'projects';
 	$view = isset($query[2]) ? $query[2] : '';
@@ -27,6 +27,11 @@
 		return array_key_exists($msgid, $dictionary) ? $dictionary[$msgid][$lang] : $msgid;
 	}
 	if ($lang != 'en') $lang = 'nl';
+	
+	// Generate span with an onClick to toggle an info popup with the given message
+	function makeInfoButton($msg) {
+		return '<span onclick="toggleInfoPopup(this,\''.$msg.'\')" class="hyphaInfoButton"></span>';
+	}
 	
 	// Load database or create new is absent
 	$db = new SQLite3('accounting.sqlite');
@@ -43,14 +48,16 @@
 			"contacts" => "contacts.php",
 			"payment" => "payment.php",
 			"projects" => "projects.php",
-//			"transfers" => "transfers.php",
+			"bank" => "bank.php",
 			"purchases" => "purchases.php",
 			"sales" => "sales.php",
+//			"memorial" => "memorial.php",
 //			"taxes" => "taxes.php",
 //			"balance" => "balance.php",
 //			"profit" => "profit.php",
 //			"loans" => "loans.php",
 			"accounts" => "accounts.php",
+			"paymentproviders" => "paymentproviders.php",
 			"expenses" => "expenses.php",
 			"revenues" => "revenues.php"
 		);
@@ -71,6 +78,7 @@
 		<meta charset="UTF-8" />
 		<title>Administratie Coöp Plan B</title>
 		<link rel="stylesheet" type="text/css" href="style/admi.css"/>
+		<script type="text/javascript" src="js/help.js"></script>
 	</head>
 	<body>
 		<h1>Administratie Coöp Plan B</h1>
