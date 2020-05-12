@@ -32,8 +32,8 @@
 		"en": "Balance sheet"
 	},
 	"bank": {
-		"nl": "Bank",
-		"en": "Bank"
+		"nl": "Overschrijvingen",
+		"en": "Transfers"
 	},
 	"city": {
 		"nl": "Stad",
@@ -146,6 +146,10 @@
 	"payment": {
 		"nl": "Betaling",
 		"en": "Payment"
+	},
+	"paymentproviders": {
+		"nl": "Banken",
+		"en": "Banks"
 	},
 	"pick-project": {
 		"nl": "Kies project",

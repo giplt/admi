@@ -79,20 +79,21 @@ CREATE TABLE 'Memorial' (
 CREATE TABLE `Transactions` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `EntryID` integer NOT NULL DEFAULT '0'		--refers to the entry to which the transaction belongs
-, `MergeID`integer DEFAULT NULL				--merging on the level of transactions? 		
+, `MergeID`integer DEFAULT NULL				    --merging on the level of transactions? 		
 );
 
 CREATE TABLE `Mutations` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `TransactionID` integer NOT NULL DEFAULT '0'		--refers to the transaction to which the mutation belongs
-, `AccountID` integer NOT NULL DEFAULT '0'		--the account to which the mutation should be booked
+, `AccountID` integer NOT NULL DEFAULT '0'		    --the account to which the mutation should be booked
 , `Amount` decimal(10,2) NOT NULL DEFAULT '0.00'	--the amount
 );
 
 CREATE TABLE `PaymentProviders` (
-  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT	
-, `ProviderName` varchar(63) NOT NULL DEFAULT ''	--bank or paypal, mollie
-, `Account` varchar(63) NOT NULL DEFAULT ''		--account number
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `AccountID` integer NOT NULL                  --account ID in accounting structure (PID=3)
+, `Name` varchar(63) NOT NULL DEFAULT ''	    --Triodos, PayPal, Mollie, ...
+, `Account` varchar(63) NOT NULL DEFAULT ''		--banks own account number identifier (IBAN, email, ...)
 , `API` varchar(63) NOT NULL DEFAULT ''			
 );
 
