@@ -1,4 +1,5 @@
 <?php
+	include_once('php_common/invoice.php');
 
 	if (!is_dir('files/sales')) mkdir('files/sales');
 
@@ -11,20 +12,25 @@
 	if(isset($_POST["invoice"])) {
 		if(isset($_POST["Location"])){
 			$filename = $_POST["Location"];
+			$invoicepdf = substr($_POST["Location"],0,-5)+".pdf";
 		}
 		else{
 			$filename = uniqid().".json";
+			$invoicepdf = uniqid().".pdf";
 		}
+
 		$filepath='files/sales/'.$filename;
+		$invoicepath='files/sales/'.$invoicepdf;
 
 		//save the json file in files/sales
 		$infile=fopen($filepath, 'w');
 		fwrite($infile, $_POST["invoice"]);
 		fclose($infile);
 
-		echo $filename;
-
-		//generate a .pdf from the json file
+		//save a .pdf file in the files/sales
+		$pdffile=fopen($invoicepath, 'w');
+		fwrite($pdffile,createPDF("test"));
+		fclose($pdffile);
 		
 		exit();
 	}

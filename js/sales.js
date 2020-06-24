@@ -692,31 +692,52 @@ function makeInvoice(name){
 	meta_dict['project']=document.getElementById('projectId').value;
 	invoice_dict["Meta"]=meta_dict;
 	
+	//walk through invoice lines
 	for (n=1;n<inRowCount;n++){
 		check=document.getElementById('invoiceType'+n.toString())
 		if (typeof(check) !="undefined" && check != null){ 	
-			if(check.value!="head"){
-				line_dict={};
-				line_dict['invoiceType']=document.getElementById('invoiceType'+n.toString()).value;
-				line_dict['desc']=document.getElementById('invoiceDesc'+n.toString()).value;
+			line_dict={};
+			line_dict['invoiceType']=document.getElementById('invoiceType'+n.toString()).value;
+			line_dict['desc']=document.getElementById('invoiceDesc'+n.toString()).value;
+
+			if(line_dict['invoiceType']=="head"){ //double check not really
+				line_dict['amount']=0;
+				line_dict['price']=0;				
+				line_dict['nett']=0;
+				line_dict['vat_type']=0;
+			}
+			
+			else{
 				line_dict['amount']=+document.getElementById('invoiceAmount'+n.toString()).value;
 				line_dict['price']=+document.getElementById('invoicePrice'+n.toString()).value;
 				line_dict['nett']=+document.getElementById('invoiceNett'+n.toString()).value;
 				line_dict['vat_type']=+document.getElementById('invoiceVatType'+n.toString()).value;
-				invoice_dict[("Line_"+n.toString())]=line_dict;
 			}
-			else{
-				line_dict={};
-				line_dict['invoiceType']=document.getElementById('invoiceType'+n.toString()).value;
-				line_dict['desc']=document.getElementById('invoiceDesc'+n.toString()).value;
-				invoice_dict[("Head_"+n.toString())]=line_dict;
-			}
-		}
 
+			invoice_dict[("invoiceLine_"+n.toString())]=line_dict;
+		}
+		
+	}
+
+	//walk through the sales lines
+	for (n=1;n<rowCount;n++){
+		check=document.getElementById('salesType'+n.toString())
+		if (typeof(check) !="undefined" && check != null){ 
+			sales_dict={};
+			sales_dict['salesType']=document.getElementById('salesType'+n.toString()).value;
+			sales_dict['nett']=+document.getElementById('salesNett'+n.toString()).value;
+			sales_dict['vat_type']=+document.getElementById('salesVatType'+n.toString()).value;
+			sales_dict['vat']=+document.getElementById('salesVat'+n.toString()).value;
+			sales_dict['gross']=+document.getElementById('salesGross'+n.toString()).value;
+
+			invoice_dict[("salesLine_"+n.toString())]=sales_dict;
+		}
 	}
 	
 	//save a json file with the data
 	invoice_string=JSON.stringify(invoice_dict);
+
+	//save a .pdf file of the invoice
 
 	// send the invoice to php
 	var xhr = new XMLHttpRequest();
@@ -724,6 +745,7 @@ function makeInvoice(name){
 	xhr.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			filename = this.responseText;
+			console.log(this.responseText);
 			document.getElementById('location').setAttribute("value",filename);
 			//TODO: PDF laten zien als dat klaar is
 		}
@@ -754,11 +776,8 @@ function readInvoice(json){
 	for(var line in json){
 		if(json.hasOwnProperty(line)){
 			var l=json[line];
-			if(line.substring(0,4)=="Line"){
+			if(line.substring(0,11)=="invoiceLine"){
 				addInvoiceRow([l.invoiceType,l.desc,l.amount,l.price,l.nett,l.vat_type])
-			}
-			if(line.substring(0,4)=="Head"){
-				addInvoiceRow([l.invoiceType,l.desc,0,0,0,0])
 			}
 		}
 	}
