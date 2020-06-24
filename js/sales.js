@@ -169,6 +169,11 @@ function addInvoiceRow(sel_options=""){
 	newInvoiceRem.setAttribute("onclick", "removeInvoiceRow(this.id)");
 	newInvoiceColG.appendChild(newInvoiceRem);
 
+	//if header, hide the fields
+	if(sel_invoice=="head"){
+		invoiceHeaderRow(inRowCount,"hide");
+	}
+
 	//increment inRowCount
 	inRowCount+=1;
 
@@ -177,46 +182,42 @@ function addInvoiceRow(sel_options=""){
 }
 
 function removeInvoiceRow(butval){
-	if(inRowCount>2){
-		var row = parseInt(butval.replace("invoiceBut",""));
-        	var rowID = "invoiceRow"+row.toString();
-		var rmRow = document.getElementById(rowID);
-		var inputs=["invoiceType","invoiceDesc","invoiceAmount","invoicePrice","invoiceNett","invoiceVatType"];
+	var row = parseInt(butval.replace("invoiceBut",""));
+        var rowID = "invoiceRow"+row.toString();
+	var rmRow = document.getElementById(rowID);
+	var inputs=["invoiceType","invoiceDesc","invoiceAmount","invoicePrice","invoiceNett","invoiceVatType"];
 	
-		//get all values up to rowcount and move downward
-		for(r=row;r<(inRowCount-1);r++){	
-			for (i=0;i<inputs.length;i++){
-				old_value=document.getElementById(inputs[i]+(r+1).toString()).value;
-				prev_value=document.getElementById(inputs[i]+r.toString()).value
-				new_value=document.getElementById(inputs[i]+r.toString()).value=old_value;
+	//get all values up to rowcount and move downward
+	for(r=row;r<(inRowCount-1);r++){	
+		for (i=0;i<inputs.length;i++){
+			old_value=document.getElementById(inputs[i]+(r+1).toString()).value;
+			prev_value=document.getElementById(inputs[i]+r.toString()).value
+			new_value=document.getElementById(inputs[i]+r.toString()).value=old_value;
 
-				//reveal fields in case of a header as previous value
-				if(inputs[i]=="invoiceType" && prev_value==0){
-					invoiceHeaderRow((r),"reveal");
-				}
-
-				//hide fields in case of a header as new value
-				if(inputs[i]=="invoiceType" && new_value==0){
-					invoiceHeaderRow(r,"hide");
-				}
-
+			//reveal fields in case of a header as previous value
+			if(inputs[i]=="invoiceType" && prev_value==0){
+				invoiceHeaderRow((r),"reveal");
 			}
+
+			//hide fields in case of a header as new value
+			if(inputs[i]=="invoiceType" && new_value==0){
+				invoiceHeaderRow(r,"hide");
+			}
+
 		}
+	}
 
-        	//remove the last row and all its children
-        	var lastRow = "invoiceRow"+(inRowCount-1).toString();
-		var lastRowEl = document.getElementById(lastRow);
+        //remove the last row and all its children
+        var lastRow = "invoiceRow"+(inRowCount-1).toString();
+	var lastRowEl = document.getElementById(lastRow);
 	
-		lastRowEl.remove();
-		inRowCount=inRowCount-1;
+	lastRowEl.remove();
+	inRowCount=inRowCount-1;
 
-		//adjust values
-        	invoiceToSales();
-	}
-	else{
-		alert("Cannot remove last row, please change content instead");
-	}
+	//adjust values
+        invoiceToSales();
 }
+
 
 function addSalesRow(sel_options="") {
 
@@ -334,33 +335,28 @@ function addSalesRow(sel_options="") {
 
 
 function removeSalesRow(butval){
-	if(rowCount>2){
-		var row = parseInt(butval.replace("salesBut",""));
-        	var rowID = "salesRow"+row.toString();
-		var rmRow = document.getElementById(rowID);
-		var inputs=["salesType","salesNett","salesVatType","salesVat","salesGross"];
+	var row = parseInt(butval.replace("salesBut",""));
+        var rowID = "salesRow"+row.toString();
+	var rmRow = document.getElementById(rowID);
+	var inputs=["salesType","salesNett","salesVatType","salesVat","salesGross"];
 	
-		//get all values up to rowcount and move downward
-		for(r=row;r<(rowCount-1);r++){
-			for (i=0;i<inputs.length;i++){
-				old_value=document.getElementById(inputs[i]+(r+1).toString()).value;
-				document.getElementById(inputs[i]+r.toString()).value=old_value;
-			}
+	//get all values up to rowcount and move downward
+	for(r=row;r<(rowCount-1);r++){
+		for (i=0;i<inputs.length;i++){
+			old_value=document.getElementById(inputs[i]+(r+1).toString()).value;
+			document.getElementById(inputs[i]+r.toString()).value=old_value;
 		}
+	}
 
-        	//remove the last row and all its children
-        	var lastRow = "salesRow"+(rowCount-1).toString();
-		var lastRowEl = document.getElementById(lastRow);
+        //remove the last row and all its children
+        var lastRow = "salesRow"+(rowCount-1).toString();
+	var lastRowEl = document.getElementById(lastRow);
 	
-		lastRowEl.remove();
-		rowCount=rowCount-1;
+	lastRowEl.remove();
+	rowCount=rowCount-1;
 
-		//adjust values
-	        adjustSalesTot();
-	}
-	else{
-		alert("Cannot remove last row, please change content instead");
-	}
+	//adjust values
+	adjustSalesTot();
 }
 
 
@@ -481,8 +477,8 @@ function invoiceToSales(){
 				found=true;
 			}
 		}
-		
-		if(!found){
+
+		if(!found && invoiceType!="head"){ //head niet toevoegen
 			sales_lines.push([invoiceType,invoiceNett,invoiceVatType,invoiceVat,invoiceGross]);
 		} 
 	}
@@ -506,10 +502,7 @@ function invoiceToSales(){
 		}
 	}
 
-	//remove other rows
-	//TODO: hij verwijderd nu nog niet rijen die onnidig zijn geworden aan het begin van de lijst
-	// Check de if/else statements hierboven om het op te lossen, of verander de gehele aanpak van rijen verwijderen naar een degelijkere aanpak, waarbij de rowcount 
-	// wordt aangepast en alle elementen in die rij verwijderd worden - kan niet omdat de rowcount in de naam zit
+        //remove rows if no longer needed
 	for(r=s+1;r<rowCount;r++){
 		var salesType=document.getElementById("salesType"+(s+1).toString())
 		if (typeof(salesType) !="undefined" && salesType != null){ 
@@ -699,7 +692,7 @@ function makeInvoice(name){
 	meta_dict['project']=document.getElementById('projectId').value;
 	invoice_dict["Meta"]=meta_dict;
 	
-	for (n=1;n<rowCount;n++){
+	for (n=1;n<inRowCount;n++){
 		check=document.getElementById('invoiceType'+n.toString())
 		if (typeof(check) !="undefined" && check != null){ 	
 			if(check.value!="head"){
