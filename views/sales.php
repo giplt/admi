@@ -1,9 +1,20 @@
 <?php
 
 	if (!is_dir('files/sales')) mkdir('files/sales');
+
+	if(isset($_POST["removeInvoice"])){
+		$filename=$_POST["removeInvoice"];
+		$filepath='files/sales/'.$filename;
+		unlink($filepath);
+	}
 	
 	if(isset($_POST["invoice"])) {
-		$filename = uniqid().".json";
+		if(isset($_POST["Location"])){
+			$filename = $_POST["Location"];
+		}
+		else{
+			$filename = uniqid().".json";
+		}
 		$filepath='files/sales/'.$filename;
 
 		//save the json file in files/sales
@@ -137,7 +148,7 @@
 		$options = '<option value="" disabled="disabled"'.($purchase['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $options.= '<option value="'.$contact['ID'].'"'.($purchase['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
-		$content.= '<tr><th>'.__('contact').'</th><td><select id="ContID" name="ContactID">'.$options.'</select> <input type="button" value="'.__('new').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
+		$content.= '<tr><th>'.__('contact').'</th><td><select id="contactId" name="ContactID">'.$options.'</select> <input type="button" value="'.__('new').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
 		$content.='</table></fieldset>';
 
 		//TODO: WISHLIST multiple accounts for Plan B
@@ -145,18 +156,18 @@
 		//Datum en locatie van het boekstuk
 		$today=date('Y-m-d');
 		$content.='<fieldset><legend>'.__('invoice').'</legend><table>';
-		$content.= '<tr><th>'.__('date').'</th><td><input type="date" name="TransactionDate" value="'.$entry['TransactionDate'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('date').'</th><td><input type="date" id="transactionDate" name="TransactionDate" value="'.$entry['TransactionDate'].'"/></td></tr>';
 		$content.= '<input type="hidden" name="AccountingDate" value='.$today.'>';
 		
 		//ProjectID
 		$options = '<option value="" disabled="disabled"'.($purchase['ProjectID']?'':' selected').'>'.__('pick-project').'</option>';
 		$projects = $db->query("SELECT * FROM Projects ORDER BY Name");
 		while($project = $projects->fetchArray()) $options.= '<option value="'.$project['ID'].'"'.($purchase['ProjectID']==$project['ID']?' selected':'').'>'.$project['Name'].'</option>';
-		$content.= '<tr><th>'.__('project').'</th><td><select name="ProjectID">'.$options.'</select></td></tr>';
+		$content.= '<tr><th>'.__('project').'</th><td><select id="projectId" name="ProjectID">'.$options.'</select></td></tr>';
 		
 		//Reference
 		$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"></td></tr>';
-		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" name="Reference" value="'.$purchase['Reference'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" id="reference" name="Reference" value="'.$purchase['Reference'].'"/></td></tr>';
 		$form_options='<option value="old">Enter existing invoice</option><option value="new">Create new invoice</option>';
 		$content.= '<tr><th>'.__('input mode').'</th><td><select id="invoiceMode">'.$form_options.'</select></td></tr>';
 		$content.= '</table></fieldset>';		
@@ -164,6 +175,10 @@
 		//Geef alle opties voor sales, hier later nog even over nadenken, wil je kosten van de omzet appart hebben (voorraad, kosten derder etc)?
 		$sales_options=array(array("def","kies type"),array("1","Uren"),array("2","Materialen"),array("3","Reiskosten"));
 		$sales_options_safe=json_encode($sales_options);
+
+		//Geef alle opties voor invoice (sales+header)
+		$invoice_options=array(array("def","kies type"),array("head","Header"),array("1","Uren"),array("2","Materialen"),array("3","Reiskosten"));
+		$invoice_options_safe=json_encode($invoice_options);
 
 		//Geef alle opties voor btw-type
 		$vat_options=array(array("def","kies type"),array("0","btw-vrij"),array("9","9%"),array("21","21%"));
@@ -182,7 +197,10 @@
 		$content.='<th class="salesInputCol">'.__('nett').'</th>';
 		$content.='<th class="salesInputCol">'.__('vat type').'</th>';
 		$content.='<td class="salesInputColLast"><input type="button" id="addInvoiceRowButton" value="+"/></td></tr>';
-		$content.= '</table></fieldset>';
+		$content.= '</table>';
+		$content.= '<input type="button" id="invoiceMake" value="'.('make-invoice').'"></input>';
+		$content.= '<input type="button" id="invoiceRemove" value="'.('remove-invoice').'"></input>';
+		$content.='</fieldset>';
 
 		//Totalen van de factuur
 
@@ -213,7 +231,6 @@
 		//Submit buttons
 		$content.= '</table></fieldset>';
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
-		$content.= '<input type="button" id="invoiceMake" value="'.('make invoice').'"></input>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/sales\';"/>';
 		$content.= '</form></div>';
@@ -224,12 +241,13 @@
 
 		//Calling javasctipt functions
 		$content.= '<script>addOptionsPHP("vatShift",'.$shift_options_safe.')</script>';
-		$content.= '<script>setGlobalOptions('.$sales_options_safe.','.$vat_options_safe.')</script>';
+		$content.= '<script>setGlobalOptions('.$invoice_options_safe.','.$sales_options_safe.','.$vat_options_safe.')</script>';
 		$content.= '<script>addOnClick()</script>';
 		$content.= '<script>onChangeFieldSet("salesFieldSet")</script>';
 		$content.= '<script>onChangeFieldSet("invoiceFieldSet")</script>';
 		$content.= '<script>onchangeInput("invoiceMode")</script>';
 		$content.= '<script>onchangeMake("invoiceMake","invoice")</script>';
+		$content.= '<script>onchangeRemove("invoiceRemove","invoice")</script>';	
 
 		//Load transactions from the database
 		foreach ($transactions as $trans){
@@ -275,12 +293,14 @@
 							$db->query("INSERT INTO Transactions (EntryID) VALUES ('".$entryID."')");
 							$last_trans=$db->querySingle("SELECT MAX(ID) FROM Transactions LIMIT 1");
 							$transID=intval($last_trans);
+
 							$trans_num=substr($key, strlen($checkstr),strlen($key));
 							$sales_type_key="SalesType".$trans_num;
 							$nett_key="nett".$trans_num;
 							$vat_type_key="vatType".$trans_num;
 							$vat_key="vat".$trans_num;
 							$gross_key="gross".$trans_num;
+
 							makeMutations($db,$_POST['vatShift'],$transID,$value,$_POST[$sales_type_key], $_POST[$nett_key],$_POST[$vat_type_key],$_POST[$vat_key],$_POST[$gross_key]);					
 						}
 					}

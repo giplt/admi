@@ -4,6 +4,7 @@ var inRowCount=1;
 
 var sales_options=[];
 var vat_options=[];
+var invoice_options=[];
 
 //-------------------------------------------------------------------
 //these functions allow adding options to select elements dynamically
@@ -29,7 +30,8 @@ function addOptions(select_obj,options,sel_opt){
         };
 }
 
-function setGlobalOptions(sales,vat){
+function setGlobalOptions(invoice,sales,vat){
+	invoice_options=invoice;
 	sales_options=sales;
 	vat_options=vat;
 }
@@ -119,7 +121,7 @@ function addInvoiceRow(sel_options=""){
 	var newInvoiceType = document.createElement("select");
 	newInvoiceType.setAttribute("id", "invoiceType"+inRowCount.toString());
 	newInvoiceType.setAttribute("name", "InvoiceType"+inRowCount.toString());
-        addOptions(newInvoiceType,sales_options,sel_invoice);
+        addOptions(newInvoiceType,invoice_options,sel_invoice);
 	newInvoiceColA.appendChild(newInvoiceType);
 
 	var newInvoiceGross = document.createElement("input");
@@ -175,12 +177,45 @@ function addInvoiceRow(sel_options=""){
 }
 
 function removeInvoiceRow(butval){
-        var rowID = "invoiceRow"+butval.replace("invoiceBut","");
-	var rmRow = document.getElementById(rowID);
-        rmRow.innerHTML="x";
+	if(inRowCount>2){
+		var row = parseInt(butval.replace("invoiceBut",""));
+        	var rowID = "invoiceRow"+row.toString();
+		var rmRow = document.getElementById(rowID);
+		var inputs=["invoiceType","invoiceDesc","invoiceAmount","invoicePrice","invoiceNett","invoiceVatType"];
+	
+		//get all values up to rowcount and move downward
+		for(r=row;r<(inRowCount-1);r++){	
+			for (i=0;i<inputs.length;i++){
+				old_value=document.getElementById(inputs[i]+(r+1).toString()).value;
+				prev_value=document.getElementById(inputs[i]+r.toString()).value
+				new_value=document.getElementById(inputs[i]+r.toString()).value=old_value;
 
-	//adjust total values --> needed when entering data from database
-	invoiceToSales();
+				//reveal fields in case of a header as previous value
+				if(inputs[i]=="invoiceType" && prev_value==0){
+					invoiceHeaderRow((r),"reveal");
+				}
+
+				//hide fields in case of a header as new value
+				if(inputs[i]=="invoiceType" && new_value==0){
+					invoiceHeaderRow(r,"hide");
+				}
+
+			}
+		}
+
+        	//remove the last row and all its children
+        	var lastRow = "invoiceRow"+(inRowCount-1).toString();
+		var lastRowEl = document.getElementById(lastRow);
+	
+		lastRowEl.remove();
+		inRowCount=inRowCount-1;
+
+		//adjust values
+        	invoiceToSales();
+	}
+	else{
+		alert("Cannot remove last row, please change content instead");
+	}
 }
 
 function addSalesRow(sel_options="") {
@@ -295,36 +330,37 @@ function addSalesRow(sel_options="") {
 
 	//adjust total values --> needed when entering data from database
 	adjustSalesTot();
-	console.log("Rowcount = ",rowCount);
 }
 
 
 function removeSalesRow(butval){
-	var row = parseInt(butval.replace("salesBut",""));
-        var rowID = "salesRow"+row.toString();
-	var rmRow = document.getElementById(rowID);
-	var inputs=["salesType","salesNett","salesVatType","salesVat","salesGross"];
-	console.log("removing row:",row);
-	console.log("----------------");
+	if(rowCount>2){
+		var row = parseInt(butval.replace("salesBut",""));
+        	var rowID = "salesRow"+row.toString();
+		var rmRow = document.getElementById(rowID);
+		var inputs=["salesType","salesNett","salesVatType","salesVat","salesGross"];
 	
-	//get all values up to rowcount and move downward
-	for(r=row;r<(rowCount-1);r++){
-		for (i=0;i<inputs.length;i++){
-			old_value=document.getElementById(inputs[i]+(r+1).toString()).value;
-			console.log(inputs[i]," = ", old_value);
-			new_value=document.getElementById(inputs[i]+r.toString()).value=old_value;
+		//get all values up to rowcount and move downward
+		for(r=row;r<(rowCount-1);r++){
+			for (i=0;i<inputs.length;i++){
+				old_value=document.getElementById(inputs[i]+(r+1).toString()).value;
+				document.getElementById(inputs[i]+r.toString()).value=old_value;
+			}
 		}
-	}
 
-        //remove the last row and all its children
-        var lastRow = "salesRow"+(rowCount-1).toString();
-	var lastRowEl = document.getElementById(lastRow);
+        	//remove the last row and all its children
+        	var lastRow = "salesRow"+(rowCount-1).toString();
+		var lastRowEl = document.getElementById(lastRow);
 	
-	lastRowEl.remove();
-	rowCount=rowCount-1;
+		lastRowEl.remove();
+		rowCount=rowCount-1;
 
-	//adjust values
-        adjustSalesTot();
+		//adjust values
+	        adjustSalesTot();
+	}
+	else{
+		alert("Cannot remove last row, please change content instead");
+	}
 }
 
 
@@ -332,58 +368,60 @@ function removeSalesRow(butval){
 //-----------------------------------------------------------------------------------------------------
 //function that allows to switch between adding data for an existing invoice and creating a new invoice
 //-----------------------------------------------------------------------------------------------------
-//TODO: something going wrong. The value of the select item cannot be changed back
 
 function onchangeInput(id){
 	var select = document.getElementById(id);
 	select.addEventListener("change",function(){
-		var invoiceField=document.getElementById("invoiceFieldSet");
-		var salesField=document.getElementById("salesFieldSet");
 		var selected = document.getElementById(id).value;
-		console.log("Changing value");
-		console.log("select.value = ", select.value);
-
-		if(selected=="new"){
-			console.log("selected creating a new invoice");
-			invoiceField.removeAttribute("hidden");
-			addSalesRowButton.setAttribute("disabled","disabled");
-
-			//set relevant inputs to readonly
-			for(i=1;i<rowCount;i++){
-				var sales_type=document.getElementById("salesType"+i.toString());
-				var nett=document.getElementById("salesNett"+i.toString());
-				var vat_type=document.getElementById("salesVatType"+i.toString());
-				var sales_but=document.getElementById("salesBut"+i.toString());
-
-				nett.setAttribute("readonly","readonly");
-				vat_type.setAttribute("disabled","disabled");
-				sales_type.setAttribute("disabled","disabled");
-				sales_but.setAttribute("disabled","disabled");
-				salesReadOnly=true;
-			}
-
-			invoiceToSales();
-		}
-		else{
-			console.log("selected an existing invoice");
-			invoiceField.setAttribute("hidden","true");
-			addSalesRowButton.removeAttribute("disabled");
-			//set relevant inputs to write
-			for(i=1;i<rowCount;i++){
-				var sales_type=document.getElementById("salesType"+i.toString());
-				var nett=document.getElementById("salesNett"+i.toString());
-				var vat_type=document.getElementById("salesVatType"+i.toString());
-				var sales_but=document.getElementById("salesBut"+i.toString());
-
-				nett.removeAttribute("readonly");
-				sales_type.removeAttribute("disabled");
-				vat_type.removeAttribute("disabled");
-				sales_but.removeAttribute("disabled");
-				salesReadOnly=false;
-			}
-
-		}
+		switchInputMode(selected);
 	});
+}
+
+function switchInputMode(selected){
+	var invoiceField=document.getElementById("invoiceFieldSet");
+	var salesField=document.getElementById("salesFieldSet");
+
+	if(selected=="new"){
+		document.getElementById("location").setAttribute("readonly","readonly");
+		invoiceField.removeAttribute("hidden");
+		addSalesRowButton.setAttribute("disabled","disabled");
+		salesReadOnly=true;
+
+		//set relevant inputs to readonly
+		for(i=1;i<rowCount;i++){
+			var sales_type=document.getElementById("salesType"+i.toString());
+			var nett=document.getElementById("salesNett"+i.toString());
+			var vat_type=document.getElementById("salesVatType"+i.toString());
+			var sales_but=document.getElementById("salesBut"+i.toString());
+
+			nett.setAttribute("readonly","readonly");
+			vat_type.setAttribute("disabled","disabled");
+			sales_type.setAttribute("disabled","disabled");
+			sales_but.setAttribute("disabled","disabled");
+			
+		}
+
+	}
+	else{
+		document.getElementById("location").removeAttribute("readonly","readonly");
+		invoiceField.setAttribute("hidden","true");
+		addSalesRowButton.removeAttribute("disabled");
+		salesReadOnly=false;	
+		//set relevant inputs to write
+		for(i=1;i<rowCount;i++){
+			var sales_type=document.getElementById("salesType"+i.toString());
+			var nett=document.getElementById("salesNett"+i.toString());
+			var vat_type=document.getElementById("salesVatType"+i.toString());
+			var sales_but=document.getElementById("salesBut"+i.toString());
+
+			nett.removeAttribute("readonly");
+			sales_type.removeAttribute("disabled");
+			vat_type.removeAttribute("disabled");
+			sales_but.removeAttribute("disabled");
+			
+		}
+
+	}
 }
 
 
@@ -405,7 +443,9 @@ function onChangeFieldSet(id){
 	}
 	else if(id=="invoiceFieldSet"){
 		form.addEventListener("change",function(){
+			console.log("NEW CALL----------------");
 			for (i=1;i<inRowCount;i++){
+				console.log("Adjusting row:",i);
 				adjustInvoiceRow(i); 
 			}
 			invoiceToSales();
@@ -424,7 +464,8 @@ function invoiceToSales(){
 	for(i=1;i<inRowCount;i++){
 		found=false;
 		var check=document.getElementById("invoiceType"+i.toString())
-		if (typeof(check) !="undefined" && check != null){ 
+		console.log(check.value);
+		if (typeof(check) !="undefined" && check != null){  //head moet hier in blijven anders reset de boel niet
 			var invoiceType=document.getElementById("invoiceType"+i.toString()).value;
 			var invoiceNett=document.getElementById("invoiceNett"+i.toString()).value;
 			var invoiceVatType=document.getElementById("invoiceVatType"+i.toString()).value;
@@ -449,8 +490,8 @@ function invoiceToSales(){
 	//change existing rows and create new rows if needed
 	for(s=0;s<sales_lines.length;s++){ 
 		var salesType=document.getElementById("salesType"+(s+1).toString())
+
 		if (typeof(salesType) !="undefined" && salesType != null){ 
-			console.log("changing existing row");
 			var salesType=document.getElementById("salesType"+(s+1).toString()).value=sales_lines[s][0];
 			var salesNett=document.getElementById("salesNett"+(s+1).toString()).value=sales_lines[s][1];
 			var salesVatType=document.getElementById("salesVatType"+(s+1).toString()).value=sales_lines[s][2];
@@ -458,9 +499,10 @@ function invoiceToSales(){
 			var salesGross=document.getElementById("salesGross"+(s+1).toString()).value=sales_lines[s][4];
 		}
 		else{
-			//2 cases de rij bestond of er zijn niet meer rijen
-			console.log("adding new row");
-			addSalesRow(sel_options=sales_lines[s]);
+			if (salesType !="null"){ 	//een header geeft salesType=null in de sales row
+				//2 cases de rij bestond of er zijn niet meer rijen
+				addSalesRow(sel_options=sales_lines[s]);
+			}
 		}
 	}
 
@@ -481,12 +523,42 @@ function invoiceToSales(){
 function adjustInvoiceRow(row){
 	var check=document.getElementById('invoiceType'+row.toString());
 	if (typeof(check) !="undefined" && check != null){ 
-		var amount=+document.getElementById('invoiceAmount'+row.toString()).value;
-		var price=+document.getElementById('invoicePrice'+row.toString()).value;
-		var vat_type=+document.getElementById('invoiceVatType'+row.toString()).value;
+		if(check.value!="head"){
+			var amount=+document.getElementById('invoiceAmount'+row.toString()).value;
+			var price=+document.getElementById('invoicePrice'+row.toString()).value;
+			var vat_type=+document.getElementById('invoiceVatType'+row.toString()).value;
+			console.log("amount :",amount);
+			console.log("price : ",price);
+			console.log("vat_type : ",vat_type);
 
-		var nett=document.getElementById('invoiceNett'+row.toString());
-		nett.setAttribute("value",amount*price);
+			var nett=document.getElementById('invoiceNett'+row.toString());
+			nett.value=(amount*price).toFixed(2);
+			invoiceHeaderRow(row,"reveal");
+		}
+		else{
+			//set all fields to hiden and 0
+			invoiceHeaderRow(row,"hide");
+			document.getElementById('invoiceAmount'+row.toString()).value=0;
+			document.getElementById('invoicePrice'+row.toString()).value=0;
+			document.getElementById('invoiceNett'+row.toString()).value=0;
+		}			
+	}
+}
+
+function invoiceHeaderRow(r, what){
+
+	if(what=="hide"){
+		document.getElementById('invoiceAmount'+r.toString()).setAttribute("hidden","hidden");
+		document.getElementById('invoicePrice'+r.toString()).setAttribute("hidden","hidden");
+		document.getElementById('invoiceVatType'+r.toString()).setAttribute("hidden","hidden");
+		document.getElementById('invoiceNett'+r.toString()).setAttribute("hidden","hidden");
+	}
+
+	if(what=="reveal"){
+		document.getElementById('invoiceAmount'+r.toString()).removeAttribute("hidden");
+		document.getElementById('invoicePrice'+r.toString()).removeAttribute("hidden");
+		document.getElementById('invoiceVatType'+r.toString()).removeAttribute("hidden");
+		document.getElementById('invoiceNett'+r.toString()).removeAttribute("hidden");
 	}
 }
 
@@ -494,13 +566,14 @@ function adjustSalesRow(row){
 	var check=document.getElementById('salesType'+row.toString());
 	if (typeof(check) !="undefined" && check != null){ 
 		var nett=document.getElementById('salesNett'+row.toString()).value;
+		
 		var vat_type=+document.getElementById('salesVatType'+row.toString()).value;
-
+		
 		var vat=document.getElementById('salesVat'+row.toString());
-		vat.setAttribute("value",+nett*(vat_type/100));
+		vat.value=(+nett*(vat_type/100)).toFixed(2);
 
 		var gross=document.getElementById('salesGross'+row.toString());
-		gross.setAttribute("value",+nett+(+vat.value));
+		gross.value=(+nett+(+vat.value)).toFixed(2);
 	}
 }
 
@@ -577,24 +650,74 @@ function onchangeMake(id,name){
 	});
 }
 
+function onchangeRemove(id){
+	var but = document.getElementById(id);	
+	but.addEventListener("click",function(){
+		removeInvoice();
+	});
+}
+
+function removeInvoice(){
+
+	//switch to default mode
+	var invoice_mode=document.getElementById("invoiceMode");
+	invoice_mode.removeAttribute("disabled");
+	
+	//send remove request to php
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			document.getElementById('location').setAttribute("value","");
+		}
+	};
+	
+	var data = new FormData();
+	//checken of er een locatie is
+	if(document.getElementById('location').value!=""){
+		data.append("removeInvoice",document.getElementById('location').value);
+	}
+	
+	xhr.open('POST', '');  
+	xhr.send(data);
+}
+
+
 function makeInvoice(name){
 
-	var invoice_dict= {}
+	var invoice_mode=document.getElementById("invoiceMode");
+	invoice_mode.setAttribute("disabled","disabled");
 
+	var invoice_dict= {};
+	var meta_dict={};
 	num=0;
 
 	//get info for each row
+	//add meta data
+        meta_dict['recipient']=document.getElementById('contactId').value;
+	meta_dict['invoiceDate']=document.getElementById('transactionDate').value;
+	meta_dict['reference']=document.getElementById('reference').value;
+	meta_dict['project']=document.getElementById('projectId').value;
+	invoice_dict["Meta"]=meta_dict;
+	
 	for (n=1;n<rowCount;n++){
 		check=document.getElementById('invoiceType'+n.toString())
 		if (typeof(check) !="undefined" && check != null){ 	
-			line_dict={}
-			line_dict['InvoiceType']=document.getElementById('invoiceType'+n.toString()).value;
-			line_dict['desc']=document.getElementById('invoiceDesc'+n.toString()).value;
-			line_dict['amount']=+document.getElementById('invoiceAmount'+n.toString()).value;
-			line_dict['price']=+document.getElementById('invoicePrice'+n.toString()).value;
-			line_dict['nett']=+document.getElementById('invoiceNett'+n.toString()).value;
-			line_dict['vat_type']=+document.getElementById('invoiceVatType'+n.toString()).value;
-			invoice_dict[("Line_"+n.toString())]=line_dict;
+			if(check.value!="head"){
+				line_dict={};
+				line_dict['invoiceType']=document.getElementById('invoiceType'+n.toString()).value;
+				line_dict['desc']=document.getElementById('invoiceDesc'+n.toString()).value;
+				line_dict['amount']=+document.getElementById('invoiceAmount'+n.toString()).value;
+				line_dict['price']=+document.getElementById('invoicePrice'+n.toString()).value;
+				line_dict['nett']=+document.getElementById('invoiceNett'+n.toString()).value;
+				line_dict['vat_type']=+document.getElementById('invoiceVatType'+n.toString()).value;
+				invoice_dict[("Line_"+n.toString())]=line_dict;
+			}
+			else{
+				line_dict={};
+				line_dict['invoiceType']=document.getElementById('invoiceType'+n.toString()).value;
+				line_dict['desc']=document.getElementById('invoiceDesc'+n.toString()).value;
+				invoice_dict[("Head_"+n.toString())]=line_dict;
+			}
 		}
 
 	}
@@ -606,17 +729,19 @@ function makeInvoice(name){
 	var xhr = new XMLHttpRequest();
 
 	xhr.onreadystatechange = function() {
-		console.log("Function called");
 		if (this.readyState == 4 && this.status == 200) {
-			console.log("Response text: ", this.responseText);
 			filename = this.responseText;
 			document.getElementById('location').setAttribute("value",filename);
-			document.getElementById('location').setAttribute("readonly","readonly");
 			//TODO: PDF laten zien als dat klaar is
 		}
 	};
 	
 	var data = new FormData();
+
+	//checken of er een locatie is
+	if(document.getElementById('location').value!=""){
+		data.append("Location",document.getElementById('location').value)
+	}
 	data.append(name, invoice_string);
 	xhr.open('POST', '');  //´ '=zichzelf
 	xhr.send(data);
@@ -625,13 +750,24 @@ function makeInvoice(name){
 }
 
 function readInvoice(json){
-	//TODO: iterating werkt niet
-	console.log("reading json");
-	console.log("length:", json.length);
-	console.log("json: ",);
-	for(l=0;l<json.length;l++){
-		var entry=json[l];
-		console.log("entry = ",entry);
+
+	// set invoice mode to new invoice and disable the selection field
+	var invoice_mode=document.getElementById("invoiceMode");
+	invoice_mode.value="new";
+	invoice_mode.setAttribute("disabled","disabled");
+	switchInputMode("new");
+	
+	//Iterate through the json file
+	for(var line in json){
+		if(json.hasOwnProperty(line)){
+			var l=json[line];
+			if(line.substring(0,4)=="Line"){
+				addInvoiceRow([l.invoiceType,l.desc,l.amount,l.price,l.nett,l.vat_type])
+			}
+			if(line.substring(0,4)=="Head"){
+				addInvoiceRow([l.invoiceType,l.desc,0,0,0,0])
+			}
+		}
 	}
 }
 
