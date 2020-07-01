@@ -29,7 +29,8 @@
 
 		//save a .pdf file in the files/sales
 		$pdffile=fopen($invoicepath, 'w');
-		fwrite($pdffile,createPDF("test"));
+		$invoice_data=json_decode($_POST["invoice"],true);
+		fwrite($pdffile,createPDF($invoice_data));
 		fclose($pdffile);
 		
 		exit();

@@ -675,7 +675,7 @@ function removeInvoice(){
 }
 
 
-function makeInvoice(name){
+function makeInvoice(name, options=new Array('9','21')){
 
 	var invoice_mode=document.getElementById("invoiceMode");
 	invoice_mode.setAttribute("disabled","disabled");
@@ -733,7 +733,18 @@ function makeInvoice(name){
 			invoice_dict[("salesLine_"+n.toString())]=sales_dict;
 		}
 	}
-	
+
+	//save sales totals
+	sales_tot={};
+	sales_tot['nett']=document.getElementById("nettTot").value;
+	sales_tot['gross']=document.getElementById("grossTot").value;
+	sales_tot['shift']=document.getElementById("vatShift").value;
+
+	for (i=0;i<options.length;i++){
+		sales_tot["vat_"+options[i]]=document.getElementById("vatTot_"+options[i]).value;
+	}
+	invoice_dict["salesTot"]=sales_tot;
+
 	//save a json file with the data
 	invoice_string=JSON.stringify(invoice_dict);
 
