@@ -757,7 +757,7 @@ function makeInvoice(name, options=new Array('9','21')){
 		if (this.readyState == 4 && this.status == 200) {
 			filename = this.responseText;
 			console.log(this.responseText);
-			document.getElementById('location').setAttribute("value",filename);
+			document.getElementById('location').value=filename;
 			//TODO: PDF laten zien als dat klaar is
 		}
 	};

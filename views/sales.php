@@ -2,21 +2,16 @@
 	include_once('php_common/invoice.php');
 
 	if (!is_dir('files/sales')) mkdir('files/sales');
-
-	if(isset($_POST["removeInvoice"])){
-		$filename=$_POST["removeInvoice"];
-		$filepath='files/sales/'.$filename;
-		unlink($filepath);
-	}
 	
 	if(isset($_POST["invoice"])) {
 		if(isset($_POST["Location"])){
 			$filename = $_POST["Location"];
-			$invoicepdf = substr($_POST["Location"],0,-5)+".pdf";
+			$invoicepdf = substr($_POST["Location"],0,-5).'.pdf';
 		}
 		else{
-			$filename = uniqid().".json";
-			$invoicepdf = uniqid().".pdf";
+			$unid=uniqid();
+			$filename = $unid.".json";
+			$invoicepdf = $unid.".pdf";
 		}
 
 		$filepath='files/sales/'.$filename;
@@ -33,6 +28,8 @@
 		fwrite($pdffile,createPDF($invoice_data));
 		fclose($pdffile);
 		
+		echo $filename;
+
 		exit();
 	}
 	
@@ -206,7 +203,6 @@
 		$content.='<td class="salesInputColLast"><input type="button" id="addInvoiceRowButton" value="+"/></td></tr>';
 		$content.= '</table>';
 		$content.= '<input type="button" id="invoiceMake" value="'.('make-invoice').'"></input>';
-		$content.= '<input type="button" id="invoiceRemove" value="'.('remove-invoice').'"></input>';
 		$content.='</fieldset>';
 
 		//Totalen van de factuur
@@ -239,7 +235,7 @@
 		$content.= '</table></fieldset>';
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
-		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/sales\';"/>';
+		$content.= '<button type="submit" name="cmd" value="back">'.__('back').'</button>';
 		$content.= '</form></div>';
 		$content.= '<div class="salesInputVis">Bonnetje</div></div>';
 		
@@ -293,7 +289,8 @@
 					$entryID=intval($last_entry);
 
 					$db->query("INSERT INTO Sales (EntryID, Status, Reference, ContactID, ProjectID) VALUES ('".$entryID."','review','".$_POST['Reference']."', '".$_POST['ContactID']."', '".$_POST['ProjectID']."')");
-
+					
+					//only use once 
 					foreach ($_POST as $key => $value){
 						$checkstr="SalesType";
 						if (strpos($key,$checkstr)!==False){
@@ -326,10 +323,32 @@
 				}
 				break;
 			case 'remove':
-				$db->query("DELETE FROM Accounts WHERE ID='".$_POST['ID']."'");
+				if($_POST['ID']=='new') {
+					//Do nothing
+				}
+				else{
+					//delete entry and sales from the database
+					$purchase = $db->query("SELECT * FROM Sales WHERE ID='".$_POST['ID']."'")->fetchArray();
+					$db->query("DELETE FROM Entries WHERE ID='".$purchase['EntryID']."'");
+					$db->query("DELETE FROM Sales WHERE ID='".$_POST['ID']."'");
+
+					//delete the invoice files
+					unlink('files/sales/'.$_POST["Location"]);
+					unlink('files/sales/'.substr($_POST["Location"],0,-5).'.pdf');
+					
+				}
 				break;
 
-			case 'make':
+			case 'back':
+				
+				if ($_POST['ID']=='new' and substr($_POST['Location'],-5)=='.json'){
+
+					//delete the invoice files
+					unlink('files/sales/'.$_POST["Location"]);
+					unlink('files/sales/'.substr($_POST["Location"],0,-5).'.pdf');
+				} 
+				break;				
+				
 				
 		}
 		viewSaleList();
