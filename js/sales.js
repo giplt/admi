@@ -120,7 +120,7 @@ function addInvoiceRow(sel_options=""){
 	//input fields
 	var newInvoiceType = document.createElement("select");
 	newInvoiceType.setAttribute("id", "invoiceType"+inRowCount.toString());
-	newInvoiceType.setAttribute("name", "InvoiceType"+inRowCount.toString());
+	newInvoiceType.setAttribute("name", "invoiceType"+inRowCount.toString());
         addOptions(newInvoiceType,invoice_options,sel_invoice);
 	newInvoiceColA.appendChild(newInvoiceType);
 

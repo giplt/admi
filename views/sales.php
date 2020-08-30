@@ -1,34 +1,26 @@
 <?php
 	include_once('php_common/invoice.php');
 
-	if (!is_dir('files/sales')) mkdir('files/sales');
+	if (!is_dir('files/sales/')) mkdir('files/sales/');
 	
 	if(isset($_POST["invoice"])) {
 		if(isset($_POST["Location"])){
-			$filename = $_POST["Location"];
-			$invoicepdf = substr($_POST["Location"],0,-5).'.pdf';
+			$invoice_file = $_POST["Location"];
 		}
 		else{
 			$unid=uniqid();
-			$filename = $unid.".json";
-			$invoicepdf = $unid.".pdf";
+			$invoice_file = $unid.".pdf";
 		}
 
-		$filepath='files/sales/'.$filename;
-		$invoicepath='files/sales/'.$invoicepdf;
-
-		//save the json file in files/sales
-		$infile=fopen($filepath, 'w');
-		fwrite($infile, $_POST["invoice"]);
-		fclose($infile);
+		$invoice_path='files/sales/'.$invoice_file;
 
 		//save a .pdf file in the files/sales
-		$pdffile=fopen($invoicepath, 'w');
+		$pdffile=fopen($invoice_path, 'w');
 		$invoice_data=json_decode($_POST["invoice"],true);
 		fwrite($pdffile,createPDF($invoice_data));
 		fclose($pdffile);
 		
-		echo $filename;
+		echo $invoice_file;
 
 		exit();
 	}
@@ -117,7 +109,7 @@
 			$entry = $db->query("SELECT * FROM Entries WHERE ID='".$purchase['EntryID']."'")->fetchArray();
 
 			//get the data from the invoice
-			$invoice_path='./files/sales/'.$entry['URL'];
+			$invoice_path='./files/sales/'.$purchase['ID'];
 
 			if(file_exists($invoice_path) ){//and explode(".",$invoice_path)[1]=="json"){
 				$invoice=file_get_contents($invoice_path);
@@ -277,10 +269,13 @@
 		switch ($_POST['cmd']) {
 			case 'update':
 				// validate
+				
 				if ($_POST['ID']=='new') {
 					// if file uploaded
 					// - save in data
 					// - get URL
+					
+					echo 'SAVED IN: ';
 
 					$db->query("INSERT INTO Entries (TransactionDate, AccountingDate, URL) VALUES ('".$_POST['TransactionDate']."', '".$_POST['AccountingDate']."', '".$_POST['Location']."')");	
 
@@ -289,37 +284,69 @@
 					$entryID=intval($last_entry);
 
 					$db->query("INSERT INTO Sales (EntryID, Status, Reference, ContactID, ProjectID) VALUES ('".$entryID."','review','".$_POST['Reference']."', '".$_POST['ContactID']."', '".$_POST['ProjectID']."')");
-					
-					//only use once 
+					$last_entry=$db->querySingle("SELECT MAX(ID) FROM Sales LIMIT 1");
+					$salesID=intval($last_entry);
+
+					//save info in a json file in files/sales
+					$json_path='files/sales/'.$salesID.".json";
+					$meta_dict=array('recipient'=>$_POST['ContactID'],'invoiceDate'=>$_POST['TransactionDate'],'reference'=>$_POST['Reference'],'project'=>$_POST['ProjectID']);
+					$json_dict=array('Meta'=>$meta_dict);
+
 					foreach ($_POST as $key => $value){
-						$checkstr="SalesType";
-						if (strpos($key,$checkstr)!==False){
-							$db->query("INSERT INTO Transactions (EntryID) VALUES ('".$entryID."')");
-							$last_trans=$db->querySingle("SELECT MAX(ID) FROM Transactions LIMIT 1");
-							$transID=intval($last_trans);
+						echo $key;
 
-							$trans_num=substr($key, strlen($checkstr),strlen($key));
-							$sales_type_key="SalesType".$trans_num;
-							$nett_key="nett".$trans_num;
-							$vat_type_key="vatType".$trans_num;
-							$vat_key="vat".$trans_num;
-							$gross_key="gross".$trans_num;
+						//add the sales rows to the json file
+						if (strpos($key,"salesType")!==False){
+							$sl=array();
+							$sl_num=substr($key, strlen("salesType"),strlen($key));
 
-							makeMutations($db,$_POST['vatShift'],$transID,$value,$_POST[$sales_type_key], $_POST[$nett_key],$_POST[$vat_type_key],$_POST[$vat_key],$_POST[$gross_key]);					
+							array_push($sl,'salesType',$_POST["salesType".$sl_num]);
+							array_push($sl,'nett',$_POST["nett".$sl_num]);
+							array_push($sl,'vat_type',$_POST["vatType".$sl_num]);
+							array_push($sl,'vat',$_POST["vat".$sl_num]);
+							array_push($sl,'gross',$_POST["gross".$sl_num]);
+
+							array_push($json_dict,"salesLine_".$sl_num,$sl);
+				
+						}
+				
+						//add the invoice rows to the json file
+						if (strpos($key,"invoiceType")!==False){
+							$il=array();
+							$in_num=substr($key, strlen("invoiceType"),strlen($key));
+
+							array_push($il,'invoiceType',$_POST["invoiceType".$in_num]);
+							array_push($il,'invoiceDesc',$_POST["invoiceDesc".$in_num]);
+
+							if ($_POST["invoiceType".$in_num]=="head"){
+								array_push($il,'invoiceAmount',0);
+								array_push($il,'invoicePrice',0);
+								array_push($il,'invoiceNett',0);
+								array_push($il,'invoiceVatType',0);
+							}
+							else{
+								array_push($il,'invoiceAmount',$_POST["invoiceAmount".$in_num]);
+								array_push($il,'invoicePrice',$_POST["invoicePrice".$in_num]);
+								array_push($il,'invoiceNett',$_POST["invoiceNett".$in_num]);
+								array_push($il,'invoiceVatType',$_POST["invoiceVatType".$in_num]);
+							}
+
+							array_push($json_dict,"invoiceLine_".$in_num,$il);
 						}
 					}
 
+					$json_file=fopen($json_path, 'w');
+					fwrite($json_file, json_encode($json_dict));
+					fclose($json_file);
+					echo $json_path;
+
 				}
 				else {
-					//how to approach this? remove previous mutations or change existing ones?
-					$db->query("UPDATE Accounts SET URL='".$_POST['URL']."', Date='".$_POST['Date']."', ContactID='".$_POST['ContactID']."', ProjectID='".$_POST['ProjectID']."', Reference='".$_POST['Reference']."' WHERE ID='".$_POST['ID']."'");
-					$id = $_POST['ID'];
 					
-					$db->query("UPDATE Mutations SET AccountID='".$_POST['NettAccountID']."', Amount='".$_POST['Nett']."' WHERE ID='".$_POST['NettID']."'");
-					
-					$db->query("UPDATE Mutations SET AccountID='".$_POST['VATAccountID']."', Amount='".$_POST['VAT']."' WHERE ID='".$_POST['VATID']."'");
-					
-					$db->query("UPDATE Mutations SET AccountID='".$_POST['GrossAccountID']."', Amount='".$_POST['Gross']."' WHERE ID='".$_POST['GrossID']."'");
+
+					//TODO
+
+
 				}
 				break;
 			case 'remove':
@@ -331,21 +358,21 @@
 					$purchase = $db->query("SELECT * FROM Sales WHERE ID='".$_POST['ID']."'")->fetchArray();
 					$db->query("DELETE FROM Entries WHERE ID='".$purchase['EntryID']."'");
 					$db->query("DELETE FROM Sales WHERE ID='".$_POST['ID']."'");
+					unlink('files/sales/'.$_POST['ID'].'.json');
 
 					//delete the invoice files
 					unlink('files/sales/'.$_POST["Location"]);
-					unlink('files/sales/'.substr($_POST["Location"],0,-5).'.pdf');
+
 					
 				}
 				break;
 
 			case 'back':
-				
-				if ($_POST['ID']=='new' and substr($_POST['Location'],-5)=='.json'){
+				//if a .pdf is created, but not saved then remove it
+				if ($_POST['ID']=='new' and substr($_POST['Location'],-4)=='.pdf'){
 
 					//delete the invoice files
 					unlink('files/sales/'.$_POST["Location"]);
-					unlink('files/sales/'.substr($_POST["Location"],0,-5).'.pdf');
 				} 
 				break;				
 				
