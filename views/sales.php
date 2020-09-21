@@ -101,7 +101,7 @@
 			$entry = array("ID"=>"", "TransactionDate" => "", "AccountingDate" => "", "URL" => "", "Log" => "");
 			$transactions=array(array("ID"=>"","entryID"=>"","MergeID"=>""));
 			$mutations=array(array("ID"=>"","TransactionID"=>"","AccountID"=>"","Amount"=>""));
-			$invoice="";
+			$json=null;
 		}		
 		else {
 			//load arrays from the database
@@ -109,13 +109,14 @@
 			$entry = $db->query("SELECT * FROM Entries WHERE ID='".$purchase['EntryID']."'")->fetchArray();
 
 			//get the data from the invoice
-			$invoice_path='./files/sales/'.$purchase['ID'];
+			$json_path='./files/sales/'.$purchase['ID'].'.json';
+			echo $json_path;
 
-			if(file_exists($invoice_path) ){//and explode(".",$invoice_path)[1]=="json"){
-				$invoice=file_get_contents($invoice_path);
+			if(file_exists($json_path) ){//and explode(".",$invoice_path)[1]=="json"){
+				$json=file_get_contents($json_path);
 			}
 			else{
-				$invoice=null;
+				$json=null;
 			}
 
 			$transactions=array();
@@ -165,7 +166,7 @@
 		$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"></td></tr>';
 		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" id="reference" name="Reference" value="'.$purchase['Reference'].'"/></td></tr>';
 		$form_options='<option value="old">Enter existing invoice</option><option value="new">Create new invoice</option>';
-		$content.= '<tr><th>'.__('input mode').'</th><td><select id="invoiceMode">'.$form_options.'</select></td></tr>';
+		$content.= '<tr><th>'.__('input mode').'</th><td><select id="invoiceMode" name="invoiceMode">'.$form_options.'</select></td></tr>';
 		$content.= '</table></fieldset>';		
 
 		//Geef alle opties voor sales, hier later nog even over nadenken, wil je kosten van de omzet appart hebben (voorraad, kosten derder etc)?
@@ -197,8 +198,6 @@
 		$content.= '<input type="button" id="invoiceMake" value="'.('make-invoice').'"></input>';
 		$content.='</fieldset>';
 
-		//Totalen van de factuur
-
 
 		// Rijen met transacties
 		$content.= '<fieldset id="salesFieldSet"><legend>Accounting lines</legend><table id="salesTable" class="salesInputTable">';
@@ -225,7 +224,7 @@
 		
 		//Submit buttons
 		$content.= '</table></fieldset>';
-		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
+		$content.= '<button type="submit" id="update" name="cmd" value="update">'.__('submit').'</button>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<button type="submit" name="cmd" value="back">'.__('back').'</button>';
 		$content.= '</form></div>';
@@ -241,20 +240,10 @@
 		$content.= '<script>onChangeFieldSet("salesFieldSet")</script>';
 		$content.= '<script>onChangeFieldSet("invoiceFieldSet")</script>';
 		$content.= '<script>onchangeInput("invoiceMode")</script>';
-		$content.= '<script>onchangeMake("invoiceMake","invoice")</script>';
-		$content.= '<script>onchangeRemove("invoiceRemove","invoice")</script>';	
+		$content.= '<script>onchangeMake("invoiceMake","invoice")</script>';	
 
-		//Load transactions from the database
-		foreach ($transactions as $trans){
-			if ($trans['ID']!=""){
-				$sel_options=revMutations($db,$entry, $trans,$mutations);	
-				$sel_options_safe=json_encode($sel_options);
-			}		
-			$content.= '<script>addSalesRow('.$sel_options_safe.')</script>';
-		}
-
-		if ($invoice!=null){
-			$content.= '<script>readInvoice('.$invoice.')</script>';
+		if ($json!=null){
+			$content.= '<script>readJson('.$json.')</script>';
 		}
 		else{
 			//add just one row
@@ -289,7 +278,7 @@
 
 					//save info in a json file in files/sales
 					$json_path='files/sales/'.$salesID.".json";
-					$meta_dict=array('recipient'=>$_POST['ContactID'],'invoiceDate'=>$_POST['TransactionDate'],'reference'=>$_POST['Reference'],'project'=>$_POST['ProjectID']);
+					$meta_dict=array('recipient'=>$_POST['ContactID'],'invoiceDate'=>$_POST['TransactionDate'],'reference'=>$_POST['Reference'],'project'=>$_POST['ProjectID'],'filetype'=>$_POST['invoiceMode']);
 					$json_dict=array('Meta'=>$meta_dict);
 
 					foreach ($_POST as $key => $value){
@@ -300,13 +289,13 @@
 							$sl=array();
 							$sl_num=substr($key, strlen("salesType"),strlen($key));
 
-							array_push($sl,'salesType',$_POST["salesType".$sl_num]);
-							array_push($sl,'nett',$_POST["nett".$sl_num]);
-							array_push($sl,'vat_type',$_POST["vatType".$sl_num]);
-							array_push($sl,'vat',$_POST["vat".$sl_num]);
-							array_push($sl,'gross',$_POST["gross".$sl_num]);
+							$sl['salesType']=$_POST["salesType".$sl_num];
+							$sl['salesNett']=$_POST["salesNett".$sl_num];
+							$sl['salesVatType']=$_POST["salesVatType".$sl_num];
+							$sl['salesVat']=$_POST["salesVat".$sl_num];
+							$sl['salesGross']=$_POST["salesGross".$sl_num];
 
-							array_push($json_dict,"salesLine_".$sl_num,$sl);
+							$json_dict["salesLine_".$sl_num]=$sl;
 				
 						}
 				
@@ -315,23 +304,23 @@
 							$il=array();
 							$in_num=substr($key, strlen("invoiceType"),strlen($key));
 
-							array_push($il,'invoiceType',$_POST["invoiceType".$in_num]);
-							array_push($il,'invoiceDesc',$_POST["invoiceDesc".$in_num]);
+							$il['invoiceType']=$_POST["invoiceType".$in_num];
+							$il['invoiceDesc']=$_POST["invoiceDesc".$in_num];
 
 							if ($_POST["invoiceType".$in_num]=="head"){
-								array_push($il,'invoiceAmount',0);
-								array_push($il,'invoicePrice',0);
-								array_push($il,'invoiceNett',0);
-								array_push($il,'invoiceVatType',0);
+								$il['invoiceAmount']=0;
+								$il['invoicePrice']=0;
+								$il['invoiceNett']=0;
+								$il['invoiceVatType']=0;
 							}
 							else{
-								array_push($il,'invoiceAmount',$_POST["invoiceAmount".$in_num]);
-								array_push($il,'invoicePrice',$_POST["invoicePrice".$in_num]);
-								array_push($il,'invoiceNett',$_POST["invoiceNett".$in_num]);
-								array_push($il,'invoiceVatType',$_POST["invoiceVatType".$in_num]);
+								$il['invoiceAmount']=$_POST["invoiceAmount".$in_num];
+								$il['invoicePrice']=$_POST["invoicePrice".$in_num];
+								$il['invoiceNett']=$_POST["invoiceNett".$in_num];
+								$il['invoiceVatType']=$_POST["invoiceVatType".$in_num];
 							}
 
-							array_push($json_dict,"invoiceLine_".$in_num,$il);
+							$json_dict["invoiceLine_".$in_num]=$il;
 						}
 					}
 
@@ -345,13 +334,19 @@
 					
 
 					//TODO
+					// 
 
 
 				}
 				break;
 			case 'remove':
 				if($_POST['ID']=='new') {
-					//Do nothing
+					//if a .pdf is created, but not saved then remove it
+					if ($_POST['ID']=='new' and substr($_POST['Location'],-4)=='.pdf'){
+
+						//delete the invoice files
+						unlink('files/sales/'.$_POST["Location"]);
+					} 
 				}
 				else{
 					//delete entry and sales from the database
@@ -402,55 +397,6 @@
 		}
 	}
 	
-	//boekhoudregels voor purchase in reverse, voelt onhandig, misschien gewoon $gross, $vat, $nett, $vat_type etc opslaan in de transaction?
-
-	function revMutations($db, $entry, $trans,$mutations){
-
-		foreach($mutations as $mut){
-			
-			if ($mut['TransactionID']==$trans['ID']){
-				//result acounts
-
-				if (strpos($mut['AccountID'],"8") !==false){
-					$salesType=$mut['AccountID'];
-					templog("Account id =".$mut['AccountID']."\n");
-					$nett=$mut['Amount'];
-				} 
-				
-				//vat accounts
-				switch ($mut['AccountID']){
-					case 16:
-						$vat=$mut['Amount'];
-						$vat_type=0;
-					case 17:
-						$vat=$mut['Amount'];
-						$vat_type=9;
-					case 18:
-						$vat=$mut['Amount'];
-						$vat_type=21;
-				}
-
-				if(isset($nett) and isset($vat)){
-					$gross=$nett+$vat;
-				}
-			}
-
-			$invoice_data=revJson($entry['URL']);
-
-			
-		}
-
-		templog("Nett = ".$nett."\n");
-		templog("Vat = ".$vat."\n");
-		templog("Vat_type = ".$vat_type."\n");
-		templog("Gross = ".$gross."\n");
-
-		return array($salesType,$gross,$nett,$vat,$vat_type,$invoice_data);
-	}
-
-	function revJson(){
-		return array("Beschrijving",2,3);
-	}
 
 	function templog($log_str){
 		$logfile=fopen('log.txt','a');

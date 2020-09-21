@@ -6,6 +6,9 @@ var sales_options=[];
 var vat_options=[];
 var invoice_options=[];
 
+var change_time;
+var make_time;
+
 //-------------------------------------------------------------------
 //these functions allow adding options to select elements dynamically
 //-------------------------------------------------------------------
@@ -126,7 +129,7 @@ function addInvoiceRow(sel_options=""){
 
 	var newInvoiceGross = document.createElement("input");
 	newInvoiceGross.setAttribute("id", "invoiceDesc"+inRowCount.toString());
-	newInvoiceGross.setAttribute("name", "invoiceDescription"+inRowCount.toString());
+	newInvoiceGross.setAttribute("name", "invoiceDesc"+inRowCount.toString());
 	newInvoiceGross.setAttribute("type", "text");
 	newInvoiceGross.setAttribute("value", sel_desc);
 	newInvoiceColB.appendChild(newInvoiceGross);
@@ -275,7 +278,7 @@ function addSalesRow(sel_options="") {
 	newSalesType.setAttribute("id", "salesType"+rowCount.toString());
 	newSalesType.setAttribute("name", "salesType"+rowCount.toString());
 	if(salesReadOnly){
-		newSalesType.setAttribute("disabled","disabled");
+		newSalesType.setAttribute("readonly","readonly");
 	}
         addOptions(newSalesType,sales_options,sel_sales);
 	newSalesColA.appendChild(newSalesType);
@@ -296,7 +299,7 @@ function addSalesRow(sel_options="") {
         newVatType.setAttribute("name", "salesVatType"+rowCount.toString());
         addOptions(newVatType,vat_options,sel_vat_type);
 	if(salesReadOnly){
-		newVatType.setAttribute("disabled","disabled");
+		newVatType.setAttribute("readonly","readonly");
 	}
         newSalesColC.appendChild(newVatType);
 
@@ -391,8 +394,8 @@ function switchInputMode(selected){
 			var sales_but=document.getElementById("salesBut"+i.toString());
 
 			nett.setAttribute("readonly","readonly");
-			vat_type.setAttribute("disabled","disabled");
-			sales_type.setAttribute("disabled","disabled");
+			vat_type.setAttribute("readonly","readonly");
+			sales_type.setAttribute("readonly","readonly");
 			sales_but.setAttribute("disabled","disabled");
 			
 		}
@@ -411,9 +414,9 @@ function switchInputMode(selected){
 			var sales_but=document.getElementById("salesBut"+i.toString());
 
 			nett.removeAttribute("readonly");
-			sales_type.removeAttribute("disabled");
-			vat_type.removeAttribute("disabled");
-			sales_but.removeAttribute("disabled");
+			sales_type.removeAttribute("readonly");
+			vat_type.removeAttribute("readonly");
+			sales_but.removeAttribute("readonly");
 			
 		}
 
@@ -435,6 +438,8 @@ function onChangeFieldSet(id){
 				adjustSalesRow(i); 
 			}
 			adjustSalesTot();
+			saveGuard();
+			
 		});
 	}
 	else if(id=="invoiceFieldSet"){
@@ -445,9 +450,43 @@ function onChangeFieldSet(id){
 				adjustInvoiceRow(i); 
 			}
 			invoiceToSales();
+			saveGuard();
 		});
 	}
 
+}
+
+function saveGuard(){
+
+	change_time= new Date();
+	
+	var invoice=document.getElementById("location").value;
+	var save_but=document.getElementById("update");
+	var invoice_mode=document.getElementById("invoiceMode").value;
+
+	//check if there is an invoice location set	
+	if(invoice==null){
+		save_but.setAttribute('disabled','disabled');
+	}
+
+	//if an invoice file has been generated, check if change occurs after
+	else{
+		if(invoice_mode=='new'){
+
+			//get the date it was made
+			var mt=new Date(make_time.getTime());
+			mt.setSeconds(mt.getSeconds()+1);
+
+			//if changed after disable, otherwise release
+			if(change_time>mt){
+				save_but.setAttribute('disabled','disabled');			
+			}
+			else{
+				save_but.removeAttribute('disabled');
+				console.log("removing_attribute");
+			}
+		}
+	}
 }
 
 
@@ -643,42 +682,10 @@ function onchangeMake(id,name){
 	});
 }
 
-function onchangeRemove(id){
-	var but = document.getElementById(id);	
-	but.addEventListener("click",function(){
-		removeInvoice();
-	});
-}
-
-function removeInvoice(){
-
-	//switch to default mode
-	var invoice_mode=document.getElementById("invoiceMode");
-	invoice_mode.removeAttribute("disabled");
-	
-	//send remove request to php
-	var xhr = new XMLHttpRequest();
-	xhr.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			document.getElementById('location').setAttribute("value","");
-		}
-	};
-	
-	var data = new FormData();
-	//checken of er een locatie is
-	if(document.getElementById('location').value!=""){
-		data.append("removeInvoice",document.getElementById('location').value);
-	}
-	
-	xhr.open('POST', '');  
-	xhr.send(data);
-}
-
-
 function makeInvoice(name, options=new Array('9','21')){
 
 	var invoice_mode=document.getElementById("invoiceMode");
-	invoice_mode.setAttribute("disabled","disabled");
+	invoice_mode.setAttribute("readonly","readonly");
 
 	var invoice_dict= {};
 	var meta_dict={};
@@ -719,36 +726,8 @@ function makeInvoice(name, options=new Array('9','21')){
 		
 	}
 
-	//walk through the sales lines
-	for (n=1;n<rowCount;n++){
-		check=document.getElementById('salesType'+n.toString())
-		if (typeof(check) !="undefined" && check != null){ 
-			sales_dict={};
-			sales_dict['salesType']=document.getElementById('salesType'+n.toString()).value;
-			sales_dict['nett']=+document.getElementById('salesNett'+n.toString()).value;
-			sales_dict['vat_type']=+document.getElementById('salesVatType'+n.toString()).value;
-			sales_dict['vat']=+document.getElementById('salesVat'+n.toString()).value;
-			sales_dict['gross']=+document.getElementById('salesGross'+n.toString()).value;
-
-			invoice_dict[("salesLine_"+n.toString())]=sales_dict;
-		}
-	}
-
-	//save sales totals
-	sales_tot={};
-	sales_tot['nett']=document.getElementById("nettTot").value;
-	sales_tot['gross']=document.getElementById("grossTot").value;
-	sales_tot['shift']=document.getElementById("vatShift").value;
-
-	for (i=0;i<options.length;i++){
-		sales_tot["vat_"+options[i]]=document.getElementById("vatTot_"+options[i]).value;
-	}
-	invoice_dict["salesTot"]=sales_tot;
-
-	//save a json file with the data
+	//save a temporary json file with the invoice data
 	invoice_string=JSON.stringify(invoice_dict);
-
-	//save a .pdf file of the invoice
 
 	// send the invoice to php
 	var xhr = new XMLHttpRequest();
@@ -771,26 +750,51 @@ function makeInvoice(name, options=new Array('9','21')){
 	data.append(name, invoice_string);
 	xhr.open('POST', '');  //´ '=zichzelf
 	xhr.send(data);
+
+	make_time=new Date();
+	saveGuard();
 	
 
 }
 
-function readInvoice(json){
+function readJson(json){
+
+	console.log("reading Json");
 
 	// set invoice mode to new invoice and disable the selection field
-	var invoice_mode=document.getElementById("invoiceMode");
-	invoice_mode.value="new";
-	invoice_mode.setAttribute("disabled","disabled");
-	switchInputMode("new");
+	var im="old";
 	
 	//Iterate through the json file
 	for(var line in json){
 		if(json.hasOwnProperty(line)){
 			var l=json[line];
-			if(line.substring(0,11)=="invoiceLine"){
-				addInvoiceRow([l.invoiceType,l.desc,l.amount,l.price,l.nett,l.vat_type])
+			console.log("Line:",line);
+
+			//check file type
+			if(line=="Meta"){
+				im=l.filetype;
+			}
+
+			//load invoice lines
+			else if(line.substring(0,11)=="invoiceLine" && im=="new") {
+				addInvoiceRow([l.invoiceType,l.invoiceDesc,l.invoiceAmount,l.invoicePrice,l.invoiceNett,l.invoiceVatType])	
+			}
+
+			//load sales_lines
+			else if(line.substring(0,9)=="salesLine" && im=="old"){
+				addSalesRow([l.salesType,l.salesNett,l.salesVatType,l.salesVat,l.salesGross])
 			}
 		}
+	}
+
+	//set the invoice mode correctly, based on the json
+	var invoice_mode=document.getElementById("invoiceMode");
+	invoice_mode.value=im;
+
+	if(im=="new"){
+		invoice_mode.setAttribute("disabled","disabled");
+		switchInputMode("new");
+		make_time= new Date();
 	}
 }
 
