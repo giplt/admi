@@ -3,7 +3,20 @@
 
 	if (!is_dir('files/sales/')) mkdir('files/sales/');
 	
-	if(isset($_POST["invoice"])) {
+	//if an invoice needs to be deleted
+	if(isset($_POST["invoice_del"])) {
+
+		$invoice_path='files/sales/'.$_POST["invoice_del"];
+
+		unlink($invoice_path);
+		
+		echo "";
+
+		exit();
+	}
+	
+	//if an invoice is generated
+	if(isset($_POST["invoice_gen"])) {
 		if(isset($_POST["Location"])){
 			$invoice_file = $_POST["Location"];
 		}
@@ -16,12 +29,65 @@
 
 		//save a .pdf file in the files/sales
 		$pdffile=fopen($invoice_path, 'w');
-		$invoice_data=json_decode($_POST["invoice"],true);
+		$invoice_data=json_decode($_POST["invoice_gen"],true);
 		fwrite($pdffile,createPDF($invoice_data));
 		fclose($pdffile);
 		
 		echo $invoice_file;
 
+		exit();
+	}
+	
+	//if an invoice is uploaded
+	if(isset($_FILES["invoice_up"])) {
+		$error = false;
+		
+		$maxsize = ini_get("upload_max_filesize");
+		$unit = preg_replace('/[^bkmgtpezy]/i', '', $maxsize); // Remove the non-unit characters from the size.
+		$maxsize = preg_replace('/[^0-9\.]/', '', $maxsize); // Remove the non-numeric characters from the size.
+		$maxsize = $unit ? round($maxsize * pow(1024, stripos('bkmgtpezy', $unit[0]))) : round($maxsize);
+		if ($_FILES["invoice_up"]["size"] > $maxsize) $error.= 'Sorry, your file is too large.<br/>';
+		
+		$filetype = strtolower(pathinfo($_FILES["invoice_up"]["name"],PATHINFO_EXTENSION));
+		if($filetype!="pdf" && $filetype!="jpg" && $filetype!="png" && $filetype!="jpeg" && $filetype!="gif" ) $error.= 'Wrong file type<br/>';
+		
+		if ($error) {
+			$error.= 'Only PDF, JPG, JPEG, PNG & GIF files are allowed. Maximum size: '.ini_get("upload_max_filesize").'<br/>';
+			echo $error;
+			exit();
+		}
+		
+		switch($filetype) {
+			case "pdf":
+				$filename = uniqid().".pdf";
+				move_uploaded_file($_FILES["invoice_up"]["tmp_name"], 'files/sales/'.$filename);
+				echo $filename;
+				break;
+			default:
+				$filename = uniqid().".jpg";
+				$max = 1024;
+				$src = imagecreatefromstring(file_get_contents($_FILES["invoice_up"]['tmp_name']));
+				list($src_w, $src_h, $type, $attr) = getimagesize($_FILES["invoice_up"]['tmp_name']);
+
+				if ($src_w>$max || $src_h>$max) {
+					$dst_w = $src_w>$src_h ? $max : $max*$src_w/$src_h;
+					$dst_h = $src_w>$src_h ? $max*$src_h/$src_w : $max;
+				}
+				else {
+					$dst_w = $src_w;
+					$dst_h = $src_h;
+				}
+
+				$dst = imagecreatetruecolor($dst_w, $dst_h);
+				imagecopyresampled($dst, $src, 0, 0, 0, 0, $dst_w, $dst_h, $src_w, $src_h);
+				imagedestroy($src);
+				imagejpeg($dst, 'files/sales/'.$filename);
+				imagedestroy($dst);
+
+				echo $filename;
+				break;
+		}
+		
 		exit();
 	}
 	
@@ -138,35 +204,45 @@
 		//TODO: base html nog maken
 		$content.= '<div class="salesInputFrame"><div class="salesInputForm"><form id="salesForm" method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
-		$content.= '<fieldset><legend>'.__('recipient').'</legend><table>';		
-		$content.= '<tr><th>ID</th><td>'.$purchase['ID'].'</td>';
+		$content.= '<fieldset id="metaFieldSet" ><legend>'.__('data').'</legend>';		
+		$content.= '<table><tr><th>ID</th><td>'.$purchase['ID'].'</td>';
 
                 // Contactinformatie - nog meer info nodig? Ja bankrekening
 		$options = '<option value="" disabled="disabled"'.($purchase['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $options.= '<option value="'.$contact['ID'].'"'.($purchase['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
-		$content.= '<tr><th>'.__('contact').'</th><td><select id="contactId" name="ContactID">'.$options.'</select> <input type="button" value="'.__('new').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
-		$content.='</table></fieldset>';
+		$content.= '<tr><th>'.__('contact').'</th><td>';
+		$content.= '<select id="contactId" name="ContactID" onchange="readOnlySelect(\'contactId\',\'contactIdHidden\');">'.$options.'</select>';
+		$content.= '<select id="contactIdHidden" name="contactIDhidden" hidden="true">'.$options.'</select>'; 
+		$content.= '<input type="button" value="'.__('new').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
 
 		//TODO: WISHLIST multiple accounts for Plan B
 
-		//Datum en locatie van het boekstuk
+		//Accounting date
 		$today=date('Y-m-d');
-		$content.='<fieldset><legend>'.__('invoice').'</legend><table>';
 		$content.= '<tr><th>'.__('date').'</th><td><input type="date" id="transactionDate" name="TransactionDate" value="'.$entry['TransactionDate'].'"/></td></tr>';
 		$content.= '<input type="hidden" name="AccountingDate" value='.$today.'>';
 		
-		//ProjectID
+		//ProjectID select field
 		$options = '<option value="" disabled="disabled"'.($purchase['ProjectID']?'':' selected').'>'.__('pick-project').'</option>';
 		$projects = $db->query("SELECT * FROM Projects ORDER BY Name");
 		while($project = $projects->fetchArray()) $options.= '<option value="'.$project['ID'].'"'.($purchase['ProjectID']==$project['ID']?' selected':'').'>'.$project['Name'].'</option>';
-		$content.= '<tr><th>'.__('project').'</th><td><select id="projectId" name="ProjectID">'.$options.'</select></td></tr>';
+		$content.= '<tr><th>'.__('project').'</th><td>';
+		$content.= '<select id="projectId" name="ProjectID" onchange="readOnlySelect(\'projectId\',\'projectIdHidden\');">'.$options.'</select>';
+		$content.= '<select id="projectIdHidden" name="ProjectIDhidden" hidden="true">'.$options.'</select></td></tr>';
 		
-		//Reference
-		$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"></td></tr>';
+		//Invoice mode - uploading, paper or generate
+		$form_options='<option value="upload">Upload existing invoice</option>';
+		$form_options.='<option value="generate">Generate new invoice</option>';
+		$form_options.='<option value="paper">Paper invoice</option>';
+		$content.= '<tr><th>'.__('input mode').'</th><td>';
+		$content.= '<select id="invoiceMode" name="invoiceMode">'.$form_options.'</select>'; //no onchange already a listener
+		$content.= '<select id="invoiceModeHidden" name="invoiceModeHidden" hidden="true">'.$form_options.'</select></td></tr>';
+
+		//Invoice location
+		$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'">';
+		$content.= '<input type="file" id="invoiceUpBut" value="'.__('upload').'" name=myFile accept="image/*,.pdf" onchange="uploadInvoice(\'invoice_up\', this);"></td></tr>';
 		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" id="reference" name="Reference" value="'.$purchase['Reference'].'"/></td></tr>';
-		$form_options='<option value="old">Enter existing invoice</option><option value="new">Create new invoice</option>';
-		$content.= '<tr><th>'.__('input mode').'</th><td><select id="invoiceMode" name="invoiceMode">'.$form_options.'</select></td></tr>';
 		$content.= '</table></fieldset>';		
 
 		//Geef alle opties voor sales, hier later nog even over nadenken, wil je kosten van de omzet appart hebben (voorraad, kosten derder etc)?
@@ -217,18 +293,29 @@
 			}
 		}
 		//TODO: add vat shift functionality
-		$content.= '<tr><th class="salesInputCol">'.__('shift').'</th><td class="salesInputCol"><select name="vatShift" id="vatShift" disabled="true"></td></tr>';
+		$content.= '<tr><th class="salesInputCol">'.__('shift').'</th><td class="salesInputCol">';
+		$content.= '<select name="vatShift" id="vatShift" disabled="true"></select>';
+		$content.= '<select name="vatShiftHidden" id="vatShiftHidden"></select></td></tr>';
 		$content.= '<tr><th></th><td>-------------------</td></tr>';
 		$content.= '<tr><th class="salesInputCol">'.__('gross').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="grossTot" disabled></td></tr>';
 		$content.= '<tr><td class="salesInputColLast"></td></tr>';
 		
 		//Submit buttons
 		$content.= '</table></fieldset>';
-		$content.= '<button type="submit" id="update" name="cmd" value="update">'.__('submit').'</button>';
+		$content.= '<span id="update_span" title="Input data first"><button type="submit" id="update" name="cmd" value="update" disabled="disabled">'.__('submit').'</button></span>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<button type="submit" name="cmd" value="back">'.__('back').'</button>';
 		$content.= '</form></div>';
-		$content.= '<div class="salesInputVis">Bonnetje</div></div>';
+
+
+		$content.= '<div id="invoiceView" class="expenseInputVis">';
+		switch(pathinfo($entry['URL'], PATHINFO_EXTENSION)) {
+			case 'pdf': $content.= '<embed src="files/'.$entry['URL'].'" width="400px" height="600px" />'; break;
+			case 'jpg': $content.= '<img src="files/'.$entry['URL'].'" width="400px" />'; break;
+			default: $content.= 'Bonnetje'; break;
+		}
+		$content.= '</div>';
+		$content.= '</div>';
 		
 		//Laad javascript
 		$content.= '<script type="text/javascript" src="../../js/sales.js"></script>';
@@ -237,10 +324,11 @@
 		$content.= '<script>addOptionsPHP("vatShift",'.$shift_options_safe.')</script>';
 		$content.= '<script>setGlobalOptions('.$invoice_options_safe.','.$sales_options_safe.','.$vat_options_safe.')</script>';
 		$content.= '<script>addOnClick()</script>';
+		$content.= '<script>onChangeFieldSet("metaFieldSet")</script>';
 		$content.= '<script>onChangeFieldSet("salesFieldSet")</script>';
 		$content.= '<script>onChangeFieldSet("invoiceFieldSet")</script>';
 		$content.= '<script>onchangeInput("invoiceMode")</script>';
-		$content.= '<script>onchangeMake("invoiceMake","invoice")</script>';	
+		$content.= '<script>onchangeMake("invoiceMake","invoice_gen")</script>';	
 
 		if ($json!=null){
 			$content.= '<script>readJson('.$json.')</script>';
@@ -278,18 +366,18 @@
 
 					//save info in a json file in files/sales
 					$json_path='files/sales/'.$salesID.".json";
-					$meta_dict=array('recipient'=>$_POST['ContactID'],'invoiceDate'=>$_POST['TransactionDate'],'reference'=>$_POST['Reference'],'project'=>$_POST['ProjectID'],'filetype'=>$_POST['invoiceMode']);
+					$meta_dict=array('recipient'=>$_POST['ContactID'],'invoiceDate'=>$_POST['TransactionDate'],'reference'=>$_POST['Reference'],'project'=>$_POST['ProjectID'],'filetype'=>$_POST['invoiceModeHidden']);
 					$json_dict=array('Meta'=>$meta_dict);
 
 					foreach ($_POST as $key => $value){
 						echo $key;
 
 						//add the sales rows to the json file
-						if (strpos($key,"salesType")!==False){
+						if (strpos($key,"salesTypeHidden")!==False){
 							$sl=array();
-							$sl_num=substr($key, strlen("salesType"),strlen($key));
+							$sl_num=substr($key, strlen("salesTypeHidden"),strlen($key));
 
-							$sl['salesType']=$_POST["salesType".$sl_num];
+							$sl['salesType']=$_POST["salesTypeHidden".$sl_num];
 							$sl['salesNett']=$_POST["salesNett".$sl_num];
 							$sl['salesVatType']=$_POST["salesVatType".$sl_num];
 							$sl['salesVat']=$_POST["salesVat".$sl_num];
@@ -300,14 +388,14 @@
 						}
 				
 						//add the invoice rows to the json file
-						if (strpos($key,"invoiceType")!==False){
+						if (strpos($key,"invoiceTypeHidden")!==False){
 							$il=array();
-							$in_num=substr($key, strlen("invoiceType"),strlen($key));
+							$in_num=substr($key, strlen("invoiceTypeHidden"),strlen($key));
 
-							$il['invoiceType']=$_POST["invoiceType".$in_num];
+							$il['invoiceType']=$_POST["invoiceTypeHidden".$in_num];
 							$il['invoiceDesc']=$_POST["invoiceDesc".$in_num];
 
-							if ($_POST["invoiceType".$in_num]=="head"){
+							if ($_POST["invoiceTypeHidden".$in_num]=="head"){
 								$il['invoiceAmount']=0;
 								$il['invoicePrice']=0;
 								$il['invoiceNett']=0;
@@ -339,24 +427,41 @@
 
 				}
 				break;
+
 			case 'remove':
+
+				echo "Location=".$_POST['Location'];
+				echo "Invoicemode=".$_POST['invoiceModeHidden'];
+				
 				if($_POST['ID']=='new') {
 					//if a .pdf is created, but not saved then remove it
-					if ($_POST['ID']=='new' and substr($_POST['Location'],-4)=='.pdf'){
+					if ($_POST['invoiceModeHidden']=='generate' or $_POST['invoiceModeHidden']=='upload'){
 
-						//delete the invoice files
-						unlink('files/sales/'.$_POST["Location"]);
+						//check if an invoice is there
+						if($_POST["Location"]!=""){
+
+							//delete the invoice file
+							unlink('files/sales/'.$_POST["Location"]);
+						}
 					} 
 				}
 				else{
 					//delete entry and sales from the database
-					$purchase = $db->query("SELECT * FROM Sales WHERE ID='".$_POST['ID']."'")->fetchArray();
-					$db->query("DELETE FROM Entries WHERE ID='".$purchase['EntryID']."'");
+					$sales = $db->query("SELECT * FROM Sales WHERE ID='".$_POST['ID']."'")->fetchArray();
+					$db->query("DELETE FROM Entries WHERE ID='".$sales['EntryID']."'");
 					$db->query("DELETE FROM Sales WHERE ID='".$_POST['ID']."'");
 					unlink('files/sales/'.$_POST['ID'].'.json');
 
-					//delete the invoice files
-					unlink('files/sales/'.$_POST["Location"]);
+					if ($_POST['invoiceModeHidden']=='generate' or $_POST['invoiceModeHidden']=='upload'){
+						echo "uploaded or generate invoice";
+
+						//check if an invoice is there
+						if($_POST["Location"]!=""){
+							echo "has a location";
+							//delete the invoice file
+							unlink('files/sales/'.$_POST["Location"]);
+						}
+					} 
 
 					
 				}
@@ -364,11 +469,17 @@
 
 			case 'back':
 				//if a .pdf is created, but not saved then remove it
-				if ($_POST['ID']=='new' and substr($_POST['Location'],-4)=='.pdf'){
+				if ($_POST['ID']=='new'){
+					if ($_POST['invoiceModeHidden']=='generate' or $_POST['invoiceModeHidden']=='upload'){
 
-					//delete the invoice files
-					unlink('files/sales/'.$_POST["Location"]);
-				} 
+						//check if an invoice is there
+						if($_POST["Location"]!=""){
+
+							//delete the invoice file
+							unlink('files/sales/'.$_POST["Location"]);
+						}
+					} 
+				}
 				break;				
 				
 				
