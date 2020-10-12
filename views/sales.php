@@ -211,16 +211,29 @@
 		$options = '<option value="" disabled="disabled"'.($purchase['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $options.= '<option value="'.$contact['ID'].'"'.($purchase['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
-		$content.= '<tr><th>'.__('contact').'</th><td>';
-		$content.= '<select id="contactId" name="ContactID" onchange="readOnlySelect(\'contactId\',\'contactIdHidden\');">'.$options.'</select>';
-		$content.= '<select id="contactIdHidden" name="contactIDhidden" hidden="true">'.$options.'</select>'; 
-		$content.= '<input type="button" value="'.__('new').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
+		$content.= '<tr><th>'.__('contact').'</th>';
+		$content.= '<td><select id="contactId" name="ContactID" onchange="readOnlySelect(\'contactId\',\'contactIdHidden\');">'.$options.'</select>';
+		$content.= '<select id="contactIdHidden" name="contactIDhidden" hidden="true">'.$options.'</select></td>'; 
+		$content.= '<td><input type="button" value="'.__('new').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';		
 
 		//TODO: WISHLIST multiple accounts for Plan B
 
+		//Invoice date
+		$content.= '<tr><th>'.__('invoice-date').'</th><td><input type="date" id="transactionDate" name="TransactionDate" value="'.$entry['TransactionDate'].'"/></td></tr>';
+		
+		//Period to which the entry applies
+		$period_options='<option value="'.date('Y').'">'.date('Y').'</option>';
+		$period_options.='<option value="Q1_"'.date('Y').'>Q1 '.date('Y').'</option>';
+		$period_options.='<option value="Q2_"'.date('Y').'>Q2 '.date('Y').'</option>';
+		$period_options.='<option value="Q3_"'.date('Y').'>Q3 '.date('Y').'</option>';
+		$period_options.='<option value="Q4_"'.date('Y').'>Q4 '.date('Y').'</option>';
+		$period_options.='<option value="Else">'.__('else').'</option>';
+		$content.= '<tr><th>'.__('period').'</th><td><select id="periodSelect" name="periodSelect">'.$period_options.'</select></td>';
+		$content.= '<td>'.__('from').' <input type="date" id="periodFrom" name="periodFrom"></td>';
+		$content.= '<td>'.__('to').' <input type="date" id="periodTo" name="periodTo"></td></tr>';
+
 		//Accounting date
 		$today=date('Y-m-d');
-		$content.= '<tr><th>'.__('date').'</th><td><input type="date" id="transactionDate" name="TransactionDate" value="'.$entry['TransactionDate'].'"/></td></tr>';
 		$content.= '<input type="hidden" name="AccountingDate" value='.$today.'>';
 		
 		//ProjectID select field
@@ -240,8 +253,8 @@
 		$content.= '<select id="invoiceModeHidden" name="invoiceModeHidden" hidden="true">'.$form_options.'</select></td></tr>';
 
 		//Invoice location
-		$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'">';
-		$content.= '<input type="file" id="invoiceUpBut" value="'.__('upload').'" name=myFile accept="image/*,.pdf" onchange="uploadInvoice(\'invoice_up\', this);"></td></tr>';
+		$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"></td>';
+		$content.= '<td><input type="file" id="invoiceUpBut" value="'.__('upload').'" name=myFile accept="image/*,.pdf" onchange="uploadInvoice(\'invoice_up\', this);"></td></tr>';
 		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" id="reference" name="Reference" value="'.$purchase['Reference'].'"/></td></tr>';
 		$content.= '</table></fieldset>';		
 

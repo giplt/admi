@@ -421,8 +421,6 @@ function removeSalesRow(butval){
 	adjustSalesTot();
 }
 
-
-
 //-----------------------------------------------------------------------------------------------------
 //function that allows to switch between adding data for an existing invoice and creating a new invoice
 //-----------------------------------------------------------------------------------------------------
@@ -530,7 +528,7 @@ function switchAlert(){
 
 
 //----------------------------------------------------------------------------------------
-//functions that fill read-only field inputs when a change to the form fieldset is applied
+//functions that fill (read-only) or hidden field inputs when a change to the form fieldset is applied
 //----------------------------------------------------------------------------------------
 
 function onChangeFieldSet(id){
@@ -564,58 +562,6 @@ function onChangeFieldSet(id){
 	}
 
 }
-
-function saveGuard(){
-
-	change_time= new Date();
-	var invoice=document.getElementById("location").value;
-	var span=document.getElementById("update_span");
-	var save_but=document.getElementById("update");
-	var invoice_mode=document.getElementById("invoiceMode").value;
-
-	//check if there is an invoice location set	
-	if(invoice){
-		//if the invoice is generated before last change time it can be saved
-		if(invoice_mode=='generate'){
-
-			//get the date it was made
-			var mt=new Date(make_time.getTime());
-			mt.setSeconds(mt.getSeconds()+1);
-
-			//if changed after disable, otherwise release
-			if(change_time>mt){
-				save_but.setAttribute('disabled','disabled');	
-				span.setAttribute("title","Please save invoice first");		
-			}
-			else{
-				save_but.removeAttribute('disabled');
-				span.removeAttribute("title");
-			}
-		}
-		//if an invoice is uploaded or inserted manually you can save
-		else{
-			save_but.removeAttribute('disabled');
-		}
-	}
-
-	//if no invoice is given you cannot save
-	else{
-		save_but.setAttribute('disabled','disabled');
-		span.setAttribute("title","Please provide an invoice location or generate an invoice first");	
-	}
-}
-
-function readOnlySelect(id,id_hidden){
-	
-	//get all child elements of the form
-	var select = document.getElementById(id);
-	var select_hidden = document.getElementById(id_hidden);
-
-	//Load previous value in a data field
-	select.setAttribute("data",select_hidden.value);
-	select_hidden.value=select.value;
-}
-
 
 function invoiceToSales(){
 	
@@ -807,6 +753,92 @@ function adjustTotVat(options=new Array('9','21')){
 	return totVat;
 }
 
+function readOnlySelect(id,id_hidden){
+	
+	//get all child elements of the form
+	var select = document.getElementById(id);
+	var select_hidden = document.getElementById(id_hidden);
+
+	//Load previous value in a data field
+	select.setAttribute("data",select_hidden.value);
+	select_hidden.value=select.value;
+}
+
+//Maybe you can move the presets to PHP entirely and call the onchange function from there
+function periodPresets(id){
+	var period = document.getElementById("periodSelect");
+	var from = document.getElementById("periodFrom");
+	var to = document.getElementById("periodTo");
+	var year = Date.now().prototype.getFullYear();
+
+	if(period == year){
+		from.value=new Date(year,1,1);
+		to.value= new Date(year,12,31);
+	}
+	else if(period == "Q1_"+year){
+		from.value=new Date(year,1,1);
+		to.value= new Date(year,3,31);
+	}
+	else if(period == "Q2_"+year){
+		from.value=new Date(year,4,1);
+		to.value= new Date(year,6,30);
+	}
+
+	else if(period == "Q2_"+year){
+		from.value=new Date(year,7,1);
+		to.value= new Date(year,9,30);
+	}
+	else if(period == "Q2_"+year){
+		from.value=new Date(year,10,1);
+		to.value= new Date(year,12,31);
+	}
+}
+
+
+//--------------------------------------------------------------------------
+//Functions that check & limit the user input 
+//--------------------------------------------------------------------------
+
+function saveGuard(){
+
+	change_time= new Date();
+	var invoice=document.getElementById("location").value;
+	var span=document.getElementById("update_span");
+	var save_but=document.getElementById("update");
+	var invoice_mode=document.getElementById("invoiceMode").value;
+
+	//check if there is an invoice location set	
+	if(invoice){
+		//if the invoice is generated before last change time it can be saved
+		if(invoice_mode=='generate'){
+
+			//get the date it was made
+			var mt=new Date(make_time.getTime());
+			mt.setSeconds(mt.getSeconds()+1);
+
+			//if changed after disable, otherwise release
+			if(change_time>mt){
+				save_but.setAttribute('disabled','disabled');	
+				span.setAttribute("title","Please save invoice first");		
+			}
+			else{
+				save_but.removeAttribute('disabled');
+				span.removeAttribute("title");
+			}
+		}
+		//if an invoice is uploaded or inserted manually you can save
+		else{
+			save_but.removeAttribute('disabled');
+		}
+	}
+
+	//if no invoice is given you cannot save
+	else{
+		save_but.setAttribute('disabled','disabled');
+		span.setAttribute("title","Please provide an invoice location or generate an invoice first");	
+	}
+}
+
 
 //--------------------------------------------------------------------------
 //Functions that create an invoice from data entered in the invoice fieldset 
@@ -964,6 +996,11 @@ function makeInvoice(name, options=new Array('9','21')){
 	
 
 }
+
+//--------------------------------------------------------------------------
+//Function that reads the JSON file and puts it into the input field
+//---------------------------------------------------------------------
+
 
 function readJson(json){
 
