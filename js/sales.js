@@ -15,12 +15,15 @@ var disableAlert=false;
 //these functions allow adding options to select elements dynamically
 //-------------------------------------------------------------------
 
-function addOptionsPHP(selectID,options){
-	var select = document.getElementById(selectID);
-	addOptions(select,options);
+function addOptionsPHP(all_options){
+	for (o=0;o<all_options.length;o++){
+		var select = document.getElementById(all_options[o][0]);	
+		addOptions(select,all_options[o][1],"def");
+	}
 }
 
 function addOptions(select_obj,options,sel_opt){
+
         for (i=0;i<options.length;i++){
                 newOption = document.createElement("option");
                 newOption.setAttribute("value",options[i][0]);
@@ -754,8 +757,6 @@ function adjustTotVat(options=new Array('9','21')){
 }
 
 function readOnlySelect(id,id_hidden){
-	
-	//get all child elements of the form
 	var select = document.getElementById(id);
 	var select_hidden = document.getElementById(id_hidden);
 
@@ -764,34 +765,71 @@ function readOnlySelect(id,id_hidden){
 	select_hidden.value=select.value;
 }
 
-//Maybe you can move the presets to PHP entirely and call the onchange function from there
-function periodPresets(id){
-	var period = document.getElementById("periodSelect");
-	var from = document.getElementById("periodFrom");
-	var to = document.getElementById("periodTo");
-	var year = Date.now().prototype.getFullYear();
+function switchPeriodPresets(yearID,periodID,fromID,toID){
+	
+	var year = document.getElementById(yearID);
+	var period = document.getElementById(periodID);
 
-	if(period == year){
-		from.value=new Date(year,1,1);
-		to.value= new Date(year,12,31);
+	var from = document.getElementById(fromID);
+	var to = document.getElementById(toID);		//up to value
+	var from_label = document.getElementById(fromID+"Label");
+	var to_label = document.getElementById(toID+"Label");	
+
+	if(period.value!="Else"){
+
+		if(period.value == "Y"){
+			from.value=year.value+"-01-01";
+			to.value=(parseInt(year.value)+1).toString()+"-01-01"; 	
+		}
+		else if(period.value == "Q1"){ 			//1st quarter
+			from.value=year.value+"-01-01";
+			to.value=year.value+"-04-01";
+		}
+		else if(period.value == "Q2"){ 			//2nd quarter
+			from.value=year.value+"-04-01";
+			to.value=year.value+"-07-01";
+		}
+		else if(period.value == "Q3"){ 			//3rd quarter
+			from.value=year.value+"-07-01";
+			to.value=year.value+"-10-01";
+		}
+		else if(period.value == "Q4"){ 			//4th quarter
+			from.value=year.value+"-10-01";
+			to.value=(parseInt(year.value)+1).toString()+"-01-01"; 	
+		}
+
+		else{ 						//period is a month
+			if(period.value=="12"){
+				console.log("period is december");
+				from.value=year.value+"-12-01";
+				to.value=(parseInt(year.value)+1).toString()+"-01-01"; 	
+			}
+			else if(parseInt(period.value)<10){
+				from.value=year.value+"-0"+period.value+"-01";
+				to.value=year.value+"-0"+(parseInt(period.value)+1).toString()+"-01";
+			}
+			else{
+				from.value=year.value+"-"+period.value+"-01";
+				to.value=year.value+"-"+(parseInt(period.value)+1).toString()+"-01";
+			}
+		}
+
+		//show from an to fields
+		from_label.setAttribute("hidden","true");
+		to_label.setAttribute("hidden","true");	
 	}
-	else if(period == "Q1_"+year){
-		from.value=new Date(year,1,1);
-		to.value= new Date(year,3,31);
-	}
-	else if(period == "Q2_"+year){
-		from.value=new Date(year,4,1);
-		to.value= new Date(year,6,30);
+	else{							//user selection
+
+		//show from an to fields
+		from_label.removeAttribute("hidden");
+		to_label.removeAttribute("hidden");
+
+		//set values
+		//from.value= year.value+"-01-01";
+		//to.value= (parseInt(year.value)+1).toString()+"-01-01"; 
+
 	}
 
-	else if(period == "Q2_"+year){
-		from.value=new Date(year,7,1);
-		to.value= new Date(year,9,30);
-	}
-	else if(period == "Q2_"+year){
-		from.value=new Date(year,10,1);
-		to.value= new Date(year,12,31);
-	}
 }
 
 
@@ -1009,16 +1047,19 @@ function readJson(json){
 
 	// set invoice mode to new invoice and disable the selection field
 	var im="";
+	var yr="";
+	var pr="";
 	
 	//Iterate through the json file
 	for(var line in json){
 		if(json.hasOwnProperty(line)){
 			var l=json[line];
-			console.log("Line:",line);
 
-			//check file type
+			//get selected meta-data
 			if(line=="Meta"){
 				im=l.filetype;
+				yr=l.yearSelect;
+				pr=l.periodSelect;
 			}
 
 			//load invoice lines
@@ -1037,6 +1078,13 @@ function readJson(json){
 			}
 		}
 	}
+
+	//set the period and year boxes 
+	var year=document.getElementById("yearSelect");	
+	var period=document.getElementById("periodSelect");	
+
+	year.value=yr;
+	period.value=pr;
 
 	//set the invoice mode correctly, based on the json
 	var invoice_mode=document.getElementById("invoiceMode");
