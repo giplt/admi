@@ -158,11 +158,7 @@
 				"Status" => "", 
 				"Reference" => "", 
 				"ContactID" => "", 
-				"ProjectID" => "", 
-				"Nett" => "", 
-				"VAT" => "", 
-				"Gross" => "", 
-				"VAT_Type" => ""
+				"ProjectID" => ""
 			);
 			$entry = array(
 				"ID"=>"", 
@@ -173,6 +169,7 @@
 				"URL" => "", 
 				"Log" => ""
 			);
+
 			$transactions=array(array("ID"=>"","entryID"=>"","MergeID"=>""));
 			$mutations=array(array("ID"=>"","TransactionID"=>"","AccountID"=>"","Amount"=>""));
 			$json=null;
@@ -211,7 +208,8 @@
 		
 		//TODO: base html nog maken
 		$content.= '<div class="salesInputFrame"><div class="salesInputForm"><form id="salesForm" method="post">';
-		$content.= '<fieldset id="metaFieldSet" ><legend>'.__('data').'</legend>';	
+		$content.= '<fieldset id="metaFieldSet" '.(($sale['Status']=='readonly'?'disabled':'')).'>';
+		$content.= '<legend>'.__('data').'</legend>';	
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';	
 		$content.= '<input type="hidden" name="entryID" value="'.$sale['EntryID'].'"/>';	
 		$content.= '<table><tr><th>ID</th><td>'.$sale['ID'].'</td>';
@@ -262,7 +260,7 @@
 		$content.= '<input type="hidden" name="AccountingDate" value='.$today.'>';
 		
 		//ProjectID select field
-		$options = '<option value="" disabled="disabled"'.($sale['ProjectID']?'':' selected').'>'.__('pick-project').'</option>';
+		$options = '<option value="" disabled="disabled"'.(($sale['Status']=='readonly'?'disabled':'')).'>'.__('pick-project').'</option>';
 		$projects = $db->query("SELECT * FROM Projects ORDER BY Name");
 		while($project = $projects->fetchArray()) $options.= '<option value="'.$project['ID'].'"'.($sale['ProjectID']==$project['ID']?' selected':'').'>'.$project['Name'].'</option>';
 		$content.= '<tr><th>'.__('project').'</th><td>';
@@ -300,7 +298,8 @@
 		$shift_options_safe=json_encode($shift_options);
 
 		//Invoice table
-		$content.= '<fieldset id="invoiceFieldSet" hidden="true"><legend>'.__('invoice items').'</legend><table id="invoiceTable" class="salesInputTable">';
+		$content.= '<fieldset id="invoiceFieldSet" hidden="true" '.(($sale['Status']=='readonly'?'disabled':'')).'>';
+		$content.= '<legend>'.__('invoice items').'</legend><table id="invoiceTable" class="salesInputTable">';
 		$content.= '<tr class="salesInputRow"><th class="salesInputCol">'.__('sales type').'</th>';
 		$content.='<th class="salesInputCol">'.__('description').'</th>'; 
 		$content.='<th class="salesInputCol">'.__('number').'</th>';
@@ -314,7 +313,8 @@
 
 
 		// Rijen met transacties
-		$content.= '<fieldset id="salesFieldSet"><legend>Accounting lines</legend><table id="salesTable" class="salesInputTable">';
+		$content.= '<fieldset id="salesFieldSet"'.(($sale['Status']=='readonly'?'disabled':'')).'>';
+		$content.= '<legend>Accounting lines</legend><table id="salesTable" class="salesInputTable">';
 		$content.= '<tr class="salesInputRow"><th class="salesInputCol">'.__('sales type').'</th>';
 		$content.='<th class="salesInputCol">'.__('nett').'</th>';
 		$content.='<th class="salesInputCol">'.__('vat type').'</th>';
@@ -338,13 +338,28 @@
 		$content.= '<tr><th class="salesInputCol">'.__('gross').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="grossTot" disabled></td></tr>';
 		$content.= '<tr><td class="salesInputColLast"></td></tr>';
 		
-		//Submit buttons
+		//Submit Buttons
 		$content.= '</table></fieldset>';
-		$content.= '<span id="update_span" title="Input data first"><button type="submit" id="update" name="cmd" value="update" disabled="disabled">'.__('submit').'</button></span>';
-		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
-		$content.= '<button type="submit" name="cmd" value="back">'.__('back').'</button>';
+		switch($sale['Status']){
+			case "" :
+				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
+				$content.='<span id="update_span" title="Input data first">';
+				$content.='<button type="submit" id="update" name="cmd" value="update" disabled="disabled">'.__('submit').' '.__('for').' '.__('review').'</button></span>';			
+				break;
+			case "review" :
+				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';	
+				$content.='<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
+				$content.='<button type="submit" name="cmd" value="review">'.__('review').'</button>';
+				break;
+			case "final" :
+				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
+				$content.='<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';	
+				$content.='<button type="submit" name="cmd" value="save">'.__('save').'</button>';
+				break;
+			case "readonly" :
+				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
+		}
 		$content.= '</form></div>';
-
 
 		$content.= '<div id="invoiceView" class="expenseInputVis">';
 		switch(pathinfo($entry['URL'], PATHINFO_EXTENSION)) {
@@ -352,6 +367,7 @@
 			case 'jpg': $content.= '<img src="files/'.$entry['URL'].'" width="400px" />'; break;
 			default: $content.= 'Bonnetje'; break;
 		}
+
 		$content.= '</div>';
 		$content.= '</div>';
 		
@@ -364,7 +380,6 @@
 			array("yearSelectHidden",$year_options),
 		);
 		$all_options_safe=json_encode($all_options);
-		
 
 		//Loading javascript
 		$content.= '<script type="text/javascript" src="../../js/sales.js"></script>';
@@ -394,7 +409,6 @@
 		$userIDs = isset($_POST['UserIDs']) ? implode(',', $_POST['UserIDs']) : '';
 		switch ($_POST['cmd']) {
 			case 'update':
-				// validate
 				
 				if ($_POST['ID']=='new') {
 					
@@ -429,37 +443,22 @@
 
 			case 'remove':
 				
-				if($_POST['ID']=='new') {
-					//if a .pdf is created, but not saved then remove it
-					if ($_POST['invoiceModeHidden']=='generate' or $_POST['invoiceModeHidden']=='upload'){
+				//delete entry and sales from the database
+				$sales = $db->query("SELECT * FROM Sales WHERE ID='".$_POST['ID']."'")->fetchArray();
+				$db->query("DELETE FROM Entries WHERE ID='".$sales['EntryID']."'");
+				$db->query("DELETE FROM Sales WHERE ID='".$_POST['ID']."'");
+				unlink('files/sales/'.$_POST['ID'].'.json');
 
-						//check if an invoice is there
-						if($_POST["Location"]!=""){
+				if ($_POST['invoiceModeHidden']=='generate' or $_POST['invoiceModeHidden']=='upload'){
 
-							//delete the invoice file
-							unlink('files/sales/'.$_POST["Location"]);
-						}
-					} 
-				}
-				else{
-					//delete entry and sales from the database
-					$sales = $db->query("SELECT * FROM Sales WHERE ID='".$_POST['ID']."'")->fetchArray();
-					$db->query("DELETE FROM Entries WHERE ID='".$sales['EntryID']."'");
-					$db->query("DELETE FROM Sales WHERE ID='".$_POST['ID']."'");
-					unlink('files/sales/'.$_POST['ID'].'.json');
+					//check if an invoice is there
+					if($_POST["Location"]!=""){
 
-					if ($_POST['invoiceModeHidden']=='generate' or $_POST['invoiceModeHidden']=='upload'){
+						//delete the invoice file
+						unlink('files/sales/'.$_POST["Location"]);
+					}
+				} 
 
-						//check if an invoice is there
-						if($_POST["Location"]!=""){
-
-							//delete the invoice file
-							unlink('files/sales/'.$_POST["Location"]);
-						}
-					} 
-
-					
-				}
 				break;
 
 			case 'back':
@@ -476,7 +475,36 @@
 					} 
 				}
 				break;				
+			
+			case 'review':
 				
+				$db->query("UPDATE Sales SET Status='final' WHERE ID='".$_POST['ID']."'");
+
+				break;
+
+			case 'save':
+				
+				//create the transactions and mutations
+				foreach ($_POST as $key => $value){
+					$checkstr="salesType";
+					$vatshift=$_POST["vatShiftHidden"];
+
+					if (strpos($key,$checkstr)!==False){
+						$db->query("INSERT INTO Transactions (EntryID) VALUES ('".$_POST['entryID']."')");
+						$transID=intval($db->querySingle("SELECT MAX(ID) FROM Transactions LIMIT 1"));
+
+						//get data for the mutation
+						$trans_num=substr($key, strlen($checkstr),strlen($key));
+						$gross_key="salesGross".$trans_num;
+						$nett_key="salesNett".$trans_num;
+						$vat_key="salesVat".$trans_num;
+						$vat_type_key="salesVatType".$trans_num;
+
+						makeMutations($db,"no",$transID,$value,$_POST[$nett_key],$_POST[$vat_type_key],$_POST[$vat_key],$_POST[$gross_key]);					
+					}
+				}
+
+				$db->query("UPDATE Sales SET Status='readonly' WHERE ID='".$_POST['ID']."'");
 				
 		}
 		viewSaleList();
@@ -552,10 +580,10 @@
 		// TODO: verlegde btw toevoegen wanneer dit ook in de rekeningenstructuur zit 
 
 		//result
-		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '8', '".$nett."')");
+		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '13', '".$nett."')");
 
 		//debiteuren
-		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '4', '".$gross."')");	
+		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '4', '".$gross."')");
 
 		//vat
 		switch ($vat_type){
@@ -566,13 +594,5 @@
 			case 21:
 				$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '18', '".$vat."')");
 		}
-	}
-	
-
-	function templog($log_str){
-		$logfile=fopen('log.txt','a');
-		fwrite($logfile,$log_str);
-		fclose($logfile);
-
 	}
 
