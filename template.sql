@@ -63,12 +63,13 @@ CREATE TABLE 'Sales' (
 CREATE TABLE 'Bank' (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 	
 , `EntryID` integer NOT NULL DEFAULT ''
+, `TransactionID` integer NOT NULL DEFAULT ''
 , `Description` varchar(63) NOT NULL DEFAULT ''
 , `FromPaymentEndpointID` integer NOT NULL DEFAULT '0'
 , `ToPaymentEndpointID` integer NOT NULL DEFAULT '0'
 );
 
---properties of an memorial
+--properties of a memorial
 CREATE TABLE 'Memorial' (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
 , `EntryID` integer NOT NULL DEFAULT ''
@@ -139,7 +140,7 @@ INSERT INTO `Accounts` (ID, PID, Name) VALUES
 (8,1,'resultaten'),
 (9,1,'reserveringen'),
 (10,1,'kasverschillen'),
-(11,1,'kruisposten'),
+(11,1,'tussenrekeningen'),
 (12,2,'kosten'),
 (13,2,'opbrengsten'),
 (14,3,'kas'),
@@ -150,18 +151,20 @@ INSERT INTO `Accounts` (ID, PID, Name) VALUES
 (19,6,'vorderen'),
 (20,7,'inventaris'),
 (21,7,'afschijvingen'),
-(22,9,'projectenfonds'),
-(23,12,'huisvesting'),
-(24,12,'reiskosten'),
-(25,12,'arbeid'),
-(26,12,'materialen'),
-(27,12,'administratie'),
-(28,12,'bankkosten en rente'),
-(29,13,'verhuur'),
-(30,13,'ontwikkeling'),
-(31,13,'reiskosten'),
-(32,13,'sejours'),
-(33,13,'publiciteit');
+(22,11,'ontvangen bedragen'),
+(23,11,'betaalde bedragen'),
+(24,9,'projectenfonds'),
+(25,12,'huisvesting'),
+(26,12,'reiskosten'),
+(27,12,'arbeid'),
+(28,12,'materialen'),
+(29,12,'administratie'),
+(30,12,'bankkosten en rente'),
+(31,13,'verhuur'),
+(32,13,'ontwikkeling'),
+(33,13,'reiskosten'),
+(34,13,'sejours'),
+(35,13,'publiciteit');
 
 -- ~ INSERT INTO `TransactionTypes` (ID, Name, MutationFormula) VALUES
 -- ~ (1,'transfer', '3=1'),
