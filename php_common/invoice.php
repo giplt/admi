@@ -11,7 +11,7 @@
 		$sp = 6; //space between lines
 		$cw = 25; //column width
 		$lc = 1; //line count	
-		$sty = 130; // start of the invoice_lines
+		$sty = 150; // start of the invoice_lines
 		
 		$pdf = new tFPDF('P', 'mm', 'A4');
 		$pdf->AddFont('DidactGothic','','DidactGothic.ttf', true);
@@ -27,7 +27,12 @@
 		// adres coop
 		$pdf->SetXY($rm-60, 20);
 		$pdf->SetFont("DidactGothic", "", 12);
-		$pdf->MultiCell(60, $sp, "Geldersestraat 6\n3812 PP Amersfoort NL\n+31(0)334481622\ninfo@planb.coop", 0, 'R');
+		$pdf->MultiCell(60, $sp, 
+			"Geldersestraat 6\n"
+			."3812 PP Amersfoort NL\n"
+			."+31(0)334481622\n"
+			."info@planb.coop"
+		, 0, 'R');
 		
 		// factuur
 		$pdf->SetTextColor(128);
@@ -64,38 +69,49 @@
 		$pdf->Cell(20, 6, "Aan/to:", 0, 0, 'L');
 		$pdf->SetFont("DidactGothic", "", 12);
 		$pdf->SetXY($lm+20, 80);
-		$pdf->MultiCell(100, 6, $data['recipient'], 0, 'L');
-		
+		$pdf->MultiCell(100, 6, 
+			$data['Meta']['recipient']['Name']."\n"
+			.$data['Meta']['recipient']['Address']."\n"
+			.$data['Meta']['recipient']['Zipcode'].", "
+			.$data['Meta']['recipient']['City']."\n"
+			.$data['Meta']['recipient']['Country']."\n"
+			."BTW/VAT #: ".$data['Meta']['recipient']['VATnumber']."\n"
+			."KvK/Reg. #: ".$data['Meta']['recipient']['RegistrationNumber']."\n"
+		, 0, 'L');
+	
 		// Project
 		$pdf->SetTextColor(0);
 		$pdf->SetFont("DidactGothic", "B", 12);
-		$pdf->SetXY($lm, 100);
-		$pdf->MultiCell(175, 6, "Factuur voor / Invoice for project: ".$data['Meta']['project'], 0, 'L');
+		$pdf->SetXY($lm, 120);
+		$pdf->MultiCell(175, 6, 
+			"Factuur voor / Invoice for project:  ".$data['Meta']['project']['Name']."\n"
+			."Over periode / for period:  ".$data['Meta']['periodFrom']." - ".$data['Meta']['periodTo']
+		, 0, 'L');
 
 		// Header voor factuur-regels
 		$pdf->SetTextColor(0);
 		$pdf->SetFont("DidactGothic", "B", 12);
-		$pdf->SetXY($lm, 120);
+		$pdf->SetXY($lm, 140);
 		$pdf->MultiCell(2*$cw, $sp, "Omschrijving /\n Description:", 'B', 'L');
 		$pdf->SetTextColor(0);
 		$pdf->SetFont("DidactGothic", "B", 12);
-		$pdf->SetXY($lm+2*$cw, 120);
+		$pdf->SetXY($lm+2*$cw, 140);
 		$pdf->MultiCell($cw, $sp, "Aantal /\n Amount:", 'B', 'L');
 		$pdf->SetTextColor(0);
 		$pdf->SetFont("DidactGothic", "B", 12);
-		$pdf->SetXY($lm+3*$cw, 120);
+		$pdf->SetXY($lm+3*$cw, 140);
 		$pdf->MultiCell($cw, $sp, "Prijs/\nPrice:", 'B', 'L');
 		$pdf->SetTextColor(0);
 		$pdf->SetFont("DidactGothic", "B", 12);
-		$pdf->SetXY($lm+4*$cw, 120);
+		$pdf->SetXY($lm+4*$cw, 140);
 		$pdf->MultiCell($cw, $sp,"Netto/\nNett:", 'B', 'L');
 		$pdf->SetTextColor(0);
 		$pdf->SetFont("DidactGothic", "B", 12);
-		$pdf->SetXY($lm+5*$cw, 120);
+		$pdf->SetXY($lm+5*$cw, 140);
 		$pdf->MultiCell($cw, $sp, "BTW/\nVat:", 'B', 'L');
 		$pdf->SetTextColor(0);
 		$pdf->SetFont("DidactGothic", "B", 12);
-		$pdf->SetXY($lm+6*$cw, 120);
+		$pdf->SetXY($lm+6*$cw, 140);
 		$pdf->MultiCell($cw, $sp, " Totaal/\nTotal:", 'B', 'L');
 
 

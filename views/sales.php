@@ -30,6 +30,13 @@
 		//save a .pdf file in the files/sales
 		$pdffile=fopen($invoice_path, 'w');
 		$invoice_data=json_decode($_POST["invoice_gen"],true);
+		
+		//get data from the database
+		$contact=$db->query("SELECT * FROM Contacts WHERE ID='".$invoice_data['Meta']['recipient']."'")->fetchArray();
+		$invoice_data['Meta']['recipient']=$contact;
+		$project=$db->query("SELECT * FROM Projects WHERE ID='".$invoice_data['Meta']['project']."'")->fetchArray();
+		$invoice_data['Meta']['project']=$project;
+		
 		fwrite($pdffile,createPDF($invoice_data));
 		fclose($pdffile);
 		

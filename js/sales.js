@@ -530,9 +530,9 @@ function switchAlert(){
 }
 
 
-//----------------------------------------------------------------------------------------
-//functions that fill (read-only) or hidden field inputs when a change to the form fieldset is applied
-//----------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------
+//functions that fill (read-only) or hidden field inputs when a change to the form fieldsets are applied
+//------------------------------------------------------------------------------------------------------
 
 function onChangeFieldSet(id){
 	var form = document.getElementById(id);
@@ -878,9 +878,9 @@ function saveGuard(){
 }
 
 
-//--------------------------------------------------------------------------
-//Functions that create an invoice from data entered in the invoice fieldset 
-//--------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+//Functions that create an invoice from data entered in the invoice fieldset  
+//----------------------------------------------------------------------------
 
 function onchangeMake(id,name){
 	var but = document.getElementById(id);	
@@ -959,6 +959,8 @@ function makeInvoice(name, options=new Array('9','21')){
 	meta_dict['invoiceDate']=document.getElementById('transactionDate').value;
 	meta_dict['reference']=document.getElementById('reference').value;
 	meta_dict['project']=document.getElementById('projectId').value;
+	meta_dict['periodTo']=document.getElementById('periodTo').value;
+	meta_dict['periodFrom']=document.getElementById('periodFrom').value;
 	invoice_dict["Meta"]=meta_dict;
 	
 	//walk through invoice lines
@@ -1036,8 +1038,8 @@ function makeInvoice(name, options=new Array('9','21')){
 }
 
 //--------------------------------------------------------------------------
-//Function that reads the JSON file and puts it into the input field
-//---------------------------------------------------------------------
+//Function that reads the JSON file and puts it into the form input fields
+//--------------------------------------------------------------------------
 
 
 function readJson(json){

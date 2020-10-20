@@ -12,6 +12,8 @@ CREATE TABLE `Contacts` (
 , `Zipcode` varchar(64) NOT NULL DEFAULT ''
 , `City` varchar(64) NOT NULL DEFAULT ''
 , `Country` varchar(64) NOT NULL DEFAULT ''
+, `VATnumber` varchar(64) NOT NULL DEFAULT ''
+, `RegistrationNumber` varchar(64) NOT NULL DEFAULT ''
 , `Phone` varchar(64) NOT NULL DEFAULT ''
 , `Email` varchar(64) NOT NULL DEFAULT ''
 , `Member` varchar NOT NULL DEFAULT ''
