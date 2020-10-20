@@ -12,6 +12,8 @@ CREATE TABLE `Contacts` (
 , `Zipcode` varchar(64) NOT NULL DEFAULT ''
 , `City` varchar(64) NOT NULL DEFAULT ''
 , `Country` varchar(64) NOT NULL DEFAULT ''
+, `VATnumber` varchar(64) NOT NULL DEFAULT ''
+, `RegistrationNumber` varchar(64) NOT NULL DEFAULT ''
 , `Phone` varchar(64) NOT NULL DEFAULT ''
 , `Email` varchar(64) NOT NULL DEFAULT ''
 , `Member` varchar NOT NULL DEFAULT ''
@@ -33,6 +35,8 @@ CREATE TABLE `Entries` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
 , `TransactionDate` date NOT NULL DEFAULT '0000-00-00' 	-- date of invoice, bank transfer etc
 , `AccountingDate` date NOT NULL DEFAULT '0000-00-00' 	-- date of uploading into accounting
+, `PeriodFrom` date NOT NULL DEFAULT '0000-00-00'
+, `PeriodTo` date NOT NULL DEFAULT '0000-00-00'
 , `URL` varchar(63) NOT NULL DEFAULT ''			-- URL or location of the entry , transaction list line x, invoice 201, purchases folder 1
 , `Log` text NOT NULL DEFAULT ''
 );

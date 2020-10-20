@@ -37,8 +37,13 @@
 			$cnt=0;
 			while($pid){
 				$PID=$pid->fetchArray();
-				$pid=$db->query("SELECT * FROM Accounts WHERE ID=".$PID['PID']); 
-				($pid ? $cnt+=1 : $pid=false);
+				if($PID['PID']){
+					$pid=$db->query("SELECT * FROM Accounts WHERE ID=".$PID['PID']); 
+					($pid ? $cnt+=1 : $pid=false);
+				}
+				else{
+					$pid=false;
+				}
 				
 			}			
 			$options.= '<option value="'.$acc['ID'].'"'.($acc['ID']==$acc_show ?' selected':'').'>'.substr("------",0,$cnt).$acc['Name'].'</option>';
@@ -65,7 +70,6 @@
 		$pid_res = $db->query("SELECT * FROM Accounts WHERE PID=".$acc_show);
 	
 		$content.='<table>';
-		echo "Columns = ".($pid_res->numColumns())."<br>";
 		$pid_sum=0;
 
 		//create header
