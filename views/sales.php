@@ -177,8 +177,6 @@
 				"Log" => ""
 			);
 
-			$transactions=array(array("ID"=>"","entryID"=>"","MergeID"=>""));
-			$mutations=array(array("ID"=>"","TransactionID"=>"","AccountID"=>"","Amount"=>""));
 			$json=null;
 		}		
 		else {
@@ -188,15 +186,14 @@
 
 			//get the data from the json file/field
 			$json_path='./files/sales/'.$sale['ID'].'.json';
-			echo $json_path;
-
-			if(file_exists($json_path) ){//and explode(".",$invoice_path)[1]=="json"){
+			if(file_exists($json_path)){
 				$json=file_get_contents($json_path);
 			}
 			else{
 				$json=null;
 			}
 
+			//maybe usefull for a check later on
 			$transactions=array();
 			$mutations=array();
 			$transaction_results = $db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'");
@@ -214,14 +211,16 @@
 		$protected = false;
 		
 		//TODO: base html nog maken
-		$content.= '<div class="salesInputFrame"><div class="salesInputForm"><form id="salesForm" method="post">';
+		$content.= '<div class="salesInputFrame">';
+		$content.= '<div class="salesInputForm">';
+		$content.= '<form id="salesForm" method="post">';
 		$content.= '<fieldset id="metaFieldSet" '.(($sale['Status']=='readonly'?'disabled':'')).'>';
 		$content.= '<legend>'.__('data').'</legend>';	
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';	
 		$content.= '<input type="hidden" name="entryID" value="'.$sale['EntryID'].'"/>';	
 		$content.= '<table><tr><th>ID</th><td>'.$sale['ID'].'</td>';
 
-                // Contactinformatie - nog meer info nodig? Ja bankrekening
+                // Contactinformatie
 		$options = '<option value="" disabled="disabled"'.($sale['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $options.= '<option value="'.$contact['ID'].'"'.($sale['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
@@ -233,7 +232,9 @@
 		//TODO: WISHLIST multiple accounts for Plan B
 
 		//Invoice date
+		$today=date('Y-m-d');
 		$content.= '<tr><th>'.__('invoice-date').'</th><td><input type="date" id="transactionDate" name="TransactionDate" value="'.$entry['TransactionDate'].'"/></td></tr>';
+		$content.= '<input type="hidden" name="AccountingDate" value='.$today.'>';
 		
 		//Period to which the entry applies
 		$period_options=array(
@@ -261,10 +262,6 @@
 		$content.= '<select id="yearSelectHidden" name="yearSelectHidden" hidden="true"></select></td>';
 		$content.= '<td id="periodFromLabel" hidden="true">'.__('from').'<input type="date" id="periodFrom" name="periodFrom" value="'.$entry['PeriodFrom'].'"></td>';
 		$content.= '<td id="periodToLabel" hidden="true">'.__('to').'<input type="date" id="periodTo" name="periodTo" value="'.$entry['PeriodTo'].'"></td></tr>';
-
-		//Accounting date
-		$today=date('Y-m-d');
-		$content.= '<input type="hidden" name="AccountingDate" value='.$today.'>';
 		
 		//ProjectID select field
 		$options = '<option value="" disabled="disabled"'.(($sale['Status']=='readonly'?'disabled':'')).'>'.__('pick-project').'</option>';
@@ -331,22 +328,24 @@
 
 		//Totalen van de transacties
 		$content.= '<table class="salesInputTotTable" align="right"><tr class="salesInputRow"><tr>____________</tr>';
-		$content.= '<tr><th class="salesInputCol">'.__('nett').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" name="nettTot" id="nettTot" readonly></td></tr>';
+		$content.= '<tr><th class="salesInputCol">'.__('nett').'</th>'; 
+		$content.= '<td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" name="nettTot" id="nettTot" readonly></td></tr>';
 		foreach($vat_options as $vat){
 			if ($vat[0]!="def" and $vat[0]!=0){
 				$content.= '<tr id="vatTotRow_'.$vat[0].'"><th class="salesInputCol">'.$vat[1].'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="vatTot_'.$vat[0].'" readonly></td></tr>';
 			}
 		}
 		//TODO: add vat shift functionality
-		$content.= '<tr><th class="salesInputCol">'.__('shift').'</th><td class="salesInputCol">';
-		$content.= '<select name="vatShift" id="vatShift" disabled="true"></select>';
-		$content.= '<select name="vatShiftHidden" id="vatShiftHidden" hidden="true"></select></td></tr>';
-		$content.= '<tr><th></th><td>-------------------</td></tr>';
-		$content.= '<tr><th class="salesInputCol">'.__('gross').'</th><td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="grossTot" disabled></td></tr>';
-		$content.= '<tr><td class="salesInputColLast"></td></tr>';
+		$content.='<tr><th class="salesInputCol">'.__('shift').'</th><td class="salesInputCol">';
+		$content.='<select name="vatShift" id="vatShift" disabled="true"></select>';
+		$content.='<select name="vatShiftHidden" id="vatShiftHidden" hidden="true"></select></td></tr>';
+		$content.='<tr><th></th><td>-------------------</td></tr>';
+		$content.='<tr><th class="salesInputCol">'.__('gross').'</th>';
+		$content.='<td class="salesInputCol"><input type="number" step="0.01" class="salesInputField" id="grossTot" disabled></td></tr>';
+		$content.='<tr><td class="salesInputColLast"></td></tr>';
+		$content.='</table></fieldset>';
 		
 		//Submit Buttons
-		$content.= '</table></fieldset>';
 		switch($sale['Status']){
 			case "" :
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
@@ -367,7 +366,8 @@
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
 		}
 		$content.= '</form></div>';
-
+		
+		//div containing the uploaded or generated invoice
 		$content.= '<div id="invoiceView" class="expenseInputVis">';
 		switch(pathinfo($entry['URL'], PATHINFO_EXTENSION)) {
 			case 'pdf': $content.= '<embed src="files/'.$entry['URL'].'" width="400px" height="600px" />'; break;
@@ -406,7 +406,7 @@
 		}
 		else{
 			//add just one row
-			$content.= '<script>addInvoiceRow('.$sel_in_options_safe.')</script>';
+			$content.= '<script>addInvoiceRow()</script>';
 		}
 
 	}
@@ -451,8 +451,7 @@
 			case 'remove':
 				
 				//delete entry and sales from the database
-				$sales = $db->query("SELECT * FROM Sales WHERE ID='".$_POST['ID']."'")->fetchArray();
-				$db->query("DELETE FROM Entries WHERE ID='".$sales['EntryID']."'");
+				$db->query("DELETE FROM Entries WHERE ID='".$_POST['EntryID']."'");
 				$db->query("DELETE FROM Sales WHERE ID='".$_POST['ID']."'");
 				unlink('files/sales/'.$_POST['ID'].'.json');
 

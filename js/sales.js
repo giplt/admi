@@ -98,11 +98,11 @@ function addInvoiceRow(sel_options=""){
 	newInvoiceRow.appendChild(newInvoiceColE);
 
         var newInvoiceColF = document.createElement("td");
-        newInvoiceColE.setAttribute("class", "invoiceInputCol");
+        newInvoiceColF.setAttribute("class", "invoiceInputCol");
         newInvoiceRow.appendChild(newInvoiceColF);
 
         var newInvoiceColG = document.createElement("td");
-        newInvoiceColE.setAttribute("class", "invoiceInputColLast");
+        newInvoiceColG.setAttribute("class", "invoiceInputColLast");
         newInvoiceRow.appendChild(newInvoiceColG);
 
 	// Extract selected options
@@ -287,7 +287,7 @@ function addSalesRow(sel_options="") {
 	newSalesRow.appendChild(newSalesColE);
 
         var newSalesColF = document.createElement("td");
-        newSalesColE.setAttribute("class", "salesInputColLast");
+        newSalesColF.setAttribute("class", "salesInputColLast");
         newSalesRow.appendChild(newSalesColF);
 
 	// Extract selected options

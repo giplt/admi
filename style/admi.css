@@ -103,6 +103,10 @@ th {
 	width:8ch;
 }
 
+.salesInputTotTable {
+	align: right;
+}
+
 /*-------------styles for info button-------------- */
 
 .hyphaInfoButton {
