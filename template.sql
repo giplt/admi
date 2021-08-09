@@ -75,13 +75,15 @@ CREATE TABLE 'Bank' (
 , `ToPaymentEndpointID` integer NOT NULL DEFAULT '0'
 );
 
---properties of a memorial
+--properties of a memorial				-- Memorial has no status, always done by admin
 CREATE TABLE 'Memorial' (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
 , `EntryID` integer NOT NULL DEFAULT ''
-, `Description` varchar(63) NOT NULL DEFAULT ''
+, `TransactionID` integer NOT NULL DEFAULT ''
+, `Description` varchar(63) NOT NULL DEFAULT ''		-- Larger description to explain booking
+, `ContactID` integer DEFAULT '0'			-- ID of contact that recieves the invoice
+, `ProjectID` integer DEFAULT '0'			-- ID of project
 );
-
 
 CREATE TABLE `Transactions` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
