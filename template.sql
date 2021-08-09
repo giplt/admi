@@ -50,7 +50,9 @@ CREATE TABLE 'Purchases' (
 , `Status` integer NOT NULL DEFAULT '0'			-- status in review process
 , `Reference` varchar(63) NOT NULL DEFAULT ''		-- reference number or description
 , `ContactID` integer NOT NULL DEFAULT '0'		-- ID of contact that submits the reciept, recieves the invoice, or to/from bank transfer
+, `SupplierID` integer NOT NULL DEFAULT '0'		-- in case of a declaration, the supplier is different from the contactID
 , `ProjectID` integer NOT NULL DEFAULT '0'		-- ID of project
+, `Charge` integer Not NULL DEFAULT '0'			-- If the expense/purchase needs to be charged on the invoice for the project 0=no,1=to charge,2=charged
 );
 
 --properties of sales
@@ -59,7 +61,7 @@ CREATE TABLE 'Sales' (
 , `EntryID` integer NOT NULL DEFAULT ''
 , `Status` integer NOT NULL DEFAULT '0'			-- status in review process
 , `Reference` varchar(63) NOT NULL DEFAULT ''		-- reference number or description
-, `ContactID` integer NOT NULL DEFAULT '0'		-- ID of contact that submits the reciept, recieves the invoice, or to/from bank transfer
+, `ContactID` integer NOT NULL DEFAULT '0'		-- ID of contact that recieves the invoice
 , `ProjectID` integer NOT NULL DEFAULT '0'		-- ID of project
 );
 

@@ -216,7 +216,7 @@
 		$content.= '<form id="salesForm" method="post">';
 		$content.= '<fieldset id="metaFieldSet" '.(($sale['Status']=='readonly'?'disabled':'')).'>';
 		$content.= '<legend>'.__('data').'</legend>';	
-		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';	
+		$content.= '<input type="hidden" id="Id" name="ID" value="'.$id.'"/>';	
 		$content.= '<input type="hidden" name="entryID" value="'.$sale['EntryID'].'"/>';	
 		$content.= '<table><tr><th>ID</th><td>'.$sale['ID'].'</td>';
 
@@ -350,7 +350,11 @@
 			case "" :
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
 				$content.='<span id="update_span" title="Input data first">';
-				$content.='<button type="submit" id="update" name="cmd" value="update" disabled="disabled">'.__('submit').' '.__('for').' '.__('review').'</button></span>';			
+				$content.='<button type="submit" id="update" name="cmd" value="update" disabled="disabled">'.__('save').'</button></span>';	
+				if($sale['ID']){	//if not new entry
+					$content.='<span id="sendSpan" title="Input data first">';
+					$content.='<button type="submit" id="sendButton" name="cmd" value="sendtoreview">'.__('send').' '.__('for').' '.__('review').'</button></span>';		
+				}			
 				break;
 			case "review" :
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';	
@@ -427,7 +431,7 @@
 					$entryID=intval($last_entry);
 
 					//insert a new sale
-					$db->query("INSERT INTO Sales (EntryID, Status, Reference, ContactID, ProjectID) VALUES ('".$entryID."','review','".$_POST['Reference']."', '".$_POST['ContactID']."', '".$_POST['ProjectID']."')");
+					$db->query("INSERT INTO Sales (EntryID, Status, Reference, ContactID, ProjectID) VALUES ('".$entryID."','','".$_POST['Reference']."', '".$_POST['ContactID']."', '".$_POST['ProjectID']."')");
 					$last_entry=$db->querySingle("SELECT MAX(ID) FROM Sales LIMIT 1");
 					$salesID=intval($last_entry);
 
@@ -437,15 +441,33 @@
 				else {
 					
 					//update the entry
-					$db->query("UPDATE Entries SET TransactionDate='".$_POST['TransactionDate']."', AccountingDate='".$_POST['AccountingDate']."', PeriodFrom='".$_POST['PeriodFrom']."', PeriodTo='".$_POST['PeriodTo']."', URL='".$_POST['Location']."' WHERE ID='".$_POST['entryID']."'");
+					$db->query("UPDATE Entries SET 
+						TransactionDate='".$_POST['TransactionDate']."', 
+						AccountingDate='".$_POST['AccountingDate']."', 
+						PeriodFrom='".$_POST['PeriodFrom']."', 
+						PeriodTo='".$_POST['PeriodTo']."', 
+						URL='".$_POST['Location']."' 
+						WHERE ID='".$_POST['entryID']."'
+					");
 					
 					//update the sale
-					$db->query("UPDATE Sales SET Reference='".$_POST['Reference']."', ContactID='".$_POST['ContactID']."', ProjectID='".$_POST['ProjectID']."' WHERE ID='".$_POST['ID']."'");
+					$db->query("UPDATE Sales SET 
+						Reference='".$_POST['Reference']."', 
+						ContactID='".$_POST['ContactID']."', 
+						ProjectID='".$_POST['ProjectID']."' 
+						WHERE ID='".$_POST['ID']."'
+					");
 
 					//replace the JSON
 					createJSON($POST,$_POST['ID']);
 
 				}
+				break;
+
+			case 'sendtoreview':
+
+					$db->query("UPDATE Sales SET Status='review'");
+
 				break;
 
 			case 'remove':

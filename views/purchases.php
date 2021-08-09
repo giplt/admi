@@ -62,47 +62,39 @@
 		$content.= '<tr>';
 		$content.= '<th>ID</th>';
 		$content.= '<th>'.__('date').'</th>';
+		$content.= '<th>'.__('purchase-input-type').'</th>';
+		$content.= '<th>'.__('reference').'</th>';
 		$content.= '<th>'.__('amount').'</th>';
 		$content.= '<th>'.__('project').'</th>';
-		$content.= '<th>'.__('expense').'</th>';
-		$content.= '<th>'.__('name').'</th>';
+		$content.= '<th>'.__('contact').'</th>';
 		$content.= '<td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/purchases/new\';"/></td>';
 		$content.= '</tr>';
-		while($item = $list->fetchArray()) {
+		if($list){
+			while($expense = $list->fetchArray()) {
 
-			//collect info
-			$entry=$db->query("SELECT * FROM Entries WHERE ID='".$item['EntryID']."'")->fetchArray();
+				//collect info
+				$entry=$db->query("SELECT * FROM Entries WHERE ID='".$expense['EntryID']."'")->fetchArray();
 
-			//get the info for multiple transactions with multiple mutations
-			$show_PID=12;
-			$transactions=array();
-			$mutations=array();
-			$amount_sum=0;
-			$transaction_results=$db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'");
-	
-			while ($transaction=$transaction_results->fetchArray()){
-				array_push($transactions,$transaction);
-				$mutation_results=$db->query("SELECT * FROM Mutations LEFT JOIN Accounts ON Mutations.AccountID = Accounts.ID WHERE Mutations.TransactionID='".$transaction['ID']."' AND Accounts.PID='".$show_PID."'");
+				//load data from the JSON file
+				$json_path='files/purchases/'.$expense['ID'].".json";
+				$json_array=json_decode(file_get_contents($json_path),true);
 
-				while ($mutation=$mutation_results->fetchArray()){
-					array_push($mutations,$mutation['Amount']);
-				}
-			}
-			$amount_sum=array_sum($mutations);
-
-			$project = $db->query("SELECT * FROM Projects WHERE ID='".$item['ProjectID']."'")->fetchArray();
-			$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$item['ContactID']."'")->fetchArray();
+				//get project names from database
+				$project = $db->query("SELECT * FROM Projects WHERE ID='".$expense['ProjectID']."'")->fetchArray();
+				$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$expense['ContactID']."'")->fetchArray();
 			
-			//put in the table			
-			$content.= '<tr class="data">';
-			$content.= '<td>'.$item['ID'].'</td>';
-			$content.= '<td>'.$entry['TransactionDate'].'</td>';
-			$content.= '<td>'.$item['Reference'].'</td>';
-			$content.= '<td>'.$amount_sum.'</td>';
-			$content.= '<td>'.$project['Name'].'</td>';
-			$content.= '<td>'.$contact['Name'].'</td>';
-			$content.= '<td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/purchases/'.$item['ID'].'\';"/></td>';
-			$content.= '</tr>';
+				//put in the table			
+				$content.= '<tr class="data">';
+				$content.= '<td>'.$expense['ID'].'</td>';
+				$content.= '<td>'.$entry['TransactionDate'].'</td>';
+				$content.= '<td>'.$json_array['Meta']['purchaseInputType'].'</td>';
+				$content.= '<td>'.$expense['Reference'].'</td>';
+				$content.= '<td>'.$json_array['Meta']['totalNett'].'</td>';
+				$content.= '<td>'.$project['Name'].'</td>';
+				$content.= '<td>'.$contact['Name'].'</td>';
+				$content.= '<td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/purchases/'.$expense['ID'].'\';"/></td>';
+				$content.= '</tr>';
+			}
 		}
 		$content.= '</table>';
 	}
@@ -125,17 +117,16 @@
 				"Status" => "", 
 				"Reference" => "", 
 				"ContactID" => "", 
-				"ProjectID" => "", 
-				"Nett" => "", 
-				"VAT" => "", 
-				"Gross" => "", 
-				"VAT_Type" => ""
+				"SupplierID" => "",
+				"ProjectID" => ""
 			);
 
 			$entry = array(
 				"ID"=>"", 
 				"TransactionDate" => "", 
 				"AccountingDate" => "", 
+				"PeriodFrom" => "",
+				"PeriodTo" => "",
 				"URL" => "", 
 				"Log" => ""
 			);
@@ -179,23 +170,26 @@
 		$content.= '<form id="expenseForm" method="post">';
 			
 		//radion button selection if it is a declaration or a invoice
-		$content.= '<input type="radio" name="purchaseInputType" id="invoiceType" value="invoice"'.($purchase['ID']=='new'?'checked="checked"':'').'/><label for="invoiceType">'.__('invoice').'</label>';	
+		$content.= '<fieldset id="radioFieldSet">';
+		$content.= '<input type="radio" name="purchaseInputType" id="invoiceType" value="invoice"'.($purchase['ID']==''?'checked':'').'/><label for="invoiceType">'.__('invoice').'</label>';	
 		$content.= '<input type="radio" name="purchaseInputType" id="declarationType" value="declaration"/><label for="declarationType">'.__('declaration').'</label>';	
+		$content.= '</fieldset>';		
 
 		//Meta fieldset
 		$content.= '<fieldset id="contactFieldSet" '.(($purchase['Status']=='readonly'?'disabled':'')).'><legend>'.__('contact').'</legend>';
-		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
-		$content.= '<input type="hidden" name="entryID" value="'.$purchase['EntryID'].'"/>';
+		$content.= '<input type="hidden" id="idField" name="ID" value="'.$id.'"/>';
+		$content.= '<input type="hidden" id="entryIdField" name="entryID" value="'.$purchase['EntryID'].'"/>';
+		$content.= '<input type="hidden" readonly id="statusField" name="Status" value="'.$purchase['Status'].'"/>';
 		$content.= '<table>';
 		$content.= '<tr><th>ID</th><td>'.$purchase['ID'].'</td>';
 
        		 // Contactinformatie inladen
-		$options = '<option value="" disabled="disabled"'.($purchase['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
+		$contact_options = '<option value="" disabled="disabled"'.($purchase['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $contact_options.= '<option value="'.$contact['ID'].'"'.($purchase['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
 		$content.= '<tr><th>'.__('contact').'</th>';
-		$content.= '<td><select id="contactId" name="ContactID" onchange="readOnlySelect(\'contactId\',\'contactIdHidden\');">'.$options.'</select>';
-		$content.= '<select id="contactIdHidden" name="contactIDhidden" hidden="true">'.$options.'</select></td>'; 
+		$content.= '<td><select id="contactId" name="ContactID" onchange="readOnlySelect(\'contactId\',\'contactIdHidden\');">'.$contact_options.'</select>';
+		$content.= '<select id="contactIdHidden" name="contactIDhidden" hidden="true">'.$contact_options.'</select></td>'; 
 		$content.= '<td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';
 
 		//get payment endpoints from database
@@ -213,9 +207,9 @@
 		//Datum en locatie van het boekstuk
 		$content.='<fieldset id="metaFieldSet" '.(($purchase['Status']=='readonly'?'disabled':'')).'>';
 		$content.='<legend>Bonnetje = boekstuk</legend><table>';
-		$content.='<tr><th>'.__('contact').'</th>';
-		$content.= '<td><select id="declarationId" name="DeclarationID" onchange="readOnlySelect(\'declarationId\',\'declarationIdHidden\');">'.$options.'</select>';
-		$content.= '<select id="declarationIdHidden" name="DeclarationIDHidden" hidden="true">'.$options.'</select></td>'; 
+		$content.='<tr id="supplierIdRow" hidden><th>'.__('contact').'</th>';
+		$content.= '<td><select id="supplierId" name="SupplierID" onchange="readOnlySelect(\'supplierId\',\'supplierIdHidden\');">'.$contact_options.'</select>';
+		$content.= '<select id="supplierIdHidden" name="SupplierIDHidden" hidden="true"'.($purchase['SupplierID']?'':' selected').'>'.$contact_options.'</select></td>'; 
 		$content.='<td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';			
 
 		$today=date('Y-m-d');
@@ -231,9 +225,12 @@
 			array("7",__('july')),array("8",__('august')),array("9",__('september')),array("10",__('october')),array("11",__('november')),array("12",__('december')),
 			array("Else","--Else")
 		);
-		$period_options_safe=json_encode($period_options);
-		$year_options=array(array("def","kies jaar"),array(date('Y')-1,date('Y')-1),array(date('Y'),date('Y')),array(date('Y')+1,date('Y')+1));
-		$year_options_safe=json_encode($year_options);
+		$year_options=array(
+			array("def","kies jaar"),
+			array(date('Y')-1,date('Y')-1),
+			array(date('Y'),date('Y')),
+			array(date('Y')+1,date('Y')+1)
+		);
 
 		$content.= '<tr><th>'.__('period').'</th><td>';
 		$content.= '<select id="periodSelect" name="periodSelect" onchange="
@@ -246,8 +243,8 @@
 			"></select>';
 		$content.= '<select id="periodSelectHidden" name="periodSelectHidden" hidden="true"></select>';
 		$content.= '<select id="yearSelectHidden" name="yearSelectHidden" hidden="true"></select></td>';
-		$content.= '<td id="periodFromLabel" hidden="true">'.__('from').'<input type="date" id="periodFrom" name="periodFrom" value="'.$entry['PeriodFrom'].'"></td>';
-		$content.= '<td id="periodToLabel" hidden="true">'.__('to').'<input type="date" id="periodTo" name="periodTo" value="'.$entry['PeriodTo'].'"></td></tr>';
+		$content.= '<td id="periodFromLabel" hidden="true">'.__('from').'<input type="date" id="periodFrom" name="PeriodFrom" value="'.$entry['PeriodFrom'].'"></td>';
+		$content.= '<td id="periodToLabel" hidden="true">'.__('to').'<input type="date" id="periodTo" name="PeriodTo" value="'.$entry['PeriodTo'].'"></td></tr>';
 
 		
 		//Invoice/Declaration upload
@@ -264,6 +261,8 @@
 		
 		//Reference
 		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" name="Reference" value="'.$purchase['Reference'].'"/></td></tr>';
+		$charge_options=array(array("0",__('no')),array("1",__('yes')),array("2",__('done')));
+		$content.= '<tr><th>'.__('charge').'</th><td><select id="chargeSelect" name="ChargeSelect"></select></td></tr>';
 		$content.= '</table></fieldset>';		
 
 		//Haal alle opties voor kostensoort uit de database
@@ -273,11 +272,21 @@
 		$exp_options_safe=json_encode($exp_options);
 
 		//Geef alle opties voor btw-type
-		$vat_options=array(array("def","kies type"),array("0","btw-vrij"),array("9","9%"),array("21","21%"));
+		$vat_options=array(
+			array("def","kies type"),
+			array("0","btw-vrij"),
+			array("9","9%"),
+			array("21","21%")
+		);
 		$vat_options_safe=json_encode($vat_options);
 
 		//Geef alle opties voor btw verlegging TODO: nog koppelen aan rekeningen
-		$shift_options=array(array("no","nee"),array("NL","NL"),array("EU","EU"),array("Ex","Ex"));
+		$shift_options=array(
+			array("no","nee"),
+			array("NL","NL"),
+			array("EU","EU"),
+			array("Ex","Ex")
+		);
 		$shift_options_safe=json_encode($shift_options);
 
 		// Rijen met transacties
@@ -293,11 +302,11 @@
 		
 		//Laatste rij met het totaal
 		$content.= '<table class="expenseInputTotTable"><tr class="expenseInputRow"><th class="expenseInputCol">'.__('total').'</th>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="grossTot" readonly></td>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="nettTot" readonly></td>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" id="vatTot" readonly></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="grossTot" id="grossTot" readonly></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="nettTot" id="nettTot" readonly></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="vatTot" id="vatTot" readonly></td>';
 		$content.= '<td class="expenseInputCol"></td>';
-		$content.= '<td class="expenseInputCol"><select id="vatShift"></td>';
+		$content.= '<td class="expenseInputCol"><select id="vatShift" name="VatShift"></td>';
 		$content.= '<td class="expenseInputColLast"></td>';
 
 		$content.= '</table></fieldset>';
@@ -306,8 +315,12 @@
 		switch($purchase['Status']){
 			case "" :
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
-				$content.='<span id="update_span" title="Input data first">';
-				$content.='<button type="submit" id="update" name="cmd" value="update" disabled="disabled">'.__('submit').' '.__('for').' '.__('review').'</button></span>';			
+				$content.='<span id="updateSpan" title="Input data first">';
+				$content.='<button type="submit" id="updateButton" name="cmd" value="update" disabled="disabled">'.__('submit').'</button></span>';
+				if($purchase['ID']){	//if not new entry
+					$content.='<span id="sendSpan" title="Input data first">';
+					$content.='<button type="submit" id="sendButton" name="cmd" value="sendtoreview">'.__('send').' '.__('for').' '.__('review').'</button></span>';		
+				}				
 				break;
 			case "review" :
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';	
@@ -341,8 +354,12 @@
 			array("periodSelectHidden",$period_options),
 			array("yearSelect",$year_options),
 			array("yearSelectHidden",$year_options),
+			array("chargeSelect",$charge_options),
 		);
 		$all_options_safe=json_encode($all_options);
+
+		$all_fieldsets=array("contactFieldSet","metaFieldSet","expenseFieldSet","radioFieldSet");
+		$all_fieldsets_safe=json_encode($all_fieldsets);
 
 		//Loading javascript
 		$content.= '<script type="text/javascript" src="../../js/purchases.js"></script>';
@@ -352,9 +369,7 @@
 		$content.= '<script>setGlobalOptions('.$exp_options_safe.','.$vat_options_safe.')</script>';
 		$content.= '<script>addOnClick()</script>';
 		$content.= '<script>addOptionsPHP_onclick("PaymentID",'.$payment_options_safe.',"contactId")</script>';
-		$content.= '<script>onChangeFieldSet("contactFieldSet")</script>';
-		$content.= '<script>onChangeFieldSet("metaFieldSet")</script>';
-		$content.= '<script>onChangeFieldSet("expenseFieldSet")</script>';
+		$content.= '<script>onChangeFieldSet('.$all_fieldsets_safe.')</script>';
 
 		if ($json!=null){
 			$content.= '<script>readJson('.$json.')</script>';
@@ -380,39 +395,66 @@
 					$last_entry=$db->querySingle("SELECT MAX(ID) FROM Entries LIMIT 1");
 					$entryID=intval($last_entry);
 
+					//Use the correct contact in case of a declaration
+					($_POST['purchaseInputType']=="invoice" ? $sup=$_POST['ContactID']:$sup=$_POST['SupplierID']);
+
 					//insert a new Purchase
-					$db->query("INSERT INTO Purchases (EntryID, Status, Reference, ContactID, ProjectID) VALUES ('".$entryID."','review','".$_POST['Reference']."', '".$_POST['ContactID']."', '".$_POST['ProjectID']."')");
+					$db->query("INSERT INTO Purchases (EntryID, Status, Reference, ContactID, SupplierID, ProjectID,Charge) VALUES ('".$entryID."','','".$_POST['Reference']."', '".$_POST['ContactID']."', '".$sup."','".$_POST['ProjectID']."','".$_POST['ChargeSelect']."')");
 					$last_entry=$db->querySingle("SELECT MAX(ID) FROM Purchases LIMIT 1");
 					$purchaseID=intval($last_entry);
 
-					//save form data in a json file in files/sales
-					createJSON($POST,$purchaseID);
+					//save form data in a json file in files/purchases
+					createJSON($_POST,$purchaseID);
 
 				}
 				else {
 					//update the entry
-					$db->query("UPDATE Entries SET TransactionDate='".$_POST['TransactionDate']."', AccountingDate='".$_POST['AccountingDate']."', PeriodFrom='".$_POST['PeriodFrom']."', PeriodTo='".$_POST['PeriodTo']."', URL='".$_POST['Location']."' WHERE ID='".$_POST['entryID']."'");
+					$db->query("UPDATE Entries SET 
+						TransactionDate='".$_POST['TransactionDate']."', 
+						AccountingDate='".$_POST['AccountingDate']."', 
+						PeriodFrom='".$_POST['PeriodFrom']."', 
+						PeriodTo='".$_POST['PeriodTo']."', 
+						URL='".$_POST['Location']."' 
+						WHERE ID='".$_POST['entryID']."'
+					");
 					
-					//update the sale
-					$db->query("UPDATE Purchases SET Reference='".$_POST['Reference']."', ContactID='".$_POST['ContactID']."', ProjectID='".$_POST['ProjectID']."' WHERE ID='".$_POST['ID']."'");
+					//Use the correct contact in case of a declaration
+					($_POST['purchaseInputType']=="invoice" ? $sup=$_POST['ContactID']:$sup=$_POST['SupplierID']);
 
+					//insert a new Purchase
+					$db->query("Update Purchases SET 
+						Status='', 
+						Reference='".$_POST['Reference']."',
+						ContactID='".$_POST['ContactID']."',
+						SupplierID='".$sup."',
+						ProjectID='".$_POST['ProjectID']."',
+						Charge='".$_POST['ChargeSelect']."'
+						WHERE ID='".$_POST['ID']."'
+					");
+					
 					//replace the JSON
-					createJSON($POST,$_POST['ID']);
+					createJSON($_POST,$_POST['ID']);
 				}
+				break;
+
+			case 'sendtoreview':
+
+					$db->query("UPDATE Purchases SET Status='review'");
+
 				break;
 
 			case 'remove':
 
-				//delete entry and sales from the database
+				//delete entry and expense from the database
 				$db->query("DELETE FROM Entries WHERE ID='".$_POST['EntryID']."'");
-				$db->query("DELETE FROM Sales WHERE ID='".$_POST['ID']."'");
+				$db->query("DELETE FROM Purchases WHERE ID='".$_POST['ID']."'");
 				unlink('files/purchases/'.$_POST['ID'].'.json');
 
 				//check if an invoice/declaration is uploaded
-				if($_POST["Location"]!="" and file_exists('files/sales/'.$_POST["Location"])){
+				if($_POST["Location"]!="" and file_exists('files/purchases/'.$_POST["Location"])){
 
 					//delete the invoice/declaration
-					unlink('files/sales/'.$_POST["Location"]);
+					unlink('files/purchases/'.$_POST["Location"]);
 				} 
 
 				break;
@@ -421,7 +463,7 @@
 
 				//if a .pdf is created, but not saved then remove it
 				if ($_POST['ID']=='new'){
-					if($_POST["Location"]!="" and file_exists('files/sales/'.$_POST["Location"])){
+					if($_POST["Location"]!="" and file_exists('files/purchases/'.$_POST["Location"])){
 
 						//delete the invoice file
 						unlink('files/purchases/'.$_POST["Location"]);
@@ -430,17 +472,17 @@
 				break;	
 
 			case 'review':
-				
-				$db->query("UPDATE Sales SET Status='final' WHERE ID='".$_POST['ID']."'");
+				echo "reviewing".$_POST['ID'];
+				$db->query("UPDATE Purchases SET Status='final' WHERE ID='".$_POST['ID']."'");
 
 				break;	
 
 			case 'save':
 				
 				//create the transactions and mutations
-				foreach ($_POST as $key => $value){
-					$checkstr="ExpenseType";
-					$vatshift=$_POST["vatShiftHidden"];
+				foreach ($_POST as $key => $type){
+					$checkstr="expenseType";
+					$vatshift=$_POST["VatShift"];
 
 					if (strpos($key,$checkstr)!==False){
 						$db->query("INSERT INTO Transactions (EntryID) VALUES ('".$_POST['entryID']."')");
@@ -448,52 +490,53 @@
 
 						//get data for the mutation
 						$trans_num=substr($key, strlen($checkstr),strlen($key));
-						$gross_key="gross".$trans_num;
-						$nett_key="nett".$trans_num;
-						$vat_key="vat".$trans_num;
-						$vat_type_key="vatType".$trans_num;
+						$gross_key="expenseGross".$trans_num;
+						$nett_key="expenseNett".$trans_num;
+						$vat_key="expenseVat".$trans_num;
+						$vat_type_key="expenseVatType".$trans_num;
 
-						makeMutations($db,$transID,$value,$_POST[$gross_key],$_POST[$nett_key],$_POST[$vat_key],$_POST[$vat_type_key]);					
+						makeMutations($db,$transID,$type,$_POST[$gross_key],$_POST[$nett_key],$_POST[$vat_key],$_POST[$vat_type_key]);					
 	
 					}
 				}
 
-				$db->query("UPDATE Sales SET Status='readonly' WHERE ID='".$_POST['ID']."'");				
+				$db->query("UPDATE Purchases SET Status='readonly' WHERE ID='".$_POST['ID']."'");				
 		
 				break;
 
 		}
 		viewPurchaseList();
 	}
-	function createJSON($POST,$purchasesID){
-		$json_path='files/purchase/'.$purchaseID.".json";
+	function createJSON($data,$purchaseID){
+		$json_path='files/purchases/'.$purchaseID.".json";
 		$meta_dict=array(
-			'recipient'=>$_POST['ContactID'],
-			'invoiceDate'=>$_POST['TransactionDate'],
-			'reference'=>$_POST['Reference'],
-			'project'=>$_POST['ProjectID'],
-			'filetype'=>$_POST['invoiceModeHidden'],
-			'periodSelect'=>$_POST['periodSelectHidden'],
-			'yearSelect'=>$_POST['yearSelectHidden'],
-			'periodFrom'=>$_POST['periodFrom'],
-			'periodTo'=>$_POST['periodTo'],
-			'totalNett'=>$_POST['nettTot']
+			'recipient'=>$data['ContactID'], //double also in database
+			'invoiceDate'=>$data['TransactionDate'], //double also in database
+			'reference'=>$data['Reference'], //double also in database
+			'project'=>$data['ProjectID'], //double also in database
+			'purchaseInputType'=>$data['purchaseInputType'],
+			'periodSelect'=>$data['periodSelect'],
+			'yearSelect'=>$data['yearSelect'],
+			'chargeSelect'=>$data['ChargeSelect'], //double also in database
+			'periodFrom'=>$data['PeriodFrom'], //double also in database
+			'periodTo'=>$data['PeriodTo'], //double also in database
+			'totalNett'=>$data['nettTot']
 		);
 						
 		$json_dict=array('Meta'=>$meta_dict);
 
-		foreach ($_POST as $key => $value){
+		foreach ($data as $key => $value){
 			
-			//add the sales rows to the json file
+			//add the expense rows to the json file
 			if (strpos($key,"expenseTypeHidden")!==False){
 				$sl=array();
 				$sl_num=substr($key, strlen("expenseTypeHidden"),strlen($key));
 
-				$sl['salesType']=$_POST["expenseTypeHidden".$sl_num];
-				$sl['salesNett']=$_POST["expenseNett".$sl_num];
-				$sl['salesVatType']=$_POST["expenseVatType".$sl_num];
-				$sl['salesVat']=$_POST["expenseVat".$sl_num];
-				$sl['salesGross']=$_POST["expenseGross".$sl_num];
+				$sl['expenseType']=$data["expenseTypeHidden".$sl_num];
+				$sl['expenseNett']=$data["expenseNett".$sl_num];
+				$sl['expenseVatType']=$data["expenseVatType".$sl_num];
+				$sl['expenseVat']=$data["expenseVat".$sl_num];
+				$sl['expenseGross']=$data["expenseGross".$sl_num];
 
 				$json_dict["expenseLine_".$sl_num]=$sl;
 				

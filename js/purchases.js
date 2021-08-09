@@ -266,33 +266,57 @@ function removeExpenseRow(butval){
 //------------------------------------------------------------------------------------------------------
 
 
-function onChangeFieldSet(id){
-	var form = document.getElementById(id);
+function onChangeFieldSet(ids){
+
+	for(var i=0;i<ids.length;i++){
+		var id=ids[i];
+
+		var form = document.getElementById(id);
 	
-	if(id=="expenseFieldSet"){
-		//note eventlistener wants a function, addSalesRow() actually gives a return value
-		form.addEventListener("change",function(){
-			for (i=1;i<rowCount;i++){
-				adjustExpenseRow(i); 
-			}
-			adjustExpenseTot();
-			saveGuard();
+		if(id=="expenseFieldSet"){
+			//note eventlistener wants a function, addSalesRow() actually gives a return value
+			form.addEventListener("change",function(){
+				for (i=1;i<rowCount;i++){
+					adjustExpenseRow(i); 
+				}
+				adjustExpenseTot();
+				saveGuard();
 			
-		});
+			});
+		}
+
+		else if(id=="metaFieldSet"){
+			form.addEventListener("change",function(){
+				saveGuard();
+			});
+		}
+
+		else if(id=="contactFieldSet"){
+			form.addEventListener("change",function(){
+				saveGuard();
+			});
+		}
+
+		else if(id=="radioFieldSet"){
+			form.addEventListener("change",function(){
+				changeInputType("declarationType","supplierIdRow");
+			});
+		}
 	}
 
-	else if(id=="metaFieldSet"){
-		form.addEventListener("change",function(){
-			saveGuard();
-		});
-	}
+}
 
-	else if(id=="contactFieldSet"){
-		form.addEventListener("change",function(){
-			saveGuard();
-		});
-	}
+function changeInputType(id,hide_id){
+	var el = document.getElementById(id);
+	var hide_el = document.getElementById(hide_id);
 
+	console.log("Changed TYPE");
+	if(el.checked){
+		hide_el.removeAttribute("hidden");
+	}
+	else{
+		hide_el.setAttribute("hidden","hidden");
+	}
 }
 
 
@@ -405,6 +429,8 @@ function switchPeriodPresets(yearID,periodID,fromID,toID){
 
 }
 
+
+
 //--------------------------------------------------------------------------
 //Functions that check & limit the user input 
 //--------------------------------------------------------------------------
@@ -414,14 +440,37 @@ function saveGuard(){
 	
 	//get elements
 	var invoice=document.getElementById("location").value;
-	var span=document.getElementById("update_span");
-	var save_but=document.getElementById("update");
+	var update_span=document.getElementById("updateSpan");
+	var update_but=document.getElementById("updateButton");
+	var send=false;
+
+	if(document.getElementById("sendButton")){
+		var send_span=document.getElementById("sendSpan");
+		var send_but=document.getElementById("sendButton");
+		send=true;
+	}
 
 	//check if there is an invoice location set	
 	if(!invoice){
-		save_but.setAttribute('disabled','disabled');
-		span.setAttribute("title","Please provide an invoice location or generate an invoice first");	
+		update_but.setAttribute('disabled','disabled');
+		update_span.setAttribute("title","Please provide an invoice location");
+		
 	}
+	else{
+		update_but.removeAttribute('disabled');
+		update_span.setAttribute("title","Save the purchase");
+
+		//Rough implementation for the send button. 
+		//If saveguard is called on a saved purchase that means a change has been made 
+		//and the purchase needs to be saved first
+		if(send){
+			send_but.setAttribute("disabled","disabled");
+			send_span.setAttribute("title","Please save the purchase first");
+		}
+	}
+	
+	
+	
 }
 
 //----------------------------------------------
@@ -444,3 +493,66 @@ function upload(name, input) {
 	xhr.open('POST', '');
 	xhr.send(data);
 }
+
+//--------------------------------------------------------------------------
+//Function that reads the JSON file and puts it into the form input fields
+//--------------------------------------------------------------------------
+
+
+function readJson(json){
+
+	//Get all relevant elements
+	var radio_invoice=document.getElementById("invoiceType");
+	var radio_declaration=document.getElementById("declarationType");
+	var supplier_row=document.getElementById("supplierIdRow");	
+	var year=document.getElementById("yearSelect");	
+	var period=document.getElementById("periodSelect");	
+	var charge=document.getElementById("chargeSelect");
+
+	//ensure that automatic reading does not call an alert box	
+	disableAlert=true;
+
+	// set 
+	var pt="";
+	var yr="";
+	var pr="";
+	var ch="";
+	
+	//Iterate through the json file
+	for(var line in json){
+		if(json.hasOwnProperty(line)){
+			var l=json[line];
+
+			//get selected meta-data
+			if(line=="Meta"){
+				pt=l.purchaseInputType;
+				yr=l.yearSelect;
+				pr=l.periodSelect;
+				ch=l.chargeSelect; //also in database - now this is double
+			}
+
+			//load expense_lines
+			else if(line.substring(0,11)=="expenseLine"){
+				addExpenseRow([l.expenseType,l.expenseNett,l.expenseVatType,l.expenseVat,l.expenseGross])
+			}
+
+		}
+	}
+
+	//set year and period values
+	year.value=yr;
+	period.value=pr;
+	charge.value=ch;
+
+	//set the purchase type correctly, based on the json
+	if(pt=="invoice"){
+		radio_invoice.setAttribute("checked","checked");
+	}
+	else if(pt=="declaration"){
+		radio_declaration.setAttribute("checked","checked");
+		supplier_row.removeAttribute("hidden");
+	}
+
+	disableAlert=false;
+}
+
