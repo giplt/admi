@@ -27,6 +27,7 @@ CREATE TABLE `Projects` (
 CREATE TABLE `Accounts` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `PID` integer NOT NULL DEFAULT '0'
+, `RGS` varchar(32) NOT NULL DEFAULT ''
 , `Name` varchar(64) NOT NULL DEFAULT ''
 );
 
