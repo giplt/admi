@@ -173,7 +173,77 @@ INSERT INTO `Accounts` (ID, PID, Name) VALUES
 (32,13,'ontwikkeling'),
 (33,13,'reiskosten'),
 (34,13,'sejours'),
-(35,13,'publiciteit');
+(35,13,'publiciteit'),
+(36,3,'triodos'),
+(37,3,'mollie'),
+(38,3,'paypal'),
+(39,3,'sumup');
+
+INSERT INTO `PaymentProviders` (ID, AccountID, Name, Account, API) VALUES
+(1,36,'Triodos','ABCD1234','{
+	"addHeaderRow": "\"datum\",\"eigenRekening\",\"bedrag\",\"creditDebet\",\"wederpartij\",\"rekeningWederpartij\",\"transactiecode\",\"omschrijving\"",
+	"fieldSeparator": ",",
+	"stringDelimiter": "\"",
+	"dateField": "datum",
+	"dateFormat": "mm-dd-YYYY",
+	"amountField": "bedrag",
+	"amountFormat": ",",
+	"signField": "creditDebet",
+	"signFieldMinusValue": "Debet",
+	"descriptionField": "omschrijving",
+	"accountField": "wederpartij",
+	"paymentEndPointField": "rekeningWederpartij",
+	"transactionFeeField": "",
+	"transactionID": ""
+}'),
+(2,37,'Mollie','','{
+	"addHeaderRow": "",
+	"fieldSeparator": ",",
+	"stringDelimiter": "\"",
+	"dateField": "Datum",
+	"dateFormat": "YYYY-mm-dd H:M:s",
+	"amountField": "Bedrag",
+	"amountFormat": "",
+	"signField": "",
+	"signFieldMinusValue": "",
+	"descriptionField": "Omschrijving",
+	"accountField": "Naam consument",
+	"paymentEndPointField": "Rekening consument",
+	"transactionFeeField": "",
+	"transactionID": "ID"
+}'),
+(3,38,'PayPal','info@planb.coop','{
+	"addHeaderRow": "",
+	"fieldSeparator": ",",
+	"stringDelimiter": "\"",
+	"dateField": "Date",
+	"dateFormat": "mm-dd-YYYY",
+	"amountField": "Gross",
+	"amountFormat": "",
+	"signField": "",
+	"signFieldMinusValue": "",
+	"descriptionField": "Subject",
+	"accountField": "Name",
+	"paymentEndPointField": "",
+	"transactionFeeField": "Fee",
+	"transactionID": "Transaction ID"
+}'),
+(4,39,'Sumup','','{
+	"addHeaderRow": "",
+	"fieldSeparator": ",",
+	"stringDelimiter": "",
+	"dateField": "Datum",
+	"dateFormat": "YYYY-mm-dd H:M:s",
+	"amountField": "Totaal bedrag",
+	"amountFormat": "",
+	"signField": "",
+	"signFieldMinusValue": "",
+	"descriptionField": "Beschrijving",
+	"accountField": "",
+	"paymentEndPointField": "Laatste 4 cijfers",
+	"transactionFeeField": "Transactiekosten",
+	"transactionID": "Transactie ID"
+}');
 
 -- ~ INSERT INTO `TransactionTypes` (ID, Name, MutationFormula) VALUES
 -- ~ (1,'transfer', '3=1'),
