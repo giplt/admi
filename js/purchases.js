@@ -218,7 +218,7 @@ function addExpenseRow(sel_options="") {
         newExpenseRem.setAttribute("id", "expenseBut"+rowCount.toString());
 	newExpenseRem.setAttribute("name", "expenseBut"+rowCount.toString());
 	newExpenseRem.setAttribute("type", "button");
-	newExpenseRem.setAttribute("value", "-");
+	newExpenseRem.setAttribute("value", "\uD83D\uDDD1");
 	newExpenseRem.setAttribute("onclick", "removeExpenseRow(this.id)");
 	newExpenseColG.appendChild(newExpenseRem);
 
