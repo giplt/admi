@@ -27,7 +27,6 @@
 		$acc_list = $db->query($query);
 		$content.= '<table><tr><th>'.__('account').'</th><th>'.__('project').'</th><th>'.__('contact').'</th>';
 		$content.='<form method="post">';
-		$content.='<th><button type="submit" name="edit" value="edit">'.__('edit').'</button></th>';
 		$content.='<tr>';
 
 		//get all account options
@@ -134,9 +133,9 @@
 			$content.='<tr><td></td><td></td><td></td><td></td><td></td><td></td><td>-----------</td></tr>';
 			$content.='<tr><td></td><td></td><td></td><td></td><td></td><td></td>';
 			$content.='<td>'.$acc_sum.'</td></tr>';
-			$content.='</table';			
+			$content.='</table>';
 		}
-	
+		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/accounts\';"/>';
 	}
 	
 	function viewAccountList() {
