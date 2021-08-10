@@ -1,6 +1,5 @@
 <?php
 	if (isset($_POST['cmd'])) updateAccount();
-//	elseif (isset($_POST['edit'])) 
 	elseif ($view) {
 		if ($view2=='edit') editAccount($view);
 		elseif ($view2=='view') viewAccount();
