@@ -3,6 +3,10 @@
 		"nl": "Rekening",
 		"en": "Account"
 	},
+	"accounting lines": {
+		"nl": "Boekregels",
+		"en": "Accounting lines"
+	},
 	"accounts": {
 		"nl": "Rekeningen",
 		"en": "Accounts"
@@ -35,6 +39,14 @@
 		"nl": "Overschrijvingen",
 		"en": "Transfers"
 	},
+	"charge": {
+		"nl": "Doorfactureren",
+		"en": "Charge"
+	},
+	"choose file": {
+		"nl": "Kies bestand",
+		"en": "Choose file"
+	},
 	"city": {
 		"nl": "Stad",
 		"en": "City"
@@ -59,6 +71,10 @@
 		"nl": "Beschrijving",
 		"en": "Description"
 	},
+	"done": {
+		"nl": "Gedaan",
+		"en": "Done"
+	},
 	"edit": {
 		"nl": "Bewerk",
 		"en": "Edit"
@@ -75,6 +91,10 @@
 		"nl": "Kostensoorten",
 		"en": "Expenses"
 	},
+	"generate new invoice": {
+		"nl": "Genereer een nieuwe factuur",
+		"en": "Generate a new invoice"
+	},
 	"gross": {
 		"nl": "Bruto",
 		"en": "Gross"
@@ -83,13 +103,37 @@
 		"nl": "Bruto totaal",
 		"en": "Gross total"
 	},
-	"help-button-test": {
-		"nl": "dit is een testhulpknop",
-		"en": "this is a help button test"
+	"help-button-gross": {
+		"nl": "bruto is het bedrag zonder de BTW",
+		"en": "gross is the amount excluding VAT"
+	},
+	"help-button-nett": {
+		"nl": "netto is het bedrag inclusief de BTW",
+		"en": "nett is the amount including VAT"
+	},
+	"help-button-save-sales": {
+		"nl": "je kunt alleen opslaan als alle velden zijn ingevoerd",
+		"en": "you can only save when all the fields have been filled out"
+	},
+	"help-button-shift": {
+		"nl": "Als de BTW verlegd is naar jou, kies dan NL, EU of buiten EU",
+		"en": "If VAT is shifted to you, choose NL, EU or outside EU"
+	},
+	"help-button-vat": {
+		"nl": "BTW bedrag zoals vermeld op je bon",
+		"en": "VAT amount as written on your receipt"
+	},
+	"input mode": {
+		"nl": "Invoertype",
+		"en": "Input type"
 	},
 	"invoice": {
 		"nl": "Factuur",
 		"en": "Invoice"
+	},
+	"invoice-date": {
+		"nl": "Factuurdatum",
+		"en": "Date on invoice"
 	},
 	"invoice items": {
 		"nl": "Factuurregels",
@@ -127,6 +171,10 @@
 		"nl": "Netto",
 		"en": "Nett"
 	},
+	"new": {
+		"nl": "Nieuw",
+		"en": "New"
+	},
 	"nettTot": {
 		"nl": "Netto totaal",
 		"en": "Nett total"
@@ -139,9 +187,9 @@
 		"nl": "Aantal",
 		"en": "Number"
 	},
-	"phone": {
-		"nl": "Telefoon",
-		"en": "Phone"
+	"paper invoice": {
+		"nl": "Papieren factuur",
+		"en": "Paper invoice"
 	},
 	"payment": {
 		"nl": "Betaling",
@@ -155,9 +203,21 @@
 		"nl": "Kies project",
 		"en": "pick project"
 	},
+	"period": {
+		"nl": "Periode",
+		"en": "Period"
+	},
+	"phone": {
+		"nl": "Telefoon",
+		"en": "Phone"
+	},
 	"pick-contact": {
 		"nl": "Kies contact",
 		"en": "pick contact"
+	},
+	"pick-expense": {
+		"nl": "Kies uitgavesoort",
+		"en": "pick expense type"
 	},
 	"price": {
 		"nl": "Prijs",
@@ -211,6 +271,10 @@
 		"nl": "Type verkoop",
 		"en": "Sales type"
 	},
+	"save": {
+		"nl": "Sla op",
+		"en": "Save"
+	},
 	"submit": {
 		"nl": "Sla op",
 		"en": "Submit"
@@ -226,6 +290,14 @@
 	"users": {
 		"nl": "Gebruikers",
 		"en": "Users"
+	},
+	"upload": {
+		"nl": "Laad in",
+		"en": "Upload"
+	},
+	"upload existing invoice": {
+		"nl": "Laad gedigitaliseerde factuur in",
+		"en": "Upload digitised invoice"
 	},
 	"vat": {
 		"nl": "BTW",
@@ -244,8 +316,8 @@
 		"en": "% VAT"
 	},
 	"vat shift": {
-		"nl": "Verlegd",
-		"en": "Shifted"
+		"nl": "BTW verlegd",
+		"en": "VAT shifted"
 	},
 	"welcome-init": {
 		"nl": "Database is aangemaakt.<br/>Maak een eerste gebruiker aan.",
