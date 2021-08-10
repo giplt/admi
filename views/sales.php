@@ -272,15 +272,17 @@
 		$content.= '<select id="projectIdHidden" name="ProjectIDhidden" hidden="true">'.$options.'</select></td></tr>';
 		
 		//Invoice mode - uploading, paper or generate
-		$form_options='<option value="upload">Upload existing invoice</option>';
-		$form_options.='<option value="generate">Generate new invoice</option>';
-		$form_options.='<option value="paper">Paper invoice</option>';
+		$form_options='<option value="upload">'.__('upload existing invoice').'</option>';
+		$form_options.='<option value="generate">'.__('generate new invoice').'</option>';
+		$form_options.='<option value="paper">'.__('paper invoice').'</option>';
 		$content.= '<tr><th>'.__('input mode').'</th><td>';
 		$content.= '<select id="invoiceMode" name="invoiceMode">'.$form_options.'</select>'; //no onchange already a listener
 		$content.= '<select id="invoiceModeHidden" name="invoiceModeHidden" hidden="true">'.$form_options.'</select></td></tr>';
 
 		//Invoice location
-		$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"></td>';
+		
+		$content.= '<tr><th>'.__('invoice').'</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"></td>';
+		//$content.= '<tr><th>Invoice</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"></td>';
 		$content.= '<td><input type="file" id="invoiceUpBut" value="'.__('upload').'" name=myFile accept="image/*,.pdf" onchange="uploadInvoice(\'invoice_up\', this);"></td></tr>';
 		$content.= '<tr><th>'.__('reference').'</th><td><input type="text" id="reference" name="Reference" value="'.$sale['Reference'].'"/></td></tr>';
 		$content.= '</table></fieldset>';		
@@ -318,12 +320,13 @@
 
 		// Rijen met transacties
 		$content.= '<fieldset id="salesFieldSet"'.(($sale['Status']=='readonly'?'disabled':'')).'>';
-		$content.= '<legend>Accounting lines</legend><table id="salesTable" class="salesInputTable">';
+	//	$content.= '<legend>Accounting lines</legend><table id="salesTable" class="salesInputTable">';
+		$content.= '<legend>'.__('accounting lines').'</legend><table id="salesTable" class="salesInputTable">';
 		$content.= '<tr class="salesInputRow"><th class="salesInputCol">'.__('sales type').'</th>';
-		$content.='<th class="salesInputCol">'.__('nett').'</th>';
+		$content.='<th class="salesInputCol">'.__('nett').makeInfoButton(__('help-button-nett')).'</th>';
 		$content.='<th class="salesInputCol">'.__('vat type').'</th>';
-		$content.='<th class="salesInputCol">'.__('vat').'</th>';
-		$content.='<th class="salesInputCol">'.__('gross').'</th>';
+		$content.='<th class="salesInputCol">'.__('vat').makeInfoButton(__('help-button-vat')).'</th>';
+		$content.='<th class="salesInputCol">'.__('gross').makeInfoButton(__('help-button-gross')).'</th>';
 		$content.='<td class="salesInputColLast"><input type="button" id="addSalesRowButton" value="+"/></td></tr>';
 
 		//Totalen van de transacties
@@ -336,7 +339,7 @@
 			}
 		}
 		//TODO: add vat shift functionality
-		$content.='<tr><th class="salesInputCol">'.__('shift').'</th><td class="salesInputCol">';
+		$content.='<tr><th class="salesInputCol">'.__('vat shift').'</th><td class="salesInputCol">';
 		$content.='<select name="vatShift" id="vatShift" disabled="true"></select>';
 		$content.='<select name="vatShiftHidden" id="vatShiftHidden" hidden="true"></select></td></tr>';
 		$content.='<tr><th></th><td>-------------------</td></tr>';
@@ -350,7 +353,7 @@
 			case "" :
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
 				$content.='<span id="update_span" title="Input data first">';
-				$content.='<button type="submit" id="update" name="cmd" value="update" disabled="disabled">'.__('save').'</button></span>';	
+				$content.='<button type="submit" id="update" name="cmd" value="update" disabled="disabled">'.__('save').makeInfoButton(__('help-button-save-sales')).'</button></span>';	
 				if($sale['ID']){	//if not new entry
 					$content.='<span id="sendSpan" title="Input data first">';
 					$content.='<button type="submit" id="sendButton" name="cmd" value="sendtoreview">'.__('send').' '.__('for').' '.__('review').'</button></span>';		
@@ -364,7 +367,9 @@
 			case "final" :
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
 				$content.='<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';	
-				$content.='<button type="submit" name="cmd" value="save">'.__('save').'</button>';
+				$content.='<button type="submit" name="cmd" value="save">'.'</button>';
+				
+	//	$content.='<th class="salesInputCol">'.__('nett').makeInfoButton(__('help-button-nett')).'</th>';
 				break;
 			case "readonly" :
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
