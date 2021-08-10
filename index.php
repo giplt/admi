@@ -18,6 +18,7 @@
 	$lang = isset($query[0]) ? $query[0] : 'nl';
 	$page = isset($query[1]) ? $query[1] : 'projects';
 	$view = isset($query[2]) ? $query[2] : '';
+	$view2 = isset($query[3]) ? $query[3] : '';
 	$cmd = isset($_POST['cmd']) ? $_POST['cmd'] : '';
 	
 	// Load dictionary for interface language
