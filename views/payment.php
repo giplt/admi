@@ -13,7 +13,7 @@
 		while($item = $list->fetchArray()) {
 			$contact=$db->query("SELECT * FROM Contacts WHERE ID=".$item['ContactID'])->fetchArray();
 			$provider=$db->query("SELECT * FROM PaymentProviders WHERE ID=".$item['PaymentProviderID'])->fetchArray();
-			$content.= '<tr class="data"><td>'.$item['ID'].'</td><td>'.$contact['Name'].'</td><td>'.$provider['ProviderName'].'</td><td>'.$item['Account'].'</td><td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/payment/'.$item['ID'].'\';"/></td></tr>';
+			$content.= '<tr class="data"><td>'.$item['ID'].'</td><td>'.$contact['Name'].'</td><td>'.$provider['Name'].'</td><td>'.$item['Account'].'</td><td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/payment/'.$item['ID'].'\';"/></td></tr>';
 			
 		}
 		$content.= '</table>';
@@ -27,7 +27,7 @@
 			$past_query = explode('/', substr($_SERVER["HTTP_REFERER"], strlen($url)));
 			$past_contact=(is_numeric($past_query[2])) ? $past_query[2] : "def";
 
-			$provider = array("ID"=>"", "ProviderName"=>"", "Account"=>"","API"=>"");			
+			$provider = array("ID"=>"", "Name"=>"", "AccountID"=>"", "Account"=>"","API"=>"");			
 			$payment = array("ID"=>"", "ContactID"=>$past_contact, "PaymentProviderID"=>"def", "Account"=>"", "API"=>"");
 		}
 		else {
@@ -43,8 +43,8 @@
 
 		//get providers from database
 		$provider_options=array(array("def","choose account"),array("new","new account"));
-		$providers = $db->query("SELECT * FROM PaymentProviders ORDER BY ProviderName");
-		while($provider = $providers->fetchArray()) array_push($provider_options,array($provider['ID'],$provider['ProviderName']));
+		$providers = $db->query("SELECT * FROM PaymentProviders ORDER BY Name");
+		while($provider = $providers->fetchArray()) array_push($provider_options,array($provider['ID'],$provider['Name']));
 		$provider_options_safe=json_encode($provider_options);
 
 		//get contacts from the database
@@ -60,9 +60,10 @@
 		$content.= '<tr><th>Payment Provider</th><td><select id="ProvID" name="ProviderID"></select></td>';
 
 		//disabled fields, are enabled when new is selected and filled when another value is selected
-		$content.= '<tr><th>Provider Name</th><td><input type="text" name="ProviderName" id="ProvName" disabled="true" value="'.$provider['ProviderName'].'"/></td></tr>';
-		$content.= '<tr><th>Provider Account</th><td><input type="text" name="Account" id="ProvAccount" disabled="true" value="'.$provider['Account'].'"/></td></tr>';		
-		$disabled=json_encode(array("ProvName","ProvAccount"));
+		$content.= '<tr><th>Provider Name</th><td><input type="text" name="ProviderName" id="ProvName" disabled="true" value="'.$provider['Name'].'"/></td></tr>';
+		$content.= '<tr><th>Provider Account</th><td><input type="text" name="ProviderAccount" id="ProvAccount" disabled="true" value="'.$provider['Account'].'"/></td></tr>';		
+		$content.= '<tr><th>Provider Account ID</th><td><input type="text" name="ProviderAccountID" id="ProvAccountID" disabled="true" value="'.$provider['AccountID'].'"/></td></tr>';		
+		$disabled=json_encode(array("ProvName","ProvAccount","ProvAccountID"));
 
 		$content.= '<tr><th>Account</th><td><input type="text" name="Account" value="'.$payment['Account'].'"/></td></tr>';
 		$content.= '</table>';
@@ -87,7 +88,7 @@
 			case 'update':
 				if ($_POST['ID']=='new') {
 					if ($_POST['ProviderID']=="new"){
-						$db->query("INSERT INTO PaymentProviders (ProviderName,Account) VALUES ('".$_POST['ProviderName']."','".$_POST['Account']."')");
+						$db->query("INSERT INTO PaymentProviders (Name,Account,AccountID) VALUES ('".$_POST['ProviderName']."','".$_POST['ProviderAccount']."','".$_POST['ProviderAccountID']."')");
 						$prov_id = $db->lastInsertRowID();
 						$db->query("INSERT INTO PaymentEndpoint (ContactID, PaymentProviderID,Account) VALUES ('".$_POST['ContactID']."','".$prov_id."','".$_POST['Account']."')");			
 					}
@@ -97,7 +98,7 @@
 				}
 				else {
 					if ($_POST['ProviderID']=="new"){
-						$db->query("INSERT INTO PaymentProviders (ProviderName,Account) VALUES ('".$_POST['ProviderName']."','".$_POST['Account']."')");
+						$db->query("INSERT INTO PaymentProviders (Name,Account) VALUES ('".$_POST['ProviderName']."','".$_POST['ProviderAccount']."','".$_POST['ProviderAccountID']."')");
 						$prov_id = $db->lastInsertRowID();
 						$db->query("UPDATE PaymentEndpoint SET ContactID='".$_POST['ContactID']."',PaymentProviderID='".$prov_id."',Account='".$_POST['Account']."' WHERE ID='".$_POST['ID']."'");		
 					}
