@@ -266,7 +266,8 @@
 		$content.= '</table></fieldset>';		
 
 		//Haal alle opties voor kostensoort uit de database
-		$exp_options = array(array("def","pick-expense"));
+	//	$exp_options = array(array("def","pick-expense"));
+		$exp_options = array(array("def",__('pick-expense')));
 		$expenses = $db->query("SELECT * FROM Accounts WHERE PID='12' ORDER BY Name");
 		while($expense = $expenses->fetchArray()) array_push($exp_options,array($expense['ID'],$expense['Name']));
 		$exp_options_safe=json_encode($exp_options);
@@ -293,18 +294,18 @@
 		$content.='<fieldset id="expenseFieldSet"'.(($purchase['Status']=='readonly'?'disabled':'')).'>';
 		$content.='<legend>Accounting lines</legend><table id="expenseTable" class="expenseInputTable">';
 		$content.='<tr class="expenseInputRow"><th class="expenseInputCol">'.__('expense').'</th>'; 
-		$content.='<th class="expenseInputCol">'.__('gross').'</th>';
-		$content.='<th class="expenseInputCol">'.__('nett').'</th>';
-		$content.='<th class="expenseInputCol">'.__('vat').'</th>';
+		$content.='<th class="expenseInputCol">'.__('gross').makeInfoButton(__('help-button-gross')).'</th>';
+		$content.='<th class="expenseInputCol">'.__('nett').makeInfoButton(__('help-button-nett')).'</th>';
+		$content.='<th class="expenseInputCol">'.__('vat').makeInfoButton(__('help-button-vat')).'</th>';
 		$content.='<th class="expenseInputCol">'.__('vat type').'</th>';
-		$content.='<th class="expenseInputCol">'.__('vat shift').makeInfoButton(__('help-button-test')).'</th>';
+		$content.='<th class="expenseInputCol">'.__('vat shift').makeInfoButton(__('help-button-shift')).'</th>';
 		$content.='<td class="expenseInputColLast"><input type="button" id="addExpenseRowButton" value="'.__('add row').'"></tr>';
 		
 		//Laatste rij met het totaal
 		$content.= '<table class="expenseInputTotTable"><tr class="expenseInputRow"><th class="expenseInputCol">'.__('total').'</th>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="grossTot" id="grossTot" readonly></td>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="nettTot" id="nettTot" readonly></td>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="vatTot" id="vatTot" readonly></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="grossTot" id="'.__('grossTot').'" readonly></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="nettTot" id="'.__('nettTot').'" readonly></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="vatTot" id="'.__('vatTot').'" readonly></td>';
 		$content.= '<td class="expenseInputCol"></td>';
 		$content.= '<td class="expenseInputCol"><select id="vatShift" name="VatShift"></td>';
 		$content.= '<td class="expenseInputColLast"></td>';
