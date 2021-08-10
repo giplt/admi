@@ -63,7 +63,7 @@
 
 			// create payment entry
 			if ($newRecord) {
-				$transactionDate = $date['year'].'-'.$date['month'].'-'.$date['day'];
+				$transactionDate = sprintf("%04d-%02d-%02d", $date['year'], $date['month'], $date['day']);
 				$accountingDate = date("Y-m-d");
 				$db->query("INSERT INTO Entries (TransactionDate, AccountingDate, URL) VALUES ('".$transactionDate."', '".$accountingDate."', '".$_FILES["bankCSV"]["name"]."')");
 				// get the entryID from the database $id = $db->lastInsertRowID();

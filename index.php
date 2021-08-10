@@ -18,6 +18,7 @@
 	$lang = isset($query[0]) ? $query[0] : 'nl';
 	$page = isset($query[1]) ? $query[1] : 'projects';
 	$view = isset($query[2]) ? $query[2] : '';
+	$view2 = isset($query[3]) ? $query[3] : '';
 	$cmd = isset($_POST['cmd']) ? $_POST['cmd'] : '';
 	
 	// Load dictionary for interface language
@@ -34,6 +35,7 @@
 	}
 	
 	// Load database or create new is absent
+	if (!is_writable('.')) exit('Root folder not writable, cannot create database.');
 	$db = new SQLite3('accounting.sqlite');
 	if(filesize('accounting.sqlite')==0) $db->exec(file_get_contents('template.sql'));
 	$init = $db->querySingle("SELECT COUNT(*) as count FROM Users") == 0;

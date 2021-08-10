@@ -1,14 +1,14 @@
 <?php
 	if (isset($_POST['cmd'])) updateAccount();
-	elseif (isset($_POST['manage'])) viewAccountList();
-	elseif (isset($_POST['show'])) viewAccountMutations();
-	elseif ($view) viewAccount($view);
-	else viewAccountMutations();
-
-	function viewAccountMutations(){
+	elseif ($view) {
+		if ($view2=='edit') editAccount($view);
+		elseif ($view2=='view') viewAccount();
+	}
+	else viewAccountList();
+	
+	function viewAccount() {
 
 		//check if show is set
-
 		if(isset($_POST['show'])){
 			$acc_show=$_POST['AccountID'];
 			$pro_show=$_POST['ProjectID'];
@@ -26,8 +26,6 @@
 		$acc_list = $db->query($query);
 		$content.= '<table><tr><th>'.__('account').'</th><th>'.__('project').'</th><th>'.__('contact').'</th>';
 		$content.='<form method="post">';
-		$content.='<th><button type="submit" name="show" value="show">'.__('show').'</button></th>';
-		$content.='<th><button type="submit" name="manage" value="manage">'.__('manage').' '.__('accounts').'</button></th></tr>';
 		$content.='<tr>';
 
 		//get all account options
@@ -56,7 +54,7 @@
 		while($project = $projects->fetchArray()) $options.= '<option value="'.$project['ID'].'"'.($pro_show==$project['ID']?' selected':'').'>'.$project['Name'].'</option>';
 		$content.= '<td><select name="ProjectID">'.$options.'</select></td>';
 
-        	//get all contacts
+		//get all contacts
 		$options = '<option value="def"'.($con_show=="def" ? 'selected':'').'>'.__('all').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
 		while($contact = $contacts->fetchArray()) $options.= '<option value="'.$contact['ID'].'"'.($con_show==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
@@ -134,9 +132,9 @@
 			$content.='<tr><td></td><td></td><td></td><td></td><td></td><td></td><td>-----------</td></tr>';
 			$content.='<tr><td></td><td></td><td></td><td></td><td></td><td></td>';
 			$content.='<td>'.$acc_sum.'</td></tr>';
-			$content.='</table';			
+			$content.='</table>';
 		}
-	
+		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/accounts\';"/>';
 	}
 	
 	function viewAccountList() {
@@ -144,14 +142,14 @@
 		$query = "SELECT * FROM Accounts ORDER BY PID, ID";
 		$list = $db->query($query);
 		$content.= '<table>';
-		$content.= '<tr><th>ID</th><th>PID</th><th>'.__('name').'</th><td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/accounts/new\';"/></td></tr>';
+		$content.= '<tr><th>ID</th><th>PID</th><th>'.__('name').'</th><th>'.__('rgs').'</th><td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/accounts/new\';"/></td></tr>';
 		while($acc = $list->fetchArray()){
-			$content.= '<tr><td>'.$acc['ID'].'</td><td>'.$acc['PID'].'</td><td>'.$acc['Name'].'</td><td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/accounts/'.$acc['ID'].'\';"/></td></tr>';
+			$content.= '<tr><td>'.$acc['ID'].'</td><td>'.$acc['PID'].'</td><td>'.$acc['Name'].'</td><td>'.$acc['RGS'].'</td><td><input type="button" value="'.__('view').'" onclick="window.location.href=\''.$url.$lang.'/accounts/'.$acc['ID'].'/view\';"/><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/accounts/'.$acc['ID'].'/edit\';"/></td></tr>';
 		}
 		$content.= '</table>';
 	}
 	
-	function viewAccount($id) {
+	function editAccount($id) {
 		global $db, $content, $url, $lang;
 		if ($id=='new') $account = array("ID"=>"", "PID"=>"", "Name"=>"New account name");
 		else $account = $db->query("SELECT * FROM Accounts WHERE ID='{$id}'")->fetchArray();
@@ -162,6 +160,7 @@
 		$content.= '<tr><th>ID</th><td>'.$account['ID'].'</td>';
 		$content.= '<tr><th>PID</th><td><input type="text" name="PID" value="'.$account['PID'].'"/></td></tr>';
 		$content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" value="'.$account['Name'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('rgs').'</th><td><input type="text" name="Name" value="'.$account['RGS'].'"/></td></tr>';
 		$content.= '</table>';
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
@@ -174,11 +173,11 @@
 		switch ($_POST['cmd']) {
 			case 'update':
 				if ($_POST['ID']=='new') {
-					$db->query("INSERT INTO Accounts (Name) VALUES ('".$_POST['Name']."', '".$_POST['PID']."')");
+					$db->query("INSERT INTO Accounts (Name) VALUES ('".$_POST['Name']."', '".$_POST['PID']."', '".$_POST['RGS']."')");
 					$id = $db->lastInsertRowID();
 				}
 				else {
-					$db->query("UPDATE Accounts SET Name='".$_POST['Name']."' PID='".$_POST['PID']."' WHERE ID='".$_POST['ID']."'");
+					$db->query("UPDATE Accounts SET Name='".$_POST['Name']."' PID='".$_POST['PID']."' RGS='".$_POST['RGS']."' WHERE ID='".$_POST['ID']."'");
 					$id = $_POST['ID'];
 				}
 				break;
@@ -247,7 +246,7 @@
 
 			return $mut_sum;
 		}
-		else{
+		else {
 			return False;
 		}
 		 

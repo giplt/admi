@@ -263,6 +263,10 @@
 		"nl": "Opbrengstensoorten",
 		"en": "Revenues"
 	},
+	"rgs": {
+		"nl": "RGS Code",
+		"en": "RGS Code"
+	},
 	"sales": {
 		"nl": "Verkoop",
 		"en": "Sales"
@@ -318,6 +322,10 @@
 	"vat shift": {
 		"nl": "BTW verlegd",
 		"en": "VAT shifted"
+	},
+	"view": {
+		"nl": "Bekijk",
+		"en": "View"
 	},
 	"welcome-init": {
 		"nl": "Database is aangemaakt.<br/>Maak een eerste gebruiker aan.",
