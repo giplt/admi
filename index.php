@@ -35,6 +35,7 @@
 	}
 	
 	// Load database or create new is absent
+	if (!is_writable('.')) exit('Root folder not writable, cannot create database.');
 	$db = new SQLite3('accounting.sqlite');
 	if(filesize('accounting.sqlite')==0) $db->exec(file_get_contents('template.sql'));
 	$init = $db->querySingle("SELECT COUNT(*) as count FROM Users") == 0;
