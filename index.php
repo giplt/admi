@@ -68,8 +68,8 @@
 		foreach($views as $key => $php) $menu.= '<div class="menuItem'.($page==$key?' selected':'').'" onclick="location.href=\''.$url.$lang.'/'.$key.'\';">'.__($key).'</div>';
 
 		// Load page
-		if (file_exists('views/'.$views[$page])) include_once('views/'.$views[$page]);
-		else $content = 'TODO';
+		if (array_key_exists($page, $views) && file_exists('views/'.$views[$page])) include_once('views/'.$views[$page]);
+		else $content = __('error');
 	}
 	
 	// Output HTML
