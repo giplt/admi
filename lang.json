@@ -163,6 +163,55 @@
 		"nl": "Plan B lid",
 		"en": "Plan B member"
 	},
+	"january": {
+		"nl": "januari",
+		"en": "January"
+	},
+	"february": {
+		"nl": "februari",
+		"en": "February"
+	},
+	"march": {
+		"nl": "maart",
+		"en": "March"
+	},
+	"april": {
+		"nl": "april",
+		"en": "April"
+	},
+	"may": {
+		"nl": "mei",
+		"en": "May"
+	},	
+	"june": {
+		"nl": "juni",
+		"en": "June"
+	},
+	"july": {
+		"nl": "juli",
+		"en": "July"
+	},	
+	"augut": {
+		"nl": "augustus",
+		"en": "August"
+	},
+	"september": {
+		"nl": "september",
+		"en": "September"
+	},
+	"october": {
+		"nl": "oktober",
+		"en": "October"
+	},
+	"november": {
+		"nl": "november",
+		"en": "November"
+	},
+	"december": {
+		"nl": "december",
+		"en": "December"
+	},
+	
 	"name": {
 		"nl": "Naam",
 		"en": "Name"
@@ -171,13 +220,25 @@
 		"nl": "Netto",
 		"en": "Nett"
 	},
+	"nettTot": {
+		"nl": "Netto totaal",
+		"en": "Nett total"
+	},
 	"new": {
 		"nl": "Nieuw",
 		"en": "New"
 	},
-	"nettTot": {
-		"nl": "Netto totaal",
-		"en": "Nett total"
+	"new expense name": {
+		"nl": "Nieuwe kostenpost",
+		"en": "New expense name"
+	},
+	"new project name": {
+		"nl": "Nieuwe projectnaam",
+		"en": "New project name"
+	},
+	"new revenue name": {
+		"nl": "Nieuwe opbrengstensoort",
+		"en": "New revenue name"
 	},
 	"no": {
 		"nl": "Nee",
@@ -219,6 +280,10 @@
 		"nl": "Kies uitgavesoort",
 		"en": "pick expense type"
 	},
+	"pick-project": {
+		"nl": "Kies project",
+		"en": "pick project"
+	},
 	"price": {
 		"nl": "Prijs",
 		"en": "Price"
@@ -238,6 +303,10 @@
 	"purchases": {
 		"nl": "Inkoop",
 		"en": "Purchases"
+	},
+	"quarter": {
+		"nl": "Kwartaal",
+		"en": "Quarter"
 	},
 	"recipient": {
 		"nl": "Ontvangende partij",

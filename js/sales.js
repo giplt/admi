@@ -177,7 +177,8 @@ function addInvoiceRow(sel_options=""){
 	newInvoiceNett.setAttribute("name", "invoiceNett"+inRowCount.toString());
 	newInvoiceNett.setAttribute("type", "number");
 	newInvoiceNett.setAttribute("step", "0.01");
-	newInvoiceNett.setAttribute("value", sel_nett);
+	if (sel_nett===0) {newInvoiceNett.setAttribute("placeholder", "0");} else
+	{newInvoiceNett.setAttribute("value", sel_nett);}
 	newInvoiceColE.appendChild(newInvoiceNett);
 
 	//VAT type & hidden select item

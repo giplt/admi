@@ -15,14 +15,15 @@
 	
 	function viewExpense($id) {
 		global $db, $content, $url, $lang;
-		if ($id=='new') $expense = array("ID"=>"", "Name"=>"New expense name");
+		if ($id=='new') $expense = array("ID"=>"", "Name"=>__('new expense name'));
 		else $expense = $db->query("SELECT * FROM Accounts WHERE ID='{$id}'")->fetchArray();
 		$protected = false;
 		$content.= '<form method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
 		$content.= '<table>';
 		$content.= '<tr><th>ID</th><td>'.$expense['ID'].'</td>';
-		$content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" value="'.$expense['Name'].'"/></td></tr>';
+		if ($id=='new') $content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" placeholder="'.$expense['Name'].'"/></td></tr>';
+		else $content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" value="'.$expense['Name'].'"/></td></tr>';
 		$content.= '</table>';
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';

@@ -266,7 +266,6 @@
 		$content.= '</table></fieldset>';		
 
 		//Haal alle opties voor kostensoort uit de database
-	//	$exp_options = array(array("def","pick-expense"));
 		$exp_options = array(array("def",__('pick-expense')));
 		$expenses = $db->query("SELECT * FROM Accounts WHERE PID='12' ORDER BY Name");
 		while($expense = $expenses->fetchArray()) array_push($exp_options,array($expense['ID'],$expense['Name']));
