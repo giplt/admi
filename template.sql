@@ -80,7 +80,6 @@ CREATE TABLE 'Bank' (
 CREATE TABLE 'Memorial' (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
 , `EntryID` integer NOT NULL DEFAULT ''
-, `TransactionID` integer NOT NULL DEFAULT ''
 , `Description` varchar(63) NOT NULL DEFAULT ''		-- Larger description to explain booking
 , `ContactID` integer DEFAULT '0'			-- ID of contact that recieves the invoice
 , `ProjectID` integer DEFAULT '0'			-- ID of project
