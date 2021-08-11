@@ -83,6 +83,10 @@
 		"nl": "Email",
 		"en": "Email"
 	},
+	"error": {
+		"nl": "Deze pagina bestaat niet",
+		"en": "This page doesn't exist"
+	},
 	"expense": {
 		"nl": "Kostenpost",
 		"en": "Expense"

@@ -55,11 +55,11 @@
 			$paymentEndPoint = $api->paymentEndPointField ? $item[$api->paymentEndPointField]: "";
 			$transactionFee = $api->transactionFeeField ? $item[$api->transactionFeeField] : false;
 			// get unique ID for transaction, to be used for protection against double booking of the same transaction on re-import
-			$transactionID = $item[$api->transactionID] ? $item[$api->transactionID] : md5(serialize($item));
+			$statementID = $item[$api->transactionID] ? $item[$api->transactionID] : md5(serialize($item));
 			
 			// check if bank entry exists
 			// TODO: add payment provider name to transaction id to prevent (improbable) collisions of IDs
-			$newRecord = $db->querySingle("SELECT COUNT(*) as count FROM Bank WHERE TransactionID='".$transactionID."'") == 0;
+			$newRecord = $db->querySingle("SELECT COUNT(*) as count FROM Bank WHERE StatementID='".$statementID."'") == 0;
 
 			// create payment entry
 			if ($newRecord) {
@@ -69,7 +69,7 @@
 				// get the entryID from the database $id = $db->lastInsertRowID();
 				$last_entry = $db->querySingle("SELECT MAX(ID) FROM Entries LIMIT 1");
 				$entryID = intval($last_entry);
-				$db->query("INSERT INTO Bank (EntryID, TransactionID, Description, FromPaymentEndpointID, ToPaymentEndpointID) VALUES ('".$entryID."','".$transactionID."','".$description."', '', '')");
+				$db->query("INSERT INTO Bank (EntryID, StatementID, Description, FromPaymentEndpointID, ToPaymentEndpointID) VALUES ('".$entryID."','".$statementID."','".$description."', '', '')");
 				$imports++;
 
 				// Create transaction

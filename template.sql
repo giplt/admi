@@ -70,7 +70,7 @@ CREATE TABLE 'Sales' (
 CREATE TABLE 'Bank' (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 	
 , `EntryID` integer NOT NULL DEFAULT ''
-, `TransactionID` integer NOT NULL DEFAULT ''
+, `StatementID` integer NOT NULL DEFAULT ''			-- used to prevent double import of bank statements
 , `Description` varchar(63) NOT NULL DEFAULT ''
 , `FromPaymentEndpointID` integer NOT NULL DEFAULT '0'
 , `ToPaymentEndpointID` integer NOT NULL DEFAULT '0'
@@ -80,7 +80,6 @@ CREATE TABLE 'Bank' (
 CREATE TABLE 'Memorial' (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT 
 , `EntryID` integer NOT NULL DEFAULT ''
-, `TransactionID` integer NOT NULL DEFAULT ''
 , `Description` varchar(63) NOT NULL DEFAULT ''		-- Larger description to explain booking
 , `ContactID` integer DEFAULT '0'			-- ID of contact that recieves the invoice
 , `ProjectID` integer DEFAULT '0'			-- ID of project
