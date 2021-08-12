@@ -15,14 +15,16 @@
 	
 	function viewProject($id) {
 		global $db, $content, $url, $lang;
-		if ($id=='new') $project = array("ID"=>"", "Name"=>"New project name");
+		if ($id=='new') $project = array("ID"=>"", "Name"=>__('new project name'));
 		else $project = $db->query("SELECT * FROM Projects WHERE ID='{$id}'")->fetchArray();
 		$protected = false;
+		//$active = true;			////
 		$content.= '<form method="post">';
 		$content.= '<input type="hidden" name="ID" value="'.$id.'"/>';
 		$content.= '<table>';
 		$content.= '<tr><th>ID</th><td>'.$project['ID'].'</td>';
-		$content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" value="'.$project['Name'].'"/></td></tr>';
+		if ($id=='new') $content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" placeholder="'.$project['Name'].'"/></td></tr>';
+		else $content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" value="'.$project['Name'].'"/></td></tr>';
 
 		$content.= '<tr><th>'.__('users').'</th><td>';
 		$users = $db->query("SELECT * FROM Users ORDER BY Email");
@@ -56,8 +58,11 @@
 				break;
 			case 'remove':
 				$project = $db->query("SELECT * FROM Projects WHERE ID='".$_POST['ID']."'")->fetchArray();
+				//if ($db->query("SELECT * FROM Projects WHERE ID='".$_POST['ID']."'")->fetchArray()==null){////
 				$db->query("DELETE FROM Accounts WHERE ID='".$project['AccountID']."'");
 				$db->query("DELETE FROM Projects WHERE ID='".$_POST['ID']."'");
+				//}///
+				//else $active = false;////
 				break;
 		}
 		viewProjectList();

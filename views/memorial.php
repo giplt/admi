@@ -1,5 +1,6 @@
 <?php
 	if (!is_dir('files')) mkdir('files');
+	if (!is_dir('files/memorial')) mkdir('files/memorial');
 	
 	if(isset($_FILES["invoice"])) {
 		$error = false;
@@ -22,7 +23,7 @@
 		switch($filetype) {
 			case "pdf":
 				$filename = uniqid().".pdf";
-				move_uploaded_file($_FILES["invoice"]["tmp_name"], 'files/memorial'.$filename);
+				move_uploaded_file($_FILES["invoice"]["tmp_name"], 'files/memorial/'.$filename);
 				echo $filename;
 				break;
 			default:
@@ -65,8 +66,8 @@
 		$content.= '<th>'.__('description').'</th>';
 		$content.= '<th>'.__('project').'</th>';
 		$content.= '<th>'.__('contact').'</th>';
-		$content.= '<td>'.__('account').'</td>';
-		$content.= '<td>'.__('amount').'</td>';
+		$content.= '<th>'.__('account').'</th>';
+		$content.= '<th>'.__('amount').'</th>';
 		$content.= '<td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/memorial/new\';"/></td>';
 		$content.= '</tr>';
 		if($list){
@@ -74,11 +75,12 @@
 
 				//collect info
 				$entry=$db->query("SELECT * FROM Entries WHERE ID='".$memorial['EntryID']."'")->fetchArray();
+				$transaction=$db->query("SELECT * FROM Transactions WHERE EntryID='".$memorial['EntryID']."'")->fetchArray();
 
 				//get project names from database
 				$project = $db->query("SELECT * FROM Projects WHERE ID='".$memorial['ProjectID']."'")->fetchArray();
 				$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$memorial['ContactID']."'")->fetchArray();
-				$mutations = $db->query("SELECT * FROM Mutations WHERE TransactionID='".$memorial['TransactionID']."'")->fetchArray();
+				$mutations = $db->query("SELECT * FROM Mutations WHERE TransactionID='".$transaction['ID']."'");
 			
 				//put in the table			
 				$content.= '<tr class="data">';
@@ -92,14 +94,19 @@
 				$content.= '<td><input type="button" value="'.__('inzien').'" onclick="window.location.href=\''.$url.$lang.'/memorial/'.$memorial['ID'].'\';"/></td>';
 				$content.= '</tr>';
 				
-				foreach ($mutations as $mut){
+				while($mut = $mutations->fetchArray()){
+					
+					//get the name of the account
+					$account = $db->query("SELECT * FROM Accounts WHERE ID='".$mut['AccountID']."'")->fetchArray();
+
+					//make a table
 					$content.= '<tr class="data">';
 					$content.= '<td></td>';
 					$content.= '<td></td>';
 					$content.= '<td></td>';
 					$content.= '<td></td>';
 					$content.= '<td></td>';
-					$content.= '<td>'.$mut['Account'].'</td>';
+					$content.= '<td>'.$account['Name'].'</td>';
 					$content.= '<td>'.$mut['Amount'].'</td>';
 					$content.= '</tr>';
 				}					
@@ -120,12 +127,10 @@
 		if ($id=='new'){
 
 			//create empty arrays
-			$last_transaction = $db-> query("SELECT MAX(ID) FROM Transactions LIMIT 1)");
 
 			$memorial = array(
 				"ID"=>"", 
 				"EntryID" => "", 
-				"TransactionID" => $last_transaction+1,
 				"Description" => "", 
 				"ContactID" => "", 
 				"ProjectID" => ""
@@ -146,21 +151,11 @@
 			//load arrays from the database
 			$memorial = $db->query("SELECT * FROM Memorial WHERE ID='".$id."'")->fetchArray();
 			$entry = $db->query("SELECT * FROM Entries WHERE ID='".$memorial['EntryID']."'")->fetchArray();
+			
+			//load multiple arrays (without fetcharray())
+			$transactions=$db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'")->fetchArray();
+			$mutations=$db->query("SELECT * FROM Mutations WHERE TransactionID='".$transactions['ID']."'");
 
-
-			//maybe usefull for later
-			$transactions=array();
-			$mutations=array();
-			$transaction_results = $db->query("SELECT * FROM Transactions WHERE EntryID='".$entry['ID']."'");
-
-			while ($transaction=$transaction_results->fetchArray()){
-				array_push($transactions,$transaction);
-				$mutation_results=$db->query("SELECT * FROM Mutations WHERE Mutations.TransactionID='".$transaction['ID']."'");
-
-				while ($mutation=$mutation_results->fetchArray()){
-					array_push($mutations,$mutation);
-				}
-			}
 		}			
 
 		$protected = false;
@@ -213,8 +208,11 @@
 			"></select>';
 		$content.= '<select id="periodSelectHidden" name="periodSelectHidden" hidden="true"></select>';
 		$content.= '<select id="yearSelectHidden" name="yearSelectHidden" hidden="true"></select></td>';
-		$content.= '<td id="periodFromLabel" hidden="true">'.__('from').'<input type="date" id="periodFrom" name="PeriodFrom" value="'.$entry['PeriodFrom'].'"></td>';
-		$content.= '<td id="periodToLabel" hidden="true">'.__('to').'<input type="date" id="periodTo" name="PeriodTo" value="'.$entry['PeriodTo'].'"></td></tr>';
+
+		$content.= '<td id="periodFromLabel" '.($memorial['ID']?'':' hidden').'>'.__('from');
+		$content.= '<input type="date" id="periodFrom" name="PeriodFrom" value="'.$entry['PeriodFrom'].'"></td>';
+		$content.= '<td id="periodToLabel" '.($memorial['ID']?'':' hidden').'>'.__('to');
+		$content.= '<input type="date" id="periodTo" name="PeriodTo" value="'.$entry['PeriodTo'].'"></td></tr>';
 
 		//Entry upload
 		$content.= '<tr><th>'.__('location').'</th><td><input type="text" id="location" name="Location" value="'.$entry['URL'].'"/></td>' ;
@@ -223,7 +221,7 @@
        		//ContactID
 		$contact_options = '<option value="" disabled="disabled"'.($memorial['ContactID']?'':' selected').'>'.__('pick-contact').'</option>';
 		$contacts = $db->query("SELECT * FROM Contacts ORDER BY Name");
-		while($contact = $contacts->fetchArray()) $contact_options.= '<option value="'.$contact['ID'].'"'.($purchase['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
+		while($contact = $contacts->fetchArray()) $contact_options.= '<option value="'.$contact['ID'].'"'.($memorial['ContactID']==$contact['ID']?' selected':'').'>'.$contact['Name'].'</option>';
 		$content.= '<tr><th>'.__('contact').'</th>';
 		$content.= '<td><select id="contactId" name="ContactID" onchange="readOnlySelect(\'contactId\',\'contactIdHidden\');">'.$contact_options.'</select>';
 		$content.= '<select id="contactIdHidden" name="contactIDhidden" hidden="true">'.$contact_options.'</select></td>'; 
@@ -249,7 +247,6 @@
 		//Mutations
 		$content.='<fieldset id="mutationFieldSet"'.(($memorial['ID']==''?'':'disabled')).'>';
 		$content.='<legend>Mutations</legend>';
-		$content.='<input id="transactionId" name="TransactionID" hidden="true" value="'.$memorial['TransactionID'].'">';
 		$content.='<table id="mutationTable" class="mutantionInputTable">';
 		$content.='<tr class="mutationInputRow">';
 		$content.='<th class="mutationInputCol">'.__('account').'</th>'; 
@@ -277,7 +274,7 @@
 		$content.= '</form></div>';
 
 		//div containing the uploaded invoice
-		$content.= '<div id="invoiceView" class="expenseInputVis">';
+		$content.= '<div id="entryView" class="expenseInputVis">';
 		switch(pathinfo($entry['URL'], PATHINFO_EXTENSION)) {
 			case 'pdf': $content.= '<embed src="files/'.$entry['URL'].'" width="400px" height="600px" />'; break;
 			case 'jpg': $content.= '<img src="files/'.$entry['URL'].'" width="400px" />'; break;
@@ -307,8 +304,18 @@
 		$content.= '<script>addOnClick()</script>';					//connects an event listener to the addRow button
 		$content.= '<script>onChangeFieldSet('.$all_fieldsets_safe.')</script>';	//runs sripts when Changes are made to the fieldsets
 
-		//add just one row
-		$content.= '<script>addMutationRow()</script>';
+		if($memorial['ID']==''){							//new memorial
+
+			//add just one row
+			$content.= '<script>addMutationRow()</script>';				
+
+		} //if
+		else{				
+			while($mut = $mutations->fetchArray()){					//make a line for each mutation in the database			
+				$select_array_safe=json_encode(array($mut['AccountID'],$mut['Amount']));
+				$content.= '<script>addMutationRow('.$select_array_safe.')</script>';	
+			} //while loop
+		} //else
 	}
 	
 	function updateMemorial() {
@@ -320,15 +327,17 @@
 				if ($_POST['ID']=='new') {
 
 					//Insert a new entry
-					$db->query("INSERT INTO Entries (TransactionDate, AccountingDate, URL) VALUES ('".$_POST['TransactionDate']."', '".$_POST['AccountingDate']."', '".$_POST['Location']."')");
+					$db->query("INSERT INTO Entries (TransactionDate, AccountingDate, PeriodFrom, PeriodTo, URL) VALUES ('".$_POST['TransactionDate']."', '".$_POST['AccountingDate']."', '".$_POST['PeriodFrom']."', '".$_POST['PeriodTo']."', '".$_POST['Location']."')");
 					
 					// get the entryID from the database $id = $db->lastInsertRowID();
 					$last_entry=$db->querySingle("SELECT MAX(ID) FROM Entries LIMIT 1");
 					$entryID=intval($last_entry);
 
-					//insert a new Memorial
-					$db->query("INSERT INTO Memorial (EntryID, TransactionID, Description, ContactID, ProjectID) VALUES ('".$entryID."','".$_POST['TransactionID']."','".$_POST['Description']."', '".$_POST['ContactID']."','".$_POST['ProjectID']."')");
-										
+					//insert a new Memorial and Transaction
+					$db->query("INSERT INTO Memorial (EntryID, Description, ContactID, ProjectID) VALUES ('".$entryID."','".$_POST['Description']."', '".$_POST['ContactID']."','".$_POST['ProjectID']."')");
+					$db->query("INSERT INTO Transactions (EntryID) VALUES ('".$entryID."')");
+					$last_transaction=intval($db->querySingle("SELECT MAX(ID) FROM Entries LIMIT 1"));
+					
 					foreach ($_POST as $key => $value){
 			
 						//add the expense rows to the json file
@@ -336,7 +345,7 @@
 							$mut_num=substr($key, strlen("mutationAccountFromHidden"),strlen($key));
 							$account=$_POST["mutationAccountFrom".$mut_num];
 							$amount=$_POST["mutationAmount".$mut_num];		
-							$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$_POST['TransactionID']."', '".$account."', '".$amount."')");
+							$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$last_transaction."', '".$account."', '".$amount."')");
 	
 						} //if
 					} //foreach

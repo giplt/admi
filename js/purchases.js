@@ -171,7 +171,8 @@ function addExpenseRow(sel_options="") {
 	newExpenseGross.setAttribute("name", "expenseGross"+rowCount.toString());
 	newExpenseGross.setAttribute("type", "number");
 	newExpenseGross.setAttribute("step", "0.01");
-	newExpenseGross.setAttribute("value", sel_gross);
+	if (sel_gross===0) {newExpenseGross.setAttribute("placeholder", "0");} else
+	{newExpenseGross.setAttribute("value", sel_gross);}
 	newExpenseGross.setAttribute("class", "expenseInputField");
 	newExpenseColB.appendChild(newExpenseGross);
 
@@ -181,7 +182,9 @@ function addExpenseRow(sel_options="") {
 	newExpenseNett.setAttribute("name", "expenseNett"+rowCount.toString());
 	newExpenseNett.setAttribute("type", "number");
 	newExpenseNett.setAttribute("step", "0.01");
-	newExpenseNett.setAttribute("value", sel_nett);
+	if (sel_nett===0) {newExpenseNett.setAttribute("placeholder", "0");} else
+	{newExpenseNett.setAttribute("value", sel_nett);}
+	//newExpenseNett.setAttribute("value", sel_nett);
 	newExpenseNett.setAttribute("class", "expenseInputField");
 	newExpenseColC.appendChild(newExpenseNett);
 

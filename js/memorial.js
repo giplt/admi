@@ -52,6 +52,9 @@ function addOnClick(){
 
 function addMutationRow(sel_options="") {
 
+	//console.log("Select options");
+	//console.log(sel_options);
+
 	var mutationTable = document.getElementById("mutationTable");
 	var newMutationRow = document.createElement("tr");
 	newMutationRow.setAttribute("id", "mutationRow"+rowCount.toString());
@@ -78,7 +81,7 @@ function addMutationRow(sel_options="") {
 
 		//from database
 		sel_account_from=sel_options[0];
-		sel_amount=sel_options[2];
+		sel_amount=sel_options[1];
 	}
 	else{
 
@@ -339,9 +342,9 @@ function maxCheck(){
 	
 }
 
-//----------------------------------------------
+//------------------------------------------------
 //Functions that allow a document to be uploaded
-//----------------------------------------------
+//------------------------------------------------
 
 function upload(name, input) {
 	var xhr = new XMLHttpRequest();
@@ -350,8 +353,8 @@ function upload(name, input) {
 			filename = this.responseText;
 			document.getElementById('location').value = filename;
 			type  = filename.split('.').pop();
-			if (type=='pdf') document.getElementById('invoiceView').innerHTML = '<embed src="files/' + filename + '" width="400px" height="600px" />';
-			if (type=='jpg') document.getElementById('invoiceView').innerHTML = '<img src="files/' + filename + '" width="400px" />';
+			if (type=='pdf') document.getElementById('entryView').innerHTML = '<embed src="files/' + filename + '" width="400px" height="600px" />';
+			if (type=='jpg') document.getElementById('entryView').innerHTML = '<img src="files/' + filename + '" width="400px" />';
 		}
 	};
 	var data = new FormData();
