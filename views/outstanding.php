@@ -77,6 +77,7 @@
 		$list = $db->query($query.$WHERE_LEFT.$ORDER);
 		$content.= '<table>';
 		$content.= '<tr><th style="text-align:right;">ID</th><th>'.__('date').'</th><th style="text-align:right;">'.__('amount').'</th><th>'.__('description').'</th></tr>';
+		$description = '';
 		while($item = $list->fetchArray()) {
 			switch($item['AccountID']) {
 				case 4:
