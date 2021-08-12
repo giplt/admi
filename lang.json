@@ -27,6 +27,22 @@
 		"nl": "Bedrag",
 		"en": "Amount"
 	},
+	"amounts-payed": {
+		"nl": "Betaalde bedragen",
+		"en": "Payed amounts"
+	},
+	"amounts-received": {
+		"nl": "Ontvangen bedragen",
+		"en": "Received amounts"
+	},
+	"amounts-to-pay": {
+		"nl": "Te betalen bedragen (crediteuren)",
+		"en": "Amounts to be payed"
+	},
+	"amounts-to-receive": {
+		"nl": "Te ontvangen bedragen (debiteuren)",
+		"en": "Amounts to be received (debtors)"
+	},
 	"back": {
 		"nl": "Terug",
 		"en": "Back"
@@ -42,6 +58,10 @@
 	"charge": {
 		"nl": "Doorfactureren",
 		"en": "Charge"
+	},
+	"check": {
+		"nl": "Check",
+		"en": "Check"
 	},
 	"choose file": {
 		"nl": "Kies bestand",
@@ -94,6 +114,10 @@
 	"expenses": {
 		"nl": "Kostensoorten",
 		"en": "Expenses"
+	},
+	"filter": {
+		"nl": "Filter",
+		"en": "Filter"
 	},
 	"generate new invoice": {
 		"nl": "Genereer een nieuwe factuur",
@@ -191,9 +215,21 @@
 		"nl": "Aantal",
 		"en": "Number"
 	},
+	"outstanding": {
+		"nl": "Openstaand",
+		"en": "Outstanding"
+	},
+	"outstanding-transactions": {
+		"nl": "Openstaande transacties",
+		"en": "Outstanding transactions"
+	},
 	"paper invoice": {
 		"nl": "Papieren factuur",
 		"en": "Paper invoice"
+	},
+	"payed": {
+		"nl": "Betaald",
+		"en": "Payed"
 	},
 	"payment": {
 		"nl": "Betaling",
@@ -247,6 +283,10 @@
 		"nl": "Ontvangende partij",
 		"en": "Recipient"
 	},
+	"received": {
+		"nl": "Ontvangen",
+		"en": "Received"
+	},
 	"reference": {
 		"nl": "Referentie",
 		"en": "Reference"
@@ -283,6 +323,10 @@
 		"nl": "Sla op",
 		"en": "Save"
 	},
+	"sort-by": {
+		"nl": "Sorteer op",
+		"en": "Sort by"
+	},
 	"submit": {
 		"nl": "Sla op",
 		"en": "Submit"
@@ -290,6 +334,14 @@
 	"taxes": {
 		"nl": "Belastingen",
 		"en": "Taxes"
+	},
+	"to-pay": {
+		"nl": "Te betalen",
+		"en": "To pay"
+	},
+	"to-receive": {
+		"nl": "Te ontvangen",
+		"en": "To receive"
 	},
 	"transfers": {
 		"nl": "Overschrijvingen",

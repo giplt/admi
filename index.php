@@ -61,7 +61,8 @@
 			"accounts" => "accounts.php",
 			"paymentproviders" => "paymentproviders.php",
 			"expenses" => "expenses.php",
-			"revenues" => "revenues.php"
+			"revenues" => "revenues.php",
+			"outstanding" => "outstanding.php"
 		);
 
 		// Build menu
