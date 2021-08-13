@@ -66,6 +66,25 @@
 				break;
 
 			case ($_POST['cmd']=='remove'):
+			//Check if contact has any accounts
+			
+				$contactExistsInPurchases = $db->querySingle("SELECT COUNT(*) as count FROM Purchases WHERE ContactID='".$_POST['ID']."'");
+				$contactExistsInUsers = $db->querySingle("SELECT COUNT(*) as count FROM Users WHERE ContactID='".$_POST['ID']."'");
+				$contactExistsInSales = $db->querySingle("SELECT COUNT(*) as count FROM Sales WHERE ContactID='".$_POST['ID']."'");
+				$contactExistsInMemorial = $db->querySingle("SELECT COUNT(*) as count FROM Memorial WHERE ContactID='".$_POST['ID']."'");
+				$contactExistsInPaymentEndpoint = $db->querySingle("SELECT COUNT(*) as count FROM PaymentEndpoint WHERE ContactID='".$_POST['ID']."'");
+
+				if ($contactExistsInPurchases || $contactExistsInUsers || $contactExistsInSales || $contactExistsInMemorial||$contactExistsInPaymentEndpoint) {
+					//Check if contact has been used
+					echo 'Contact is used, it cannot be deleted';
+				}
+				else {
+					//Delete the contact
+				$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$_POST['ID']."'")->fetchArray();
+				$db->query("DELETE FROM Contacts WHERE ID='".$_POST['ID']."'");
+				}
+			
+			/*
 				//Delete all paymentendpoints belonging to this contact
 				$payment_accounts=$db->query("SELECT * FROM PaymentEndpoint WHERE ContactID='".$POST['ID']."'");
 				while($acc= $payment_accounts->fetchArray()){
@@ -76,7 +95,7 @@
 				//Delete the contact
 				$contact = $db->query("SELECT * FROM Contacts WHERE ID='".$_POST['ID']."'")->fetchArray();
 				$db->query("DELETE FROM Contacts WHERE ID='".$_POST['ID']."'");
-
+			*/
 				viewContactList();
 				break;
 

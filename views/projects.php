@@ -35,20 +35,6 @@
 		$content.= '</td></tr>';
 		$content.= '<tr>';
 		$content.= '<th>Status</th>';
-/*
-		$content.= '<td><select name="Status" id="status">'
-		$content.= '<option value="active"';
-		if ($project['Status']=='Active') $content.= ' selected';
-		$content.= '>Active</option>';
-		$content.= '<option value="new"';
-		if ($project['Status']=='New') $content.= ' selected';
-		$content.= '>New</option>';
-		$content.= '<option value="deactivated"';
-		if ($project['Status']=='Deactivated') $content.= ' selected';
-		$content.= '>Deactivated</option>';
-		$content.= '</select></td>';
-
-*/
 		$content.= '<td><select name="Status" id="status">
 			<option value="active"'.($project['Status']=='active'?' selected':'').'>Active</option>
 			<option value="deactivated"'.($project['Status']=='deactivated'?' selected':'').'>Deactivated</option>
@@ -58,13 +44,14 @@
 		$content.= '</tr>';
 		$content.= '</table>';
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
-		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
-		//if ($protected) $content.= '<button type="submit" name="cmd" value="deactivate">'.__('deactivate').'</button>';
+		//if (!$protected) 
+		$content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/projects\';"/>';
 		$content.= '</form>';
 	}
 	
 	function updateProject() {
+		//TODO: only deactivate when saldo = 0
 		global $db, $content, $url, $lang;
 		$userIDs = isset($_POST['UserIDs']) ? implode(',', $_POST['UserIDs']) : '';
 		$status = $_POST['Status'];
@@ -82,9 +69,20 @@
 				}
 				break;
 			case 'remove':
+				$projectExistsInPurchases = $db->querySingle("SELECT COUNT(*) as count FROM Purchases WHERE ProjectID='".$_POST['ID']."'");
+				$projectExistsInSales = $db->querySingle("SELECT COUNT(*) as count FROM Sales WHERE ProjectID='".$_POST['ID']."'");
+				$projectExistsInMemorial = $db->querySingle("SELECT COUNT(*) as count FROM Memorial WHERE ProjectID='".$_POST['ID']."'");
+
+				if ($projectExistsInPurchases || $projectExistsInSales || $projectExistsInMemorial) {//als hij wel bestaat
+					echo 'Project is used, it cannot be deleted';
+				}
+				else {
+					
+				
+			//while($project = $projects->fetchArray()) if ($sale['ProjectID']==$project['ID']||$purchase['ProjectID']==$project['ID']){
 				$project = $db->query("SELECT * FROM Projects WHERE ID='".$_POST['ID']."'")->fetchArray();
 				$db->query("DELETE FROM Accounts WHERE ID='".$project['AccountID']."'");
-				$db->query("DELETE FROM Projects WHERE ID='".$_POST['ID']."'");
+				$db->query("DELETE FROM Projects WHERE ID='".$_POST['ID']."'");}
 				break;
 		}
 		viewProjectList();
