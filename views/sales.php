@@ -263,10 +263,13 @@
 		$content.= '<td id="periodFromLabel" hidden="true">'.__('from').'<input type="date" id="periodFrom" name="periodFrom" value="'.$entry['PeriodFrom'].'"></td>';
 		$content.= '<td id="periodToLabel" hidden="true">'.__('to').'<input type="date" id="periodTo" name="periodTo" value="'.$entry['PeriodTo'].'"></td></tr>';
 		
+	
 		//ProjectID select field
-		$options = '<option value="" disabled="disabled"'.(($sale['Status']=='readonly'?'disabled':'')).'>'.__('pick-project').'</option>';
+		$options = '<option value="" disabled="disabled"'.($sale['ProjectID']?'':' selected').'>'.__('pick-project').'</option>';
+		//oude versie van bovenstaande, werkte niet goed, maar in de nieuwe regel gebeurt er niets met readonly, is dat nodig?:
+		//$options = '<option value="" disabled="disabled"'.(($sale['Status']=='readonly'?'disabled':'')).'>'.__('pick-project').'</option>';
 		$projects = $db->query("SELECT * FROM Projects ORDER BY Name");
-		while($project = $projects->fetchArray()) $options.= '<option value="'.$project['ID'].'"'.($sale['ProjectID']==$project['ID']?' selected':'').'>'.$project['Name'].'</option>';
+		while($project = $projects->fetchArray()) if ($project['Status']=='active') $options.= '<option value="'.$project['ID'].'"'.($sale['ProjectID']==$project['ID']?' selected':'').'>'.$project['Name'].'</option>';
 		$content.= '<tr><th>'.__('project').'</th><td>';
 		$content.= '<select id="projectId" name="ProjectID" onchange="readOnlySelect(\'projectId\',\'projectIdHidden\');">'.$options.'</select>';
 		$content.= '<select id="projectIdHidden" name="ProjectIDhidden" hidden="true">'.$options.'</select></td></tr>';

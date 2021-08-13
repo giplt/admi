@@ -22,6 +22,7 @@ CREATE TABLE `Projects` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
 , `AccountID` integer NOT NULL DEFAULT '0'
 , `UserIDs` varchar(64) NOT NULL DEFAULT ''
+, `Status` varchar(64) NOT NULL DEFAULT ''
 , `Name` varchar(64) NOT NULL DEFAULT ''
 );
 CREATE TABLE `Accounts` (
