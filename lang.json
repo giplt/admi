@@ -380,6 +380,10 @@
 		"nl": "RGS Code",
 		"en": "RGS Code"
 	},
+	"rules": {
+		"nl": "Boekhoudregels",
+		"en": "Accounting rules"
+	},
 	"sales": {
 		"nl": "Verkoop",
 		"en": "Sales"

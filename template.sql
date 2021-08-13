@@ -126,6 +126,12 @@ CREATE TABLE `Merge` (
 , `MergeDate` date NOT NULL DEFAULT '0'
 ); 
 
+CREATE TABLE `Rules` (
+  `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
+, `Name` varchar(64) NOT NULL DEFAULT ''
+, `Json` text NOT NULL DEFAULT ''
+);
+
 /*
 CREATE TABLE `ObligationTypes` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT

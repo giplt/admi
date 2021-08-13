@@ -53,7 +53,7 @@
 			"bank" => "bank.php",
 			"purchases" => "purchases.php",
 			"sales" => "sales.php",
-//			"memorial" => "memorial.php",
+			"memorial" => "memorial.php",
 //			"taxes" => "taxes.php",
 //			"balance" => "balance.php",
 //			"profit" => "profit.php",
@@ -62,7 +62,8 @@
 			"paymentproviders" => "paymentproviders.php",
 			"expenses" => "expenses.php",
 			"revenues" => "revenues.php",
-			"outstanding" => "outstanding.php"
+			"outstanding" => "outstanding.php",
+			"rules" => "rules.php"
 		);
 
 		// Build menu
