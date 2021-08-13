@@ -46,7 +46,17 @@
 				}
 				break;
 			case 'remove':
+			$expansetypeExistsInMutations = $db->querySingle("SELECT COUNT(*) as count FROM Mutations WHERE AccountID='".$_POST['ID']."'");
+			
+
+					//If contact has been used
+				if ($expensetypeExistsInMutations) {
+					echo 'Expensetype is used, it cannot be deleted';
+				}
+				else {
+					//Delete the expensetype
 				$db->query("DELETE FROM Accounts WHERE ID='".$_POST['ID']."'");
+			}
 				break;
 		}
 		viewExpenseList();
