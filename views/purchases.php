@@ -1,5 +1,6 @@
 <?php
 	if (!is_dir('files')) mkdir('files');
+	if (!is_dir('files/purchases')) mkdir('files/purchases');
 	
 	if(isset($_FILES["invoice"])) {
 		$error = false;

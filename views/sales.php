@@ -1,7 +1,8 @@
 <?php
 	include_once('php_common/invoice.php');
 
-	if (!is_dir('files/sales/')) mkdir('files/sales/');
+	if (!is_dir('files')) mkdir('files');
+	if (!is_dir('files/sales')) mkdir('files/sales');
 	
 	//handler for deleting an invoice 
 	if(isset($_POST["invoice_del"])) {

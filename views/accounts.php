@@ -160,7 +160,7 @@
 		$content.= '<tr><th>ID</th><td>'.$account['ID'].'</td>';
 		$content.= '<tr><th>PID</th><td><input type="text" name="PID" value="'.$account['PID'].'"/></td></tr>';
 		$content.= '<tr><th>'.__('name').'</th><td><input type="text" name="Name" value="'.$account['Name'].'"/></td></tr>';
-		$content.= '<tr><th>'.__('rgs').'</th><td><input type="text" name="Name" value="'.$account['RGS'].'"/></td></tr>';
+		$content.= '<tr><th>'.__('rgs').'</th><td><input type="text" name="RGS" value="'.$account['RGS'].'"/></td></tr>';
 		$content.= '</table>';
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
 		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
@@ -177,7 +177,7 @@
 					$id = $db->lastInsertRowID();
 				}
 				else {
-					$db->query("UPDATE Accounts SET Name='".$_POST['Name']."' PID='".$_POST['PID']."' RGS='".$_POST['RGS']."' WHERE ID='".$_POST['ID']."'");
+					$db->query("UPDATE Accounts SET Name='".$_POST['Name']."', PID='".$_POST['PID']."', RGS='".$_POST['RGS']."' WHERE ID='".$_POST['ID']."'");
 					$id = $_POST['ID'];
 				}
 				break;
