@@ -22,7 +22,7 @@
 		switch($filetype) {
 			case "pdf":
 				$filename = uniqid().".pdf";
-				move_uploaded_file($_FILES["invoice"]["tmp_name"], 'files/'.$filename);
+				move_uploaded_file($_FILES["invoice"]["tmp_name"], 'files/purchases/'.$filename);
 				echo $filename;
 				break;
 			default:
@@ -41,7 +41,7 @@
 				$dst = imagecreatetruecolor($dst_w, $dst_h);
 				imagecopyresampled($dst, $src, 0, 0, 0, 0, $dst_w, $dst_h, $src_w, $src_h);
 				imagedestroy($src);
-				imagejpeg($dst, 'files/'.$filename);
+				imagejpeg($dst, 'files/purchases/'.$filename);
 				imagedestroy($dst);
 				echo $filename;
 				break;
@@ -302,9 +302,9 @@
 		
 		//Laatste rij met het totaal
 		$content.= '<table class="expenseInputTotTable"><tr class="expenseInputRow"><th class="expenseInputCol">'.__('total').'</th>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="grossTot" id="'.__('grossTot').'" readonly></td>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="nettTot" id="'.__('nettTot').'" readonly></td>';
-		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="vatTot" id="'.__('vatTot').'" readonly></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="grossTot" id="grossTot" readonly></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="nettTot" id="nettTot" readonly></td>';
+		$content.= '<td class="expenseInputCol"><input type="number" step="0.01" class="expenseInputField" name="vatTot" id="vatTot" readonly></td>';
 		$content.= '<td class="expenseInputCol"></td>';
 		$content.= '<td class="expenseInputCol"><select id="vatShift" name="VatShift"></td>';
 		$content.= '<td class="expenseInputColLast"></td>';
@@ -319,19 +319,19 @@
 				$content.='<button type="submit" id="updateButton" name="cmd" value="update" disabled="disabled">'.__('submit').'</button></span>';
 				if($purchase['ID']){	//if not new entry
 					$content.='<span id="sendSpan" title="Input data first">';
-					$content.='<button type="submit" id="sendButton" name="cmd" value="sendtoreview">'.__('send').' '.__('for').' '.__('review').'</button></span>';		
+					$content.='<button type="submit" id="sendButton" name="cmd" value="save">'.__('inboeken').'</button></span>';		
 				}				
 				break;
-			case "review" :
-				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';	
-				$content.='<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
-				$content.='<button type="submit" name="cmd" value="review">'.__('review').'</button>';
-				break;
-			case "final" :
-				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
-				$content.='<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';	
-				$content.='<button type="submit" name="cmd" value="save">'.__('save').'</button>';
-				break;
+			//case "review" :
+				//$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';	
+				//$content.='<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
+				//$content.='<button type="submit" name="cmd" value="review">'.__('review').'</button>';
+				//break;
+			//case "final" :
+				//$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
+				//$content.='<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';	
+				//$content.='<button type="submit" name="cmd" value="save">'.__('save').'</button>';
+				//break;
 			case "readonly" :
 				$content.='<button type="submit" name="cmd" value="back">'.__('back').'</button>';
 		}
