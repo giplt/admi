@@ -8,18 +8,18 @@
 		$query = "SELECT * FROM Contacts ORDER BY Name";
 		$list = $db->query($query);
 		$content.= '<table>';
-		$content.= '<tr><th>ID</th><th>'.__('name').'</th><th>'.__('type').'</th><td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';
+		$content.= '<tr><th>ID</th><th>'.__('name').'</th><th>'.__('type').'</th><th>'.__('active').'status</th><td><input type="button" value="'.__('add').'" onclick="window.location.href=\''.$url.$lang.'/contacts/new\';"/></td></tr>';
 		while($item = $list->fetchArray()) {
 			$isUser = $db->querySingle("SELECT COUNT(*) as count FROM Users WHERE ContactID='{$item['ID']}'");
 //			$user = $db->query("SELECT * FROM Users WHERE ContactID='{$item['ID']}'")->fetchArray();
-			$content.= '<tr class="data"><td>'.$item['ID'].'</td><td>'.$item['Name'].'</td><td>'.($isUser?__('user'):'').'</td><td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/contacts/'.$item['ID'].'\';"/></td></tr>';
+			$content.= '<tr class="data"><td>'.$item['ID'].'</td><td>'.$item['Name'].'</td><td>'.($isUser?__('user'):'').'</td><td>'.$item['Status'].'</td><td><input type="button" value="'.__('edit').'" onclick="window.location.href=\''.$url.$lang.'/contacts/'.$item['ID'].'\';"/></td></tr>';
 		}
 		$content.= '</table>';
 	}
 	
 	function viewContact($id) {
 		global $db, $content, $url, $lang;
-		if ($id=='new') $contact = array("ID"=>"", "Name"=>"", "Address"=>"", "Zipcode"=>"", "City"=>"","Country"=>"","Phone"=>"","Email"=>"","Member"=>"no");
+		if ($id=='new') $contact = array("ID"=>"", "Name"=>"", "Address"=>"", "Zipcode"=>"", "City"=>"","Country"=>"","Phone"=>"","Email"=>"","Member"=>"no", "Status"=>"Active");
 		else $contact = $db->query("SELECT * FROM Contacts WHERE ID='{$id}'")->fetchArray();
 		$protected = false;
 		$content.= '<form method="post">';
@@ -48,17 +48,29 @@
 			$edit='edit'.$pay['ID'];
 			$content.= '<tr><td>'.$pay['Account'].'</td><td><button type="submit" name="cmd" value="'.$edit.'">edit</td></tr>';
 		}
+		//Status 
+		$content.= '<tr>';
+		$content.= '<th>Status</th>';
+		$content.= '<td><select name="Status" id="status">
+			<option value="active"'.($contact['Status']=='active'?' selected':'').'>Active</option>
+			<option value="deactivated"'.($contact['Status']=='deactivated'?' selected':'').'>Deactivated</option>
+		  </select></td>';
+
+
+		$content.= '</tr>';
 		$content.= '</table>';
 	
 		//submit buttons
 		$content.= '<button type="submit" name="cmd" value="update">'.__('submit').'</button>';
-		if (!$protected) $content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
+		//if (!$protected) 
+		$content.= '<button type="submit" name="cmd" value="remove">'.__('remove').'</button>';
 		$content.= '<input type="button" value="'.__('back').'" onclick="window.location.href=\''.$url.$lang.'/contacts\';"/>';
 		$content.= '</form>';
 	}
 	
 	function updateContact() {
 		global $db, $content, $url, $lang;
+		$status = $_POST['Status'];
 		switch (true) {
 			case ($_POST['cmd']=='update'):
 				updateContact_fields($_POST);
@@ -118,12 +130,12 @@
 		global $db, $content, $url, $lang;
 		//insert all fields
 		if ($DAT['ID']=='new') {
-			$db->query("INSERT INTO Contacts (Name,Address,Zipcode,City,Country,Phone,Email,Member) VALUES ('".$DAT['Name']."','".$DAT['Address']."','".$DAT['Zipcode']."','".$DAT['City']."','".$DAT['Country']."','".$DAT['Phone']."','".$DAT['Email']."','".$DAT['Member']."')");					
+			$db->query("INSERT INTO Contacts (Name,Address,Zipcode,City,Country,Phone,Email,Member, Status) VALUES ('".$DAT['Name']."','".$DAT['Address']."','".$DAT['Zipcode']."','".$DAT['City']."','".$DAT['Country']."','".$DAT['Phone']."','".$DAT['Email']."','".$DAT['Member']."','".$DAT['Status']."')");					
 			$id = $db->lastInsertRowID();
 		}
 		//else update all fields
 		else {
-			$db->query("UPDATE Contacts SET Name='".$DAT['Name']."',Address='".$DAT['Address']."',Zipcode='".$DAT['Zipcode']."',City='".$DAT['City']."',Country='".$DAT['Country']."',Phone='".$DAT['Phone']."',Email='".$DAT['Email']."',Member='".$DAT['Member']."'  WHERE ID='".$DAT['ID']."'");
+			$db->query("UPDATE Contacts SET Name='".$DAT['Name']."',Address='".$DAT['Address']."',Zipcode='".$DAT['Zipcode']."',City='".$DAT['City']."',Country='".$DAT['Country']."',Phone='".$DAT['Phone']."',Email='".$DAT['Email']."',Member='".$DAT['Member']."',Status='".$DAT['Status']."'  WHERE ID='".$DAT['ID']."'");
 			$id = $_POST['ID'];
 		}
 

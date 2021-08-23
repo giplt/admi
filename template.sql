@@ -17,6 +17,7 @@ CREATE TABLE `Contacts` (
 , `Phone` varchar(64) NOT NULL DEFAULT ''
 , `Email` varchar(64) NOT NULL DEFAULT ''
 , `Member` varchar NOT NULL DEFAULT ''
+, `Status` varchar(64) NOT NULL DEFAULT ''
 );
 CREATE TABLE `Projects` (
   `ID` integer NOT NULL PRIMARY KEY AUTOINCREMENT
