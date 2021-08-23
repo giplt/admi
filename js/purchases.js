@@ -344,9 +344,9 @@ function adjustExpenseTot(){
 	//sum the expense rows
 	for (i=1;i<rowCount;i++){
 		if (document.getElementById('expenseNett'+i.toString())){
-			sumnett+=+document.getElementById('expenseNett'+i.toString()).value;
-			sumvat+=+document.getElementById('expenseVat'+i.toString()).value;
-			sumgross+=+document.getElementById('expenseGross'+i.toString()).value;
+				sumnett+=+document.getElementById('expenseNett'+i.toString()).value;
+				sumvat+=+document.getElementById('expenseVat'+i.toString()).value;
+				sumgross+=+document.getElementById('expenseGross'+i.toString()).value;
 		}
 	}
 
@@ -447,11 +447,21 @@ function saveGuard(){
 	var update_but=document.getElementById("updateButton");
 	var send=false;
 
+	//update checks
+	var update_span_txt="";
+	if(!invoice){
+		update_but.setAttribute('disabled','disabled');
+		update_span_txt+="Please provide an invoice location\n";
+	}
+
 	if(document.getElementById("sendButton")){
 		var send_span=document.getElementById("sendSpan");
 		var send_but=document.getElementById("sendButton");
 		send=true;
 	}
+
+
+
 
 	//check if there is an invoice location set	
 	if(!invoice){

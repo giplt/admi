@@ -1,0 +1,77 @@
+{
+	"ledger": "sales",
+	"selection": {
+		"question": "Is btw verlegd?",
+		"explanation": "BTW is verlegd als je iets uit het buitenland koopt.",
+		"options": [
+			{
+				"answer": "ja",
+				"rule": "sale_btw_verlegd"
+			},
+			{
+				"answer": "nee",
+				"selection": {
+					"choice": "Welk tarief?",
+					"explanation": "Laag tarief geldt voor voedsel, onderwijs en kunst. <a href='https://belastingdienst.nl/laagtarief'>Meer informatie</a>",
+					"options": [
+						{
+							"answer": "geen",
+							"rule": "sale_no"
+						},
+						{
+							"answer": "laag",
+							"rule": "sale_low"
+						},
+						{
+							"answer": "hoog",
+							"rule": "sale_high"
+						}
+					]
+				}
+			}
+		]
+	},
+	"rules": {
+		"sale_low": {
+			"mutations": [
+				{
+					"id": "nett",
+					"sign": "db",
+					"account": "14",
+					"childlist": false
+				},
+				{
+					"id": "vat",
+					"sign": "db",
+					"account": "28",
+					"childlist": false
+				},
+				{
+					"id": "gross",
+					"sign": "cr",
+					"account": "392",
+					"childlist": true
+				}
+			],
+			"validation": [
+				{
+					"name": "balans",
+					"test": "{nett}+{vat}=={gross}",
+					"fail": "Netto en BTW tellen niet op tot bruto"
+				},
+				{
+					"name": "percentage",
+					"enddate": "2018-12-31",
+					"test": "{vat}/{nett}==0.06",
+					"fail": "BTW percentage klopt niet"
+				},
+				{
+					"name": "percentage",
+					"startdate": "2019-01-01",
+					"test": "{vat}/{nett}==0.09",
+					"fail": "BTW percentage klopt niet"
+				}
+			]
+		}
+	}
+}
