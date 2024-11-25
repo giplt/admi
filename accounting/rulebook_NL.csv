@@ -1,0 +1,18 @@
+Type,VAT_Type,VAT_Shift,Item,Account_Add,Account_Ref,Account_Name
+Inkoop,*,Nee,VAT,+,BSchCre,Schulden aan leveranciers en handelskredieten
+Inkoop,*,Nee,VAT,-,BSchBepBtwVoo,Voorbelasting
+Inkoop,*,EU,VAT,+,BSchBepBtwOlu,Omzetbelasting leveringen/diensten uit landen binnen EU 
+Inkoop,*,EU,VAT,-,BSchBepBtwVoo,Voorbelasting
+Inkoop,*,NL,VAT,+,BSchBepBtwOlw,Omzetbelasting leveringen/diensten waarbij de omzetbelasting naar u is verlegd 
+Inkoop,*,NL,VAT,-,BSchBepBtwVoo,Voorbelasting
+Inkoop,*,*,nett,+,BSchCre,Schulden aan leveranciers en handelskredieten
+Inkoop,*,*,nett,+,,expenseType
+Verkoop,Hoog,Nee,VAT,+,BSchBepBtwOla,Omzetbelasting leveringen/diensten belast met hoog tarief 
+Verkoop,Hoog,Nee,VAT,+,BvorDeb,Vorderingen op handelsdebiteuren
+Verkoop,Laag,Nee,VAT,+,BSchBepBtwOla,Omzetbelasting leveringen/diensten belast met laag tarief 
+Verkoop,Laag,Nee,VAT,+,BvorDeb,Vorderingen op handelsdebiteuren
+Verkoop,Nul,Nee,VAT,+,,Omzetbelasting leveringen/diensten belast met nul tarief 
+Verkoop,*,EU,VAT,+,,Omzetbelasting leveringen/diensten verlegd naar landen binnen de EU
+Verkoop,*,NL,VAT,+,,Netto-omzet uit leveringen/diensten waarbij de omzetbelasting naar u is verlegd
+Verkoop,*,*,nett,+,BVorDeb,Vorderingen op handelsdebiteuren
+Verkoop,*,*,nett,+,,salesType

@@ -486,17 +486,22 @@
 					$vatshift=$_POST["VatShift"];
 
 					if (strpos($key,$checkstr)!==False){
-						$db->query("INSERT INTO Transactions (EntryID) VALUES ('".$_POST['entryID']."')");
-						$transID=intval($db->querySingle("SELECT MAX(ID) FROM Transactions LIMIT 1"));
 
-						//get data for the mutation
+						//build an array with the required arguments
+						$mut_data=array();
 						$trans_num=substr($key, strlen($checkstr),strlen($key));
-						$gross_key="expenseGross".$trans_num;
-						$nett_key="expenseNett".$trans_num;
-						$vat_key="expenseVat".$trans_num;
-						$vat_type_key="expenseVatType".$trans_num;
 
-						makeMutations($db,$transID,$type,$_POST[$gross_key],$_POST[$nett_key],$_POST[$vat_key],$_POST[$vat_type_key]);					
+						$mut_data('type')=$type;
+						$mut_data('gross')=$_POST["expenseGross".$trans_num];
+						$mut_data('nett')=$_POST["expenseNett".$trans_num];
+						$mut_data('vat')=$_POST["expenseVat".$trans_num];
+						$mut_data('vat_type')=$_POST["expenseVatType".$trans_num];
+						$mut_data('shift')=$vatshift;
+
+						//run a number of checks and if correct make mutation
+						if(checkMutations($mut_data)){
+							makeMutations($db,$mut_data);
+						};
 	
 					}
 				}
@@ -552,6 +557,8 @@
 
 
 	function makeMutations($db,$transID,$expenseType,$gross,$nett,$vat,$vat_type) {
+
+	makeMutations($db,$mut_data);
 
 		//hier de regels voor het inboeken van inkoop transacties, nu nog even simpel
 		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '".$expenseType."', '".$nett."')");

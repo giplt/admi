@@ -1,8 +1,8 @@
 <?php
-	
+
 	//VAT tarifs, in case a new VAT tarrif is implemented insert an end-date for the old one
 	// and give a start-date to the new one, without an end-date
- 
+
 	$VAT_tarifs=array(
 		"Nul" => 
 			array(array(
@@ -35,41 +35,105 @@
 			))
 		) //array
 
-	$VAT_shift_options=array("Nee","NL","EU","Ex")
-
-	//BTW codes //combinatie van wat de belastingdienst wil horen en uit een tabel van AFAS (oud), 
-	//Geen universele codes kunnen vinden
-	//AFAS tabel: https://help.afas.nl/help/NL/SE/Fin_Config_VatIct_VatCde.htm
-	//Belastingdienst: https://download.belastingdienst.nl/belastingdienst/docs/toelichting_bij_dig_aangifte_omzetbelasting_ob0731t11fd.pdf
+	
+	$VAT_shift_options=array("Nee","NL","EU")
 
 
-	$VAT_codes=array(
-		//standaard 
-		array("1", "BTW te betalen (hoog)", "Hoog","Nee","verkoop"),
-		array("2", "BTW te betalen (laag)", "laag","Nee","verkoop"),
-		array("3", "BTW te betalen (nul)", "Nul","Nee","verkoop"),
-		array("4", "BTW te vorderen (hoog)", "Hoog","Nee","inkoop"),
-		array("5", "BTW te vorderen (laag)", "Laag","Nee","inkoop"),
-		array("6", "BTW te vorderen (nul)", "Nul","Nee","inkoop"),
+	function expenseMutations($db, $entry, $line, $transid){
+
+		//check if the expensetype exists in purchases view itself (cannot be def)
 		
-		//Verlegd binnen Nederland
-		array("31", "BTW te betalen verlegd", "Nul","NL", "verkoop"),
-		array("VR21", "te BTW vorderen verlegd","Hoog","NL","inkoop"),
-		array("VR6", "te BTW vorderen verlegd","Hoog","NL","inkoop"),
+		//the rules that need to be checked on order to aprove the mutation
+		$check=array(
+			"Type" => "inkoop";
+			"VAT_Type" => $line['VAT_Type'];
+			"VAT_Shift" => $line['VAT_Shift'];
+		);
 
-		//Verlegd binnen Europa
-		array("34", "IC levering Goederen","Nul","EU","sales"),
-		array("35", "IC levering Diensten","Nul","EU","sales"),
-		array("V02", "Export buiten de EU ","Uitgesloten van BTW","Ex","sales"),
-		array("V03", "Export buiten de EU Diensten","Uitgesloten van BTW","Ex","sales"),
+		//walk through each line in the rulebook and add each mutation to the mutation list
+		$mutation_list=array();
+
+		foreach($rules_dict as $rule){
+
+			$mutate=false;
+
+			//walk through the columns of the rulebook
+			foreach($rule as $key=> $value){
+
+				//only look at those variables that are in the checklist
+				if(array_key_exists($key,$check){
+
+					//if the rule applies to this entry or to all (*) 
+					if($rule[$key]==$check[$key] or $rule[$key]=="*"){
+						$mutate=true;
+
+					} //if
+
+					else{
+						$mutate=false;
+					} //else
+					
+
+				} //if
+
+			} //foreach
+
+			//add mutation to the mutation_list,
+			// add the item that is in the rulebook
+			if($mutate){
+
+				$amount=$line[$rule['Item']];
+
+				if($rule['AccountVar']==""){
+					$account=$rule['AccountID'];
+				}
+				else{
+					$account=$line[$rule['AccountVar']];
+				}
+
+				array_push($mutation_list, array(
+					"TransactionID" => $transid,					
+					"AccountID"=> $account,
+					"Amount"=>$amount
+					));
+
+			} //if
 		
-		//array("36", "Import buiten EU","Hoog","purchases"),
-		array("37", "IC verwerving NUL","Nul","EU","purchases"),
-		array(42, "IC Verwerving Laag","Laag","EU","purchases"),
-		array(43, "IC Verwerving Hoog","Hoog","EU","purchases"),
+			 
+		} //foreach
 
-		array("40", "BTW vrijgesteld","Nul","Nee","sales"),
-	)
+		//TODO: add together double bookings to Deb if the VAT date and Period correspond to eachother
+		//Keeping it seperated is only usefull when there are invoices that go over years, you want to book 
+		//expenses in the last year, but book the vat in this year and you need to split the booking to credit
+	
+		//Get all the values for Account in the mutation list
+		array
+		foreach($mutation_list as $m){
+	
+		}
+		
+		$mutation_list_new=$mutation_list;
+
+		foreach($mutation_list_new){
+			
+	
+		}
+		
+
+
+		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '".$expenseType."', '".$nett."')");
+
+		getVatCode($line, "expense");
+		
+		$vatpayed=
+		
+		//book credit
+		$db->query("INSERT INTO Mutations (TransactionID, AccountID, Amount) VALUES ('".$transID."', '".$expenseType."', '".($nett+$vatpayed)."')");
+
+	}
+
+	
+
 
 	function saleMutations($entry, $transID){
 

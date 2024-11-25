@@ -81,7 +81,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>Administratie Coöp Plan B</title>
-		<link rel="stylesheet" type="text/css" href="style/admi.css"/>
+		<link rel="stylesheet" type="text/css" href="/style/admi.css"/>
 		<script type="text/javascript" src="js/help.js"></script>
 	</head>
 	<body>
